@@ -8,7 +8,7 @@ from shapely.geometry import Point, Polygon
 from datetime import datetime
 from itertools import compress
 
-from building import Building
+from gflow.building import Building
 # from vehicle import Vehicle
 import pdb
 

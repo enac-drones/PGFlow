@@ -7,7 +7,7 @@ from shapely.geometry import Point, Polygon
 from datetime import datetime
 from itertools import compress
 
-from panel_flow import Flow_Velocity_Calculation
+from gflow.panel_flow import Flow_Velocity_Calculation
 
 import pdb
 

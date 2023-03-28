@@ -7,8 +7,8 @@ from shapely.geometry import Point, Polygon
 from datetime import datetime
 from itertools import compress
 
-from building import Building
-from vehicle import Vehicle
+from gflow.building import Building
+from gflow.vehicle import Vehicle
 import pdb
 
 from scipy.spatial import ConvexHull
@@ -32,7 +32,7 @@ class ArenaMap():
             
             print('--------------- Here are the Buildings -------------', self.buildings)
         if generate == 'manual':
-            version = number
+            # version = number
             if version == 0:   # Dubai Map
                 self.buildings = [Building([[55.1477081, 25.0890699, 50 ],[ 55.1475319, 25.0888817, 50 ],[ 55.1472176, 25.0891230, 50 ],[ 55.1472887, 25.0892549, 50],[55.1473938, 25.0893113, 50]]),
                                                     Building([[55.1481917, 25.0895323, 87 ],[ 55.1479193, 25.0892520, 87 ],[ 55.1476012, 25.0895056, 87 ],[ 55.1478737, 25.0897859, 87]]),
