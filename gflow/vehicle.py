@@ -85,6 +85,7 @@ class Vehicle():
         self.velocity_corrected = np.zeros(3)
         self.vel_err = np.zeros(3)
         self.correction_type = correction_type
+        self._vehicle_list = []
 
     @property
     def arena(self):
@@ -186,6 +187,16 @@ class Vehicle():
         p3 = v + p3      
         return p1, p2, p3
 
+    def run(self):
+        flow_vels = Flow_Velocity_Calculation(self.vehicle_list, self.arena, method = 'Vortex')
+        for index,vehicle in enumerate(self.vehicle_list):
+            if self.vehicle_list[index].ID == self.ID :
+                self.Update_Velocity(flow_vels[index], self.arena)
+            else:
+                #Update the other nearby vehicles (be careful for the index)
+                pass
+
+
     def Update_Velocity(self,flow_vels,arenamap):
     # K is vehicle speed coefficient, a design parameter
         #flow_vels = flow_vels * self.velocitygain
@@ -210,6 +221,7 @@ class Vehicle():
         elif self.correction_type == 'project':
             self.correction = -(dif3 - np.dot(dif3,dif2/np.linalg.norm(dif2))*np.linalg.norm(dif2) ) + self.correction
         self.path = np.vstack(( self.path,self.position ))
+        print('writing to the path...',)
         if np.linalg.norm(self.goal-self.position) < 0.2: #0.1 for 2d
             self.state = 1
         return self.position

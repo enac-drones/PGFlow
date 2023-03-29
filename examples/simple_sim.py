@@ -6,6 +6,8 @@ from time import sleep
 import pdb
 import numpy as np
 import matplotlib.pyplot as plt
+from copy import copy, deepcopy
+
 
 from cases import Cases
 
@@ -33,33 +35,38 @@ def plot_trajectories(Arena, ArenaR, Vehicle_list):
     plt.show()
 
 
-Arena  = ArenaMap(6,)
-ArenaR = ArenaMap(6,)
-Arena.Inflate(radius = 0.2) #0.1
-Arena.Panelize(size= 0.01) #0.08
-Arena.Calculate_Coef_Matrix(method = 'Vortex')
 
-Case = Cases(117,Arena,'manual')
+
+# Case = Cases(117,Arena,'manual')
 # Case = Cases(13,Arena,'manual')
-Vehicle_list = Case.Vehicle_list
+# Case.arena  = ArenaMap(6,)
+# Case.arenaR = ArenaMap(6,)
+# Case.arena.Inflate(radius = 0.2) #0.1
+# Case.arena.Panelize(size= 0.01) #0.08
+# Case.arena.Calculate_Coef_Matrix(method = 'Vortex')
 
-current_vehicle_list = Vehicle_list
-for i in range (700):
+case = Cases()
 
-    Flow_Vels = Flow_Velocity_Calculation(current_vehicle_list,Arena,method = 'Vortex')
+current_vehicle_list = copy(case.Vehicle_list)
+
+for i in range (500):
+    print(i)
+    # Flow_Vels = Flow_Velocity_Calculation(current_vehicle_list,case.arena, method='Vortex')
     for index,vehicle in enumerate(current_vehicle_list):
-        if vehicle.t >= i:
-            pass
-        else:
-            pass
-        vehicle.Update_Velocity(Flow_Vels[index],Arena)
-        vehicle.Go_to_Goal(1.5,0,0,vehicle.Vinfmag)
+        # if vehicle.t >= i:
+        #     pass
+        # else:
+        #     pass
+        # vehicle.Update_Velocity(Flow_Vels[index],case.arena)
+        vehicle.run()
+        # vehicle.Go_to_Goal(1.5,0,0,vehicle.Vinfmag)
         #vehicle.Go_to_Goal(1.5,(-1)**(index))
         #print('Vehicle ', str(index), 'AoA ', str(vehicle.AoA*180/np.pi) )
         if vehicle.state == 1:
             current_vehicle_list = current_vehicle_list[:index] + current_vehicle_list[index+1:]
-            print(str(i))
-            print('Vehicle ', str(index), 'has reached the goal')
+            # print(str(i))
+            print('Vehicle ', str(index), 'has reached the goal', i)
 
-plot_trajectories(Arena, ArenaR, Vehicle_list)
+
+plot_trajectories(case.arena, case.arena, case.Vehicle_list)
 #EOF

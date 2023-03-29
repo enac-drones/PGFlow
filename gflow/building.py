@@ -14,7 +14,7 @@ import pdb
 class Building():
     def __init__(self,vertices,position = None): # Buildings(obstacles) are defined by coordinates of their vertices.
         self.vertices = np.array(vertices)
-        print('\n These are the vertices...')
+        # print('\n These are the vertices...')
         self.inflate(rad=0.)
         print(self.vertices)
         self.position = np.array(position)
@@ -104,9 +104,8 @@ class Building():
             vel_source_imag[:,1] = (vehicle.imag_source_strength*(self.pcp[:,1]-vehicle.position[1]))/(2*np.pi*((self.pcp[:,0]-vehicle.position[0])**2+(self.pcp[:,1]-vehicle.position[1])**2))
 
             for i,othervehicle in enumerate(othervehicles) :
-
-                    vel_source[:,0] += (othervehicle.source_strength*(self.pcp[:,0]-othervehicle.position[0]))/(2*np.pi*((self.pcp[:,0]-othervehicle.position[0])**2+(self.pcp[:,1]-othervehicle.position[1])**2))
-                    vel_source[:,1] += (othervehicle.source_strength*(self.pcp[:,1]-othervehicle.position[1]))/(2*np.pi*((self.pcp[:,0]-othervehicle.position[0])**2+(self.pcp[:,1]-othervehicle.position[1])**2))
+                vel_source[:,0] += (othervehicle.source_strength*(self.pcp[:,0]-othervehicle.position[0]))/(2*np.pi*((self.pcp[:,0]-othervehicle.position[0])**2+(self.pcp[:,1]-othervehicle.position[1])**2))
+                vel_source[:,1] += (othervehicle.source_strength*(self.pcp[:,1]-othervehicle.position[1]))/(2*np.pi*((self.pcp[:,0]-othervehicle.position[0])**2+(self.pcp[:,1]-othervehicle.position[1])**2))
 
 
             RHS[:,0]  = -vehicle.V_inf[0]  * np.cos(self.pb[:])  \
