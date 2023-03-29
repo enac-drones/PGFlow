@@ -12,6 +12,7 @@ from gflow.vehicle import Vehicle
 import pdb
 
 from scipy.spatial import ConvexHull
+import random
 
 """##Arena Code"""
 
@@ -103,6 +104,7 @@ class ArenaMap():
         elif generate == 'random':
             self.buildings = []
             self.buildings.append(self.AddRandomBuilding())
+            number = version # Number of buildings to be generated FIX THIS LATER
             while len(self.buildings) < number:
                 temp_building = self.AddRandomBuilding()
                 for i in range(len(self.buildings) ):

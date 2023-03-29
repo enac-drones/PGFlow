@@ -10,6 +10,7 @@ from itertools import compress
 from gflow.panel_flow import Flow_Velocity_Calculation
 
 import pdb
+import scipy
 
 """##Vehicles"""
 
@@ -214,7 +215,8 @@ class Vehicle():
         return self.position
 
     def Update_Position(self):
-        self.position = self.Velocity_Calculate(flow_vels)
+        # self.position = self.Velocity_Calculate(flow_vels)
+        pass
     
 
     def propagate_future_path(self,  maglist ,dyn=dynamics, t0=0., dt=0.02, hor = 2.4,reset_position=True, set_best_state=True):
@@ -296,3 +298,7 @@ class Vehicle():
         # print('For vehicle ', str('Best'), 'Best V_inf is: ', str(vinfmag))
         self.Go_to_Goal(AoAsgn = np.sign(vinfmag), Vinfmag = np.abs(vinfmag))
         return path#, vinfmag
+
+    def propagate_neighbor_states(self):
+        # All of the nearby vehicles within ?1m?
+        self.vehicle_list
