@@ -33,6 +33,7 @@ class ArenaMap():
             
             print('--------------- Here are the Buildings -------------', self.buildings)
         if generate == 'manual':
+            # Give error if the buildings are not defined !
             self.buildings = buildings
 
         elif generate == 'random':

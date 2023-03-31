@@ -187,7 +187,7 @@ class Vehicle():
         p3 = v + p3      
         return p1, p2, p3
 
-    def run(self):
+    def run_simple_sim(self):
         flow_vels = Flow_Velocity_Calculation(self.vehicle_list, self.arena, method = 'Vortex')
         for index,vehicle in enumerate(self.vehicle_list):
             if self.vehicle_list[index].ID == self.ID :
@@ -221,7 +221,7 @@ class Vehicle():
         elif self.correction_type == 'project':
             self.correction = -(dif3 - np.dot(dif3,dif2/np.linalg.norm(dif2))*np.linalg.norm(dif2) ) + self.correction
         self.path = np.vstack(( self.path,self.position ))
-        print('writing to the path...',)
+        # print('writing to the path...',)
         if np.linalg.norm(self.goal-self.position) < 0.2: #0.1 for 2d
             self.state = 1
         return self.position

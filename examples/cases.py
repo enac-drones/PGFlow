@@ -2,7 +2,7 @@ from gflow.vehicle import Vehicle
 from gflow.building import Building
 from gflow.arena import ArenaMap
 import numpy as np
-from copy import copy
+from copy import copy, deepcopy
 
 class Cases():
 	def __init__(self, case_no=0, arenamap=None, generate = 'manual'):
@@ -19,9 +19,9 @@ class Cases():
 								Building([[1.5, -2.5, 1.2], [1, -2.5, 1.2], [1, -1.4, 1.2], [1.5, -1, 1.2]]),
 								Building([[3.5, -2.5, 1.2], [3, -2.5, 1.2], [3, -1, 1.2], [3.5, -1.4, 1.2]])]
 
-				Vehicle1 = Vehicle("V1",0,0.5)            # Vehicle ID, Source_strength imaginary source = 1.5
-				Vehicle2 = Vehicle("V2",0,0.5)
-				Vehicle3 = Vehicle("V3",0,0.5)
+				Vehicle1 = Vehicle("V1",0.5,0.5)            # Vehicle ID, Source_strength imaginary source = 1.5
+				Vehicle2 = Vehicle("V2",0.5,0.5)
+				Vehicle3 = Vehicle("V3",0.5,0.5)
 				
 				Vehicle1.Set_Goal([-3,   0, 0.5], 5, 0.0001)       # goal,goal_strength all 5, safety 0.001 for V1 safety = 0 when there are sources
 				Vehicle2.Set_Goal([ 2, 3.5, 0.5], 5, 0.0001)
@@ -362,9 +362,9 @@ class Cases():
 		# self.arenaR = ArenaMap(buildings=self.buildings) # FIX ME , remove this ! 
 		print('Arena Maps are ready !')
 
-		for vehicle in self.Vehicle_list:
-			vehicle.vehicle_list = copy(self.Vehicle_list)
-			vehicle.arena = copy(self.arena)  # FIXME are these copies a prblme ???
+		for vehicle in self.Vehicle_list: # FIXME Veh and veh ... select a norm for naming... :(
+			vehicle.vehicle_list = deepcopy(self.Vehicle_list)
+			vehicle.arena = deepcopy(self.arena)  # FIXME are these copies a prblme ???
 
 	
 	def SetRandomStartGoal(self,arenamap,ID):
