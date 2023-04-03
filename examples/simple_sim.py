@@ -1,5 +1,5 @@
 from gflow.arena import ArenaMap
-from gflow.building import Building
+# from gflow.building import Building
 from gflow.vehicle import Vehicle
 import gflow.utils as ut
 from time import sleep
@@ -33,7 +33,7 @@ for i in range (500):
         vehicle.vehicle_list[index].position = vehicle.position
 
         # Update the listed vehicle numbers wrt every one
-        if index in [1,2,3]:
+        if index in []:
             for list_index in range(len(vehicle.vehicle_list)):
                 vehicle.vehicle_list[list_index].position = case.Vehicle_list[list_index].position # calling case.Vehicle is not nice here... 1 unneccessary element update
 

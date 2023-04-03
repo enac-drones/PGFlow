@@ -114,18 +114,18 @@ class Vehicle():
     def Set_Velocity(self,vel):
         self.velocity = vel
 
-    def Set_Desired_Velocity(self,vel, method='direct'):
+    def Set_Desired_Velocity(self,vel, correction_method='None'):
         self.velocity_desired = vel
-        self.correct_vel(method=method)
+        self.correct_vel(correction_method=correction_method)
 
 
-    def correct_vel(self, method='None'):
+    def correct_vel(self, correction_method='None'):
 
-        if method == 'projection':
+        if correction_method == 'projection':
             #Projection Method
             wind = self.velocity - self.velocity_desired
             self.vel_err = self.vel_err - (wind - np.dot(wind, self.velocity_desired/np.linalg.norm(self.velocity_desired) ) * np.linalg.norm(self.velocity_desired) ) *(1./240.)
-        elif method == 'direct':
+        elif correction_method == 'direct':
             # err = self.velocity_desired - self.velocity
             self.vel_err = (self.velocity_desired - self.velocity)*(1./40.)
             # self.vel_err = (self.velocity_desired - self.velocity)
@@ -195,6 +195,16 @@ class Vehicle():
             else:
                 #Update the other nearby vehicles (be careful for the index)
                 pass
+
+    def run_flow_calc_alone(self):
+        flow_vels = Flow_Velocity_Calculation(self.vehicle_list, self.arena, method = 'Vortex')
+        for index,vehicle in enumerate(self.vehicle_list):
+            if self.vehicle_list[index].ID == self.ID :
+                # self.Update_Velocity(flow_vels[index], self.arena)
+                # Calculate the desired velocity and corrected one 
+                self.Set_Desired_Velocity(flow_vels[index], correction_method='None')
+                
+        return self.velocity_corrected
 
 
     def Update_Velocity(self,flow_vels,arenamap):
@@ -313,4 +323,5 @@ class Vehicle():
 
     def propagate_neighbor_states(self):
         # All of the nearby vehicles within ?1m?
-        self.vehicle_list
+        # self.vehicle_list
+        pass
