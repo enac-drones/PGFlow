@@ -5,7 +5,7 @@ import numpy as np
 from copy import copy, deepcopy
 
 class Cases():
-	def __init__(self, case_no=0, arenamap=None, generate = 'manual'):
+	def __init__(self, case_no=1, arenamap=None, generate = 'manual'):
 
 		if generate == 'manual':
 			if case_no == 0:
@@ -35,6 +35,28 @@ class Cases():
 				Vehicle2.Set_Position([-1, -3 , 0.5])
 				Vehicle3.Set_Position([-3,  3 , 0.5])
 				self.Vehicle_list = [Vehicle1,Vehicle2,Vehicle3] #, Vehicle2, Vehicle3] # , Vehicle2, Vehicle3]
+
+			elif case_no == 1:
+				#case for drones to swap positions 
+
+				self.buildings = []
+
+				Vehicle1 = Vehicle("V1",0.5,0.5)            # Vehicle ID, Source_strength imaginary source = 1.5
+				Vehicle2 = Vehicle("V2",0.5,0.5)
+				#Vehicle3 = Vehicle("V3",0.5,0.5)
+				
+				Vehicle1.Set_Goal([3,   0, 0.5], 5, 0.0001)       # goal,goal_strength all 5, safety 0.001 for V1 safety = 0 when there are sources
+				Vehicle2.Set_Goal([ -3, 0, 0.5], 5, 0.0001)
+				#Vehicle3.Set_Goal([ 0,   3, 0.5], 5, 0.0001)
+
+				Vehicle1.Go_to_Goal(0.5,0,0,0)         # altitude, AoA,t_start,Vinf=0.5,0.5,1.5
+				Vehicle2.Go_to_Goal(0.5,0,0,0)        # np.arctan2(3.5+1,1.5+0.5) = 1.1525719 rad
+				#Vehicle3.Go_to_Goal(0.5,0,0,0)
+
+				Vehicle1.Set_Position([ -3,  0.00001 , 0.5])
+				Vehicle2.Set_Position([ 3, 0 , 0.5])
+				#Vehicle3.Set_Position([0,  -3 , 0.5])
+				self.Vehicle_list = [Vehicle1,Vehicle2] #, Vehicle2, Vehicle3] # , Vehicle2, Vehicle3]
 
 			elif case_no == 61:
 				Vehicle1 = Vehicle("V1",0,0.5)             # Vehicle ID, Source_strength,safety

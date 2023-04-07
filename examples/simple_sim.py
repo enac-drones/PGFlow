@@ -33,7 +33,7 @@ for i in range (500):
         vehicle.vehicle_list[index].position = vehicle.position
 
         # Update the listed vehicle numbers wrt every one
-        if index in []:
+        if index in [0]:
             for list_index in range(len(vehicle.vehicle_list)):
                 vehicle.vehicle_list[list_index].position = case.Vehicle_list[list_index].position # calling case.Vehicle is not nice here... 1 unneccessary element update
 
@@ -41,5 +41,7 @@ for i in range (500):
             print('Vehicle ', str(index), 'has reached the goal', i)
 
 
-ut.plot_trajectories(case.arena, case.arena, case.Vehicle_list)
+#ut.plot_trajectories(case.arena, case.arena, case.Vehicle_list)
+ut.plot_trajectories1(case.arena, case.arena, case.Vehicle_list)
+
 #EOF
