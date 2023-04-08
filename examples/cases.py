@@ -5,7 +5,7 @@ import numpy as np
 from copy import copy, deepcopy
 
 class Cases():
-	def __init__(self, case_no=1, arenamap=None, generate = 'manual'):
+	def __init__(self, case_no=0, arenamap=None, generate = 'manual'):
 
 		if generate == 'manual':
 			if case_no == 0:

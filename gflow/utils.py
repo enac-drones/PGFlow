@@ -36,7 +36,11 @@ def plot_trajectories1(Arena, ArenaR, Vehicle_list):
     #plt.close('all')
     fig = plt.figure(figsize=(5,5))
     ax = fig.add_subplot(111)
-    fig.subplots_adjust(bottom=0.2, top=0.75)
+    fig.subplots_adjust(bottom=0.1, top=0.9)
+    ax.set_xlim([-5, 5])
+    ax.set_ylim([-5, 5])
+    ax.set_box_aspect(1)
+
     # Create axes for sliders
     #variable inside add_axes is left, bottom, width, height
     #ax_prog = fig.add_axes([0.3, 0.85, 0.4, 0.05])
@@ -129,4 +133,5 @@ def plot_trajectories1(Arena, ArenaR, Vehicle_list):
     plt.ylabel('North-direction --> (m)')
     plt.xlim([minx, maxx])
     plt.ylim([miny, maxy])
-    fig.show()
+    #print("we are here")
+    plt.show()
