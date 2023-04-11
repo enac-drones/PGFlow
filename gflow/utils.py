@@ -52,7 +52,7 @@ def plot_trajectories1(Arena, ArenaR, Vehicle_list):
     ax_prog.spines['right'].set_visible(True)
 
     # Create sliders
-    s_prog = Slider(ax=ax_prog, label='Progress ',valinit=5.0, valstep=0.01, valmin=0, valmax=1.0, valfmt=' %1.1f ', facecolor='#cc7000')
+    s_prog = Slider(ax=ax_prog, label='Progress ',valinit=5.0, valstep=0.001, valmin=0, valmax=1.0, valfmt=' %1.1f ', facecolor='#cc7000')
 
     #s_prog = Slider(ax=ax_prog, label='Temperature ', valmin=0, valmax=1, valinit=0.5, valfmt='%i K', facecolor='#cc7000')
     
@@ -98,19 +98,20 @@ def plot_trajectories1(Arena, ArenaR, Vehicle_list):
         f_d, = ax.plot(Vehicle_list[_v].path[:n,0],Vehicle_list[_v].path[:n,1], linewidth = 2)
         #the line below is for adding an icon to the current vehicle position, it works but there are some issues to fix
         #so for now it is commented
-        #drone_icon, = ax.plot(Vehicle_list[_v].path[-1,0],Vehicle_list[_v].path[-1,1],'o')
+        drone_icon, = ax.plot(Vehicle_list[_v].path[-1,0],Vehicle_list[_v].path[-1,1],'x')
         plot_list.append(f_d)
         #also uncomment the line below once drone_icon is fixed
-        #drone_list.append(drone_icon)
+        drone_list.append(drone_icon)
         #the following two lines plot the start and end points
-        ax.plot(Vehicle_list[_v].path[0,0],Vehicle_list[_v].path[0,1],'o')
-        ax.plot(Vehicle_list[_v].goal[0],Vehicle_list[_v].goal[1],'x')
+        ax.plot(Vehicle_list[_v].path[0,0],Vehicle_list[_v].path[0,1],'')
+        ax.plot(Vehicle_list[_v].goal[0],Vehicle_list[_v].goal[1],'*')
 
     # Update values
     def update(val):
         #scale val to be between 0 and 1 while the problem with the slider is not fixed
         #temp = (s_prog.val+5)/10
         temp= s_prog.val
+        print(f"the slider is currently on {temp}")
         #T = s_T.val
         #f_d.set_data(x, fermi(x, Ef, T))
         #list_of_point_lengths = []
@@ -120,10 +121,20 @@ def plot_trajectories1(Arena, ArenaR, Vehicle_list):
         #n = max(list_of_point_lengths)
         #n = len(Vehicle_list[_v].path[:,0])
         plot_until = int(np.floor(temp*n))
+        print(f"plot_until is currently {plot_until}")
         for i in range(len(plot_list)):
             #f_d.set_data(Vehicle_list[_v].path[:plot_until,0],Vehicle_list[_v].path[:plot_until,1])
+            #print(f"path {i} is of length {len(Vehicle_list[i].path[:,0])}")
             plot_list[i].set_data(Vehicle_list[i].path[:plot_until,0],Vehicle_list[i].path[:plot_until,1])
-            #drone_list[i].set_data(Vehicle_list[i].path[plot_until-1,0],Vehicle_list[i].path[plot_until-1,1])
+            if plot_until == 0:
+                print("we are in case 0")
+                drone_list[i].set_data(Vehicle_list[i].path[0,0],Vehicle_list[i].path[0,1])
+            elif plot_until < len(Vehicle_list[i].path[:,0]):
+                print("we are in case 1")
+                drone_list[i].set_data(Vehicle_list[i].path[plot_until-1,0],Vehicle_list[i].path[plot_until-1,1])
+            else:
+                print("we are in case 2")
+                drone_list[i].set_data(Vehicle_list[i].path[-1,0],Vehicle_list[i].path[-1,1])
 
         fig.canvas.draw_idle()
 
