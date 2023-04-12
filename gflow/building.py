@@ -14,9 +14,10 @@ import pdb
 class Building():
     def __init__(self,vertices,position = None): # Buildings(obstacles) are defined by coordinates of their vertices.
         self.vertices = np.array(vertices)
+        #print(f"the vertices are {self.vertices} shape of the vertices is {self.vertices.shape}")
         # print('\n These are the vertices...')
         self.inflate(rad=0.)
-        print(self.vertices)
+        print(f"points after inflation are {self.vertices}")
         self.position = np.array(position)
         self.panels = np.array([])
         self.nop  = None           # Number of Panels
@@ -24,7 +25,7 @@ class Building():
         self.K_inv = None
         self.gammas = {}           # Vortex Strenghts
         #self.solution = np.array([])
-
+    
     def inflate(self,safetyfac = 1.1, rad = 1e-4):
         rad = rad * safetyfac
         scale = 1e6
@@ -118,3 +119,73 @@ class Building():
                                     -vel_source_imag[:,1]  * np.sin(self.pb[:]) 
 
             self.gammas[vehicle.ID] = np.matmul(self.K_inv,RHS)
+
+
+class RegularPolygon:
+    '''Class to generate regular polygons bounded by the unit circle with the first point lying at (0,1)'''
+    def __init__(self,sides = 4, centre = (0,0),rotation = 0,expansion = 1) -> None:
+        self.n = sides
+        #define the radius of the unit circle for mathematical rigour only (or if expansion is requested):
+        self.radius = expansion
+        #angle by which to rotate the shape (degrees for ease of use)
+        self.rotation_angle = np.radians(rotation)
+        #how much to translate the shape so its centre lies where the user wishes
+        self.centre = np.array(centre)
+        #self.points = self.final_coords()
+
+    def rotation_matrix2D(self,theta):
+        '''return a rotation matrix to rotate a vector clockwise by theta'''
+        #define cos(i*alpha) and sin(i*alpha)
+        c, s = np.cos(theta), np.sin(theta)
+        #create rotation matrix using previous definitions
+        R = np.array(((c, s), (-s, c)))
+        return R
+    
+    def translate(self, points,v):
+        '''translate all points in np array points by a 2D vector v'''
+        translated = points+np.array(v)
+        return translated
+    
+    def rotate(self,points, theta):
+        '''rotates all points by an angle theta (radians) clockwise'''
+        #create the rotation matrix
+        R_theta = self.rotation_matrix2D(theta)
+        #rotate each point in points element wise using list comprehension
+        rotated = [np.matmul(R_theta,point) for point in points]
+        return rotated
+
+    def regular_coords(self):
+        '''Create a an array of coordinates of a regular polygon with n sides'''
+        #define an empty list to hold point co-ordinates:
+        p_list = []
+        #define the first point at (0,1)
+        P0 = np.array((0,self.radius))
+        for i in range(self.n):
+            alpha_i = i*2*np.pi/self.n
+            #generate the rotation matrix to obtain i^th coordinate
+            Ri = self.rotation_matrix2D(alpha_i)
+            # Ri*P0 will generate the i^th coordinate
+            Pi = np.matmul(Ri,P0)
+            #add newest point to list of points
+            p_list.append(Pi)
+        return p_list
+    
+    def points(self):
+        '''return final coordinates after expansion, rotation and translation'''
+        #first rotate the polygon so that it is still centred on 0
+        rotated = self.rotate(self.regular_coords(),self.rotation_angle)
+        #then translate the points by the centre vector
+        translated = self.translate(rotated,self.centre)
+        #add third dimension for compatibility with Building class. The 1.2 is a height at which the drones see the buildings
+        final = np.c_[translated,1.2*np.ones(self.n)]
+        return final
+
+
+#if __name__==main():
+    #a= RegularPolygon(3,rotation=0,expansion=1)
+    #c = a.points()
+    #print(c)
+    #d = a.points()
+    #print(f"d = {d}")
+    #print(d.shape)
+    #b = Building(d)

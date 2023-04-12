@@ -20,7 +20,7 @@ from cases import Cases
 case = Cases()
 
 for i in range (500):
-    print(i)
+    #print(i)
     # Step the simulation
     for index,vehicle in enumerate(case.Vehicle_list):
         if vehicle.state != 1:
@@ -33,7 +33,8 @@ for i in range (500):
         vehicle.vehicle_list[index].position = vehicle.position
 
         # Update the listed vehicle numbers wrt every one
-        if index in [0]:
+        # the numbers in the if statement within the list, separated by commas indicate which drones are providing their position
+        if index in [0,1]:
             for list_index in range(len(vehicle.vehicle_list)):
                 vehicle.vehicle_list[list_index].position = case.Vehicle_list[list_index].position # calling case.Vehicle is not nice here... 1 unneccessary element update
 
