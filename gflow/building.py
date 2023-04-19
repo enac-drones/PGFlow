@@ -17,7 +17,7 @@ class Building():
         #print(f"the vertices are {self.vertices} shape of the vertices is {self.vertices.shape}")
         # print('\n These are the vertices...')
         self.inflate(rad=0.)
-        print(f"points after inflation are {self.vertices}")
+        #print(f"points after inflation are {self.vertices}")
         self.position = np.array(position)
         self.panels = np.array([])
         self.nop  = None           # Number of Panels
@@ -123,10 +123,10 @@ class Building():
 
 class RegularPolygon:
     '''Class to generate regular polygons bounded by the unit circle with the first point lying at (0,1)'''
-    def __init__(self,sides = 4, centre = (0,0),rotation = 0,expansion = 1) -> None:
+    def __init__(self,sides = 4, centre = (0,0),rotation = 0,radius = 1) -> None:
         self.n = sides
-        #define the radius of the unit circle for mathematical rigour only (or if expansion is requested):
-        self.radius = expansion
+        #define the radius of the circle within which the regular polygon lies:
+        self.radius = radius
         #angle by which to rotate the shape (degrees for ease of use)
         self.rotation_angle = np.radians(rotation)
         #how much to translate the shape so its centre lies where the user wishes
@@ -181,11 +181,11 @@ class RegularPolygon:
         return final
 
 
-#if __name__==main():
-    #a= RegularPolygon(3,rotation=0,expansion=1)
-    #c = a.points()
-    #print(c)
-    #d = a.points()
-    #print(f"d = {d}")
-    #print(d.shape)
-    #b = Building(d)
+# if __name__ == "__main__":
+#     a= RegularPolygon(3,rotation=0,radius=1)
+#     c = a.points()
+#     print(c)
+#     d = a.points()
+#     print(f"d = {d}")
+#     print(d.shape)
+#     b = Building(d)

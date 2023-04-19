@@ -1,14 +1,32 @@
 from gflow.vehicle import Vehicle
-from gflow.building import Building,RegularPolygon
+from gflow.building import Building, RegularPolygon
 from gflow.arena import ArenaMap
 import numpy as np
 from copy import copy, deepcopy
 
 class Cases():
-	def __init__(self, case_no=2, arenamap=None, generate = 'manual'):
+	def __init__(self, case_no=0, arenamap=None, generate = 'manual', custom = None):
 
 		if generate == 'manual':
-			if case_no == 0:
+			if custom:
+				self.buildings = custom
+				Vehicle1 = Vehicle("V1",1.2,0.5)            # Vehicle ID, Source_strength imaginary source = 1.5
+				Vehicle2 = Vehicle("V2",1.2,0.5)
+				#Vehicle3 = Vehicle("V3",0.5,0.5)
+				
+				Vehicle1.Set_Goal([3,   0, 0.5], 5, 0.0001)       # goal,goal_strength all 5, safety 0.001 for V1 safety = 0 when there are sources
+				Vehicle2.Set_Goal([ -3, 0, 0.5], 5, 0.0001)
+				#Vehicle3.Set_Goal([ 0,   3, 0.5], 5, 0.0001)
+
+				Vehicle1.Go_to_Goal(0.5,0,0,0)         # altitude, AoA,t_start,Vinf=0.5,0.5,1.5
+				Vehicle2.Go_to_Goal(0.5,0,0,0)        # np.arctan2(3.5+1,1.5+0.5) = 1.1525719 rad
+				#Vehicle3.Go_to_Goal(0.5,0,0,0)
+
+				Vehicle1.Set_Position([ -3,  0.0001 , 0.5])
+				Vehicle2.Set_Position([ 3, 0 , 0.5])
+				#Vehicle3.Set_Position([0,  -3 , 0.5])
+				self.Vehicle_list = [Vehicle1,Vehicle2] #, Vehicle2, Vehicle3] # , Vehicle2, Vehicle3]
+			elif case_no == 0:
 
 				self.buildings = [Building([[3.0, 2.0, 1.2], [2.75, 1.567, 1.2], [2.25, 1.567, 1.2], [2.0, 2.0, 1.2], [2.25, 2.433, 1.2], [2.75, 2.433, 1.2]]), #AddCircularBuilding( 2.5, 2, 6, 0.5, 1.2, angle = 0)
 								Building([[1.0, 3.0, 1.5], [0.75, 2.567, 1.5], [0.25, 2.567, 1.5], [0.0, 3.0, 1.5], [0.25, 3.433, 1.5], [0.75, 3.433, 1.5]]), #AddCircularBuilding( 0.5, 3, 6, 0.5, 1.5, angle = 0)
@@ -59,7 +77,7 @@ class Cases():
 
 			elif case_no == 2:
 				#case for drones to swap positions 
-				square = RegularPolygon(sides=8,centre=(1,0.4),rotation=20,expansion=0.5)
+				square = RegularPolygon(sides=500,centre=(0,0),rotation=0,radius=1)
 				self.buildings = [Building(square.points())]
 
 				Vehicle1 = Vehicle("V1",0.5,0.5)            # Vehicle ID, Source_strength imaginary source = 1.5
@@ -401,6 +419,7 @@ class Cases():
 
 		# self.Vehicle_list = Vehicle_list
 		print('Arena Map for first arena')
+		print([building.vertices for building in self.buildings])
 		self.arena = ArenaMap(buildings=self.buildings)
 		print('Arena Map for second arena')
 		# self.arenaR = ArenaMap(buildings=self.buildings) # FIX ME , remove this ! 

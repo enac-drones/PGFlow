@@ -52,7 +52,8 @@ class ArenaMap():
                     if i == len(self.buildings)-1:
                         self.buildings.append(temp_building)
 
-        self.Inflate(radius = 0.2)
+        #this adds a sort of safety radius? Set to 0.2 previously, I will set it to 0 so it matches the exact buildings specified.
+        self.Inflate(radius = 0.2) #BUG Does weird clippings sometimes, eg when inflating a triangle #FIXME
         self.Panelize(size= 0.01)
         self.Calculate_Coef_Matrix(method = 'Vortex')
 
