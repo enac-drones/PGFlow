@@ -18,10 +18,13 @@ from cases import Cases
 # Case.arena.Panelize(size= 0.01) #0.08
 # Case.arena.Calculate_Coef_Matrix(method = 'Vortex')
 
-
-buildings = create_buildings()
-print(f"buildings are {buildings}")
+if False:
+    buildings = create_buildings()
+    print(f"buildings are {buildings}")
+else:
+    buildings = None
 case = Cases(custom=buildings)
+
 
 for i in range (500):
     #print(i)
