@@ -4,7 +4,7 @@ from gflow.vehicle import Vehicle
 import gflow.utils as ut
 from time import sleep
 import numpy as np
-from gflow.smart_input import create_buildings
+#from gflow.smart_input import create_buildings
 
 
 from cases import Cases
@@ -18,15 +18,17 @@ from cases import Cases
 # Case.arena.Panelize(size= 0.01) #0.08
 # Case.arena.Calculate_Coef_Matrix(method = 'Vortex')
 
-if False:
-    buildings = create_buildings()
-    print(f"buildings are {buildings}")
-else:
-    buildings = None
-case = Cases(custom=buildings)
+# if True:
+#     buildings = create_buildings()
+#     print(f"buildings are {buildings}")
+# else:
+#     buildings = None
+
+#case = Cases(custom=buildings)
+case = Cases(custom=None)
 
 
-for i in range (500):
+for i in range (700):
     #print(i)
     # Step the simulation
     for index,vehicle in enumerate(case.Vehicle_list):
@@ -41,7 +43,7 @@ for i in range (500):
 
         # Update the listed vehicle numbers wrt every one
         # the numbers in the if statement within the list, separated by commas indicate which drones are providing their position
-        if index in [0]:
+        if index in [0,1,2,3,4]:
             for list_index in range(len(vehicle.vehicle_list)):
                 vehicle.vehicle_list[list_index].position = case.Vehicle_list[list_index].position # calling case.Vehicle is not nice here... 1 unneccessary element update
 
@@ -49,7 +51,6 @@ for i in range (500):
             print('Vehicle ', str(index), 'has reached the goal', i)
 
 
-#ut.plot_trajectories(case.arena, case.arena, case.Vehicle_list)
 ut.plot_trajectories2(case.arena, case.arena, case.Vehicle_list)
 
 #EOF
