@@ -61,10 +61,10 @@ def plot_trajectories1(Arena, ArenaR, Vehicle_list):
     
     #####################################################################################
     #these control the size of the slider for some reason (at least in x)
-    minx = 0
-    maxx = 1
-    miny = -5
-    maxy = 5
+    # minx = 0
+    # maxx = 1
+    # miny = -5
+    # maxy = 5
     
     for building in Arena.buildings:
         print(f"building vertices are {(building.vertices[:,0],building.vertices[0,0])}")
@@ -264,6 +264,7 @@ def plot_trajectories2(Arena, ArenaR, Vehicle_list):
 
     # Update values
     def update(val):
+        #print(f"we are inside update and slider val = {val}")
         # scale val to be between 0 and 1 while the problem with the slider is not fixed
         # temp stores the current value of the slider (a float between 0 and 1)
         temp= slider.val
@@ -302,15 +303,12 @@ def plot_trajectories2(Arena, ArenaR, Vehicle_list):
     #anim.event_source.stop()
     def play(event):
         '''Function that is called every time the play button is pressed. It will alternate between play and pause and start/stop the animation'''
-        #print("button has been pressed")
         #running is not a default attribute of the FuncAnimation object, but we have defined it ourselves lower down
         if anim.running:
             anim.event_source.stop()
             play_button.label.set_text("Play")
             anim.running = False
         else:
-            #anim.frames = 100
-            #anim.repeat = True
             anim.event_source.start()
             play_button.label.set_text("Pause")
             anim.running = True
@@ -318,23 +316,39 @@ def plot_trajectories2(Arena, ArenaR, Vehicle_list):
         plt.pause(0.1)
 
     def animate(i):
-        '''Function that updates the slider and calls the update function. '''
-        slider.set_val((slider.val + 0.01) % slider.valmax)
-        return update(slider.val)
-    # Create the animation object and start it
-    anim = FuncAnimation(fig, animate, interval=50, frames = 100,blit = False)
-    #plt.pause(0.1)
-    #anim.event_source.stop()
-    #plt.pause(0.1)
-    anim.running = False
+        '''Function that updates the slider and calls the update function. i iterates from 0 to the number of frames'''
+        #obtain the slider value to 2dp
+        current_slider_value = round(slider.val,2)
+        #set i to the slider value so that the simulation stops when the slider reaches the end
+        #it is 100x the slider value because the slider goes from 0 to 1 and the i from 0 to 100
+        i = int(100*current_slider_value)
+        #print(f"i={i}")
+        #increment the slider by 0.01 for every frame
+        slider.set_val((current_slider_value + 0.01) % (slider.valmax+0.01))
+        #stop the animation when the slider reaches the end
+        if i==99:
+            #calling the play function while the animation is running stops the animation
+            play(event=None)
+        #nothing to return I'm pretty sure :)
+        return None
+    
+    # Create the animation object, it starts automatically against my will BUG
+    anim = FuncAnimation(fig, animate, interval=50, frames = 101,init_func=None,blit = False,repeat=True, repeat_delay=1000)
    
+    #tell the slider to update the plot when it is moved
     slider.on_changed(update)
+    #call the play function when the button is pressed (to play or pause the animation)
     play_button.on_clicked(play)
     
     #again this line updates the plot, without it, the animation starts by default even though we have anim.event_source.stop()
     #perhaps there is a better way of doing this that I am not aware of. 
     plt.pause(0.1)
-    anim.event_source.stop()
+
+    #these three lines are a bit of a hack to stop the simulation which for some reason automatically starts FIXME
+    anim.running = True
+    play(event=None)
     slider.set_val(0.0)
+    
+    #show the plot
     plt.show()
 
