@@ -68,7 +68,7 @@ def plot_trajectories1(Arena, ArenaR, Vehicle_list):
     # maxy = 5
     
     for building in Arena.buildings:
-        print(f"building vertices are {(building.vertices[:,0],building.vertices[0,0])}")
+        #print(f"building vertices are {(building.vertices[:,0],building.vertices[0,0])}")
         ax.plot(     np.hstack((building.vertices[:,0],building.vertices[0,0]))  , np.hstack((building.vertices[:,1],building.vertices[0,1] )) ,'salmon', alpha=0.5 )
         ax.fill(     np.hstack((building.vertices[:,0],building.vertices[0,0]))  , np.hstack((building.vertices[:,1],building.vertices[0,1] )) ,'salmon', alpha=0.5 )
     for buildingR in ArenaR.buildings:
@@ -329,13 +329,9 @@ class plot_trajectories2:
         return None
     # Update values
     def update(self,val):
-        # scale val to be between 0 and 1 while the problem with the slider is not fixed
-        # temp stores the current value of the slider (a float between 0 and 1)
-        temp= self.slider.val
-        # n stores the maximum number of iterations it took for a drone to reach its destination. This is equivalent to time if ...
+        # self.time_steps_max stores the maximum number of iterations it took for a drone to reach its destination. This is equivalent to time if ...
         # ...travelling at a constant speed. plot_until therefore is the current time value of the simulation.
-        plot_until = int(np.floor(temp*self.time_steps_max))
-        #print(f"plot_until is currently {plot_until}")
+        plot_until = int(np.floor(self.slider.val*self.time_steps_max))
         for i in range(len(self.plot_list)):
             # we are now telling the code to plot the drone trajectories only until the value of the slider (or time)
             self.plot_list[i].set_data(self.Vehicle_list[i].path[:plot_until,0],self.Vehicle_list[i].path[:plot_until,1])
@@ -363,10 +359,15 @@ class plot_trajectories2:
             self.drone_list[i].set_data(x,y)
             self.warning_circles[i].center = (x,y)
             self.positions[i] = [x,y,z]
+        #now detect and handle collisions
+        self.collision_handling()
+        return self.plot_list + self.drone_list + self.warning_circles
+
+    def collision_handling(self):
+        '''Figure out if there is a collision and what to display when collisions are encountered'''
         distance_matrix = np.sqrt(np.sum((self.positions[:, np.newaxis] - self.positions) ** 2, axis=-1))
         # set collision threshold
         collision_threshold = 0.5
-        
         for i in range(distance_matrix.shape[0]):
             for j in range(i+1, distance_matrix.shape[1]):
                 if distance_matrix[i,j] < collision_threshold:
@@ -396,21 +397,14 @@ class plot_trajectories2:
             for conflict in self.conflicts[self.conflict_iterator]:
                 if int(self.conflict_iterator-1) in self.conflicts.keys():
                     #print(self.conflict_iterator,self.conflicts[self.conflict_iterator],self.conflicts[self.conflict_iterator-1])
-                    if conflict in self.conflicts[self.conflict_iterator-1]:
+                    if conflict not in self.conflicts[self.conflict_iterator-1]:
                         #print("Conflict already addressed, not stopping simulation.")
-                        pass
-                    else:
-                        #self.conflicts["addressed"].append(conflict)
-                        #this will pause the simulation to draw attention to the conflict
-                        #print(f"Animation is running? {self.animation_running}")
-                        print("simulation should stop")
                         self.stop()
                 else:
-                    print("No conflicts previously, should stop now")
+                    #print("No conflicts previously, should stop now")
                     self.stop()
         else:
-            #self.bounding_box['edgecolor'] = 'g'
-            #self.bounding_box['facecolor'] = 'wheat'
+            #no conflicts, set box to safe
             bounding_box = dict(boxstyle='round', facecolor='wheat',edgecolor = 'g', alpha=1)
             textstr = f"Safe"
             #info_box = ax.text(0.05, 0.95, textstr, transform=ax.transAxes, fontsize=14,
@@ -420,9 +414,7 @@ class plot_trajectories2:
             self.info_box.set_c("k")
         
         self.conflict_iterator+=1
-        return self.plot_list + self.drone_list + self.warning_circles
-
-    
+        return None
     #anim.event_source.stop()
     def play(self,event):
         '''Function that is called every time the play button is pressed. It will alternate between play and pause and start/stop the animation'''
