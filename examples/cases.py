@@ -4,7 +4,7 @@ from gflow.arena import ArenaMap
 import numpy as np
 from copy import copy, deepcopy
 import json
-from gflow.pytojson import PyToJSON
+from gflow.json2py import JSON2Py
 
 class Cases():
 	def __init__(self, case_no=0, arenamap=None, generate = 'manual', custom = None):
@@ -19,10 +19,14 @@ class Cases():
 				# 	for building in cases[custom]["buildings"]:
 				# 		coords = building["vertices"]
 				# 		self.buildings.append(Building(coords))
-				case = PyToJSON(casename="alpha")
-				case.casename = "bravo"
-				self.buildings = case.obtain_buildings()
-				self.Vehicle_list = case.obtain_vehicles()
+				cases = JSON2Py()
+				cases.casename = "bravo"
+				cases.casename = "alpha"
+				print("waasaaaasfda")
+				self.buildings = cases.obtain_buildings()
+				self.Vehicle_list = cases.obtain_vehicles()
+				cases.add_case(ID = "bravo", building_list=self.buildings, vehicle_list=self.Vehicle_list)
+				#cases.remove_case(ID="bravo")
 				#print(f"Vehicle list is {self.Vehicle_list}")
 				#Vehicle1 = Vehicle("V1",0.5,0.5)            # Vehicle ID, Source_strength imaginary source = 1.5
 				#Vehicle2 = Vehicle("V2",0.5,0.5)
@@ -475,7 +479,7 @@ class Cases():
 
 		for vehicle in self.Vehicle_list: # FIXME Veh and veh ... select a norm for naming... :(
 			vehicle.vehicle_list = deepcopy(self.Vehicle_list)
-			vehicle.arena = deepcopy(self.arena)  # FIXME are these copies a prblme ???
+			vehicle.arena = deepcopy(self.arena)  # FIXME are these copies a problem ???
 
 	
 	def SetRandomStartGoal(self,arenamap,ID):
