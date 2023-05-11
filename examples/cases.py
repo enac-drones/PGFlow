@@ -7,7 +7,7 @@ import json
 from gflow.json2py import JSON2Py
 
 class Cases():
-	def __init__(self, case_no=0, arenamap=None, generate = 'manual', custom = None):
+	def __init__(self, case_no=-1, arenamap=None, generate = 'manual', custom = None):
 
 		if generate == 'manual':
 			print(f"custom = {custom}")
@@ -56,9 +56,9 @@ class Cases():
 				#Vehicle4 = Vehicle("V4",0.5,0.5)
 				#Vehicle5 = Vehicle("V5",0.5,0.5)
 				
-				Vehicle1.Set_Goal([3,   0, 0.5], 5, 0.0001)       # goal,goal_strength all 5, safety 0.001 for V1 safety = 0 when there are sources
-				Vehicle2.Set_Goal([ -3, 0, 0.5], 5, 0.0001)
-				Vehicle3.Set_Goal([ 0,   -3, 0.5], 5, 0.0001)
+				Vehicle1.Set_Goal([1.5,   0, 0.5], 5, 0.0001)       # goal,goal_strength all 5, safety 0.001 for V1 safety = 0 when there are sources
+				Vehicle2.Set_Goal([ -1.5, 0, 0.5], 5, 0.0001)
+				Vehicle3.Set_Goal([ 0,   -1.5, 0.5], 5, 0.0001)
 				#Vehicle4.Set_Goal([ 0,   -3, 0.5], 5, 0.0001)
 				#Vehicle5.Set_Goal([ 3,   3, 0.5], 5, 0.0001)
 
@@ -68,15 +68,23 @@ class Cases():
 				#Vehicle4.Go_to_Goal(0.5,0,0,0)
 				#Vehicle5.Go_to_Goal(0.5,0,0,0)
 
-				Vehicle1.Set_Position([ -3,  0.0001 , 0.5])
-				Vehicle2.Set_Position([ 3, 0 , 0.5])
-				Vehicle3.Set_Position([0,  2 , 0.5])
+				Vehicle1.Set_Position([ -1.5,  0.0001 , 0.5])
+				Vehicle2.Set_Position([ 1.5, 0 , 0.5])
+				Vehicle3.Set_Position([0,  1.5 , 0.5])
 				#Vehicle4.Set_Position([0,  3 , 0.5])
 				#Vehicle5.Set_Position([-3,  -3 , 0.5])
 				#self.Vehicle_list = [Vehicle1,Vehicle2,Vehicle3,Vehicle4,Vehicle5]
 				self.Vehicle_list = [Vehicle1,Vehicle2,Vehicle3]
+				cases = JSON2Py()
+				cases.add_case(ID = "crazyflie", building_list=self.buildings, vehicle_list=self.Vehicle_list)
 
 
+			elif case_no==-1:
+				print('al;sdfjas;dlkfja;sljf;alsjfadjfdjfalsjfla')
+				cases = JSON2Py()
+				cases.casename = "crazyflie"
+				self.Vehicle_list = cases.obtain_vehicles()
+				self.buildings = cases.obtain_buildings()
 			elif case_no == 0:
 
 				self.buildings = [Building([[3.0, 2.0, 1.2], [2.75, 1.567, 1.2], [2.25, 1.567, 1.2], [2.0, 2.0, 1.2], [2.25, 2.433, 1.2], [2.75, 2.433, 1.2]]), #AddCircularBuilding( 2.5, 2, 6, 0.5, 1.2, angle = 0)

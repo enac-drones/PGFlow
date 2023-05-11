@@ -3,58 +3,58 @@ from gflow.building import Building, RegularPolygon
 from gflow.vehicle import Vehicle
 import os
 
-sides = 7
-position = (0,0)
-orientation = 0
-radius = 1
+# sides = 7
+# position = (0,0)
+# orientation = 0
+# radius = 1
 
-obstacle = RegularPolygon(sides = sides, centre = position, rotation=orientation,radius=radius)
-building = Building(obstacle.points())
-Vehicle1 = Vehicle(ID="V1",source_strength=0.5,imag_source_strength=0.5)
-Vehicle1.Set_Goal(goal=[3,   0, 0.5], goal_strength = 5, safety = 0.0001)
-Vehicle1.Set_Position(pos = [ -3,  0.0001 , 0.5])
-#create dict to hold cases
-cases = {}
-#create sub dictionary within cases to hold the first case named "alpha"
-cases["alpha"] = {}
-#now set some info about the first case. Need to create a list of buildings first though
-cases['alpha']["buildings"] = [{}]
-cases['alpha']["buildings"][0]["ID"] = "Building 0"
-cases['alpha']["buildings"][0]["vertices"] = building.vertices.tolist()
+# obstacle = RegularPolygon(sides = sides, centre = position, rotation=orientation,radius=radius)
+# building = Building(obstacle.points())
+# Vehicle1 = Vehicle(ID="V1",source_strength=0.5,imag_source_strength=0.5)
+# Vehicle1.Set_Goal(goal=[3,   0, 0.5], goal_strength = 5, safety = 0.0001)
+# Vehicle1.Set_Position(pos = [ -3,  0.0001 , 0.5])
+# #create dict to hold cases
+# cases = {}
+# #create sub dictionary within cases to hold the first case named "alpha"
+# cases["alpha"] = {}
+# #now set some info about the first case. Need to create a list of buildings first though
+# cases['alpha']["buildings"] = [{}]
+# cases['alpha']["buildings"][0]["ID"] = "Building 0"
+# cases['alpha']["buildings"][0]["vertices"] = building.vertices.tolist()
 
-#now set some info about the first case. Need to create a list of buildings first though
-cases['alpha']["vehicles"] = []
-cases['alpha']["vehicles"].append({})
-cases['alpha']["vehicles"][0]["ID"] = Vehicle1.ID
-cases['alpha']["vehicles"][0]["position"] = Vehicle1.position.tolist()
-cases['alpha']["vehicles"][0]["goal"] = Vehicle1.goal.tolist()
-cases['alpha']["vehicles"][0]["source_strength"] = Vehicle1.source_strength
-cases['alpha']["vehicles"][0]["imag_source_strength"] = Vehicle1.imag_source_strength
-cases['alpha']["vehicles"][0]["sink_strength"] = Vehicle1.sink_strength
-cases['alpha']["vehicles"][0]["safety"] = Vehicle1.safety
-#cases['alpha']["vehicles"].append({})
+# #now set some info about the first case. Need to create a list of buildings first though
+# cases['alpha']["vehicles"] = []
+# cases['alpha']["vehicles"].append({})
+# cases['alpha']["vehicles"][0]["ID"] = Vehicle1.ID
+# cases['alpha']["vehicles"][0]["position"] = Vehicle1.position.tolist()
+# cases['alpha']["vehicles"][0]["goal"] = Vehicle1.goal.tolist()
+# cases['alpha']["vehicles"][0]["source_strength"] = Vehicle1.source_strength
+# cases['alpha']["vehicles"][0]["imag_source_strength"] = Vehicle1.imag_source_strength
+# cases['alpha']["vehicles"][0]["sink_strength"] = Vehicle1.sink_strength
+# cases['alpha']["vehicles"][0]["safety"] = Vehicle1.safety
+# #cases['alpha']["vehicles"].append({})
 
 
-with open("examples/cases.json","w") as f:
-    json.dump(cases,f,sort_keys=False,indent=4)
-    # can add this to line above if you wish: separators = (",",": ")
+# with open("examples/cases.json","w") as f:
+#     json.dump(cases,f,sort_keys=False,indent=4)
+#     # can add this to line above if you wish: separators = (",",": ")
 
-#print(cases)
+# #print(cases)
 
-with open("examples/cases.json","r") as f:
-    cases = json.load(f)
+# with open("examples/cases.json","r") as f:
+#     cases = json.load(f)
     
 
-print(cases)
-print(type(cases))
-coords = cases['alpha']['buildings'][0]['vertices']
-print(coords)
+# print(cases)
+# print(type(cases))
+# coords = cases['alpha']['buildings'][0]['vertices']
+# print(coords)
 
-building1 = Building(coords)
-print(building1.vertices)
+# building1 = Building(coords)
+# print(building1.vertices)
 
 
-print(f"Vehicle properties are: position {Vehicle1.position}, goal {Vehicle1.goal}")
+# print(f"Vehicle properties are: position {Vehicle1.position}, goal {Vehicle1.goal}")
 
 
 
@@ -126,9 +126,13 @@ class JSON2Py:
             position = vehicle["position"]
             goal = vehicle["goal"]
             ID = vehicle["ID"]
-            myVehicle = Vehicle(ID=ID,source_strength=0.5,imag_source_strength=0.5)
+            source_strength = vehicle["source_strength"]
+            imag_source_strength = vehicle["imag_source_strength"]
+            sink_strength = vehicle["sink_strength"]
+            safety = vehicle["safety"]
+            myVehicle = Vehicle(ID=ID,source_strength=source_strength,imag_source_strength=imag_source_strength)
             myVehicle.Set_Position(position)
-            myVehicle.Set_Goal(goal=goal,goal_strength=5,safety=0.0001)
+            myVehicle.Set_Goal(goal=goal,goal_strength=sink_strength,safety=safety)
             myVehicle.Go_to_Goal(altitude=0.5,AoAsgn=0,t_start=0,Vinfmag=0)
             vehicles.append(myVehicle)
         return vehicles
@@ -151,13 +155,13 @@ class JSON2Py:
         self.cases[ID]["vehicles"] = []
         for count, vehicle in enumerate(vehicle_list):
             self.cases[ID]["vehicles"].append({})
-            self.cases[ID]["vehicles"][0]["ID"] = vehicle.ID
-            self.cases[ID]["vehicles"][0]["position"] = vehicle.position.tolist()
-            self.cases[ID]["vehicles"][0]["goal"] = vehicle.goal.tolist()
-            self.cases[ID]["vehicles"][0]["source_strength"] = vehicle.source_strength
-            self.cases[ID]["vehicles"][0]["imag_source_strength"] = vehicle.imag_source_strength
-            self.cases[ID]["vehicles"][0]["sink_strength"] = vehicle.sink_strength
-            self.cases[ID]["vehicles"][0]["safety"] = vehicle.safety
+            self.cases[ID]["vehicles"][count]["ID"] = vehicle.ID
+            self.cases[ID]["vehicles"][count]["position"] = vehicle.position.tolist()
+            self.cases[ID]["vehicles"][count]["goal"] = vehicle.goal.tolist()
+            self.cases[ID]["vehicles"][count]["source_strength"] = vehicle.source_strength
+            self.cases[ID]["vehicles"][count]["imag_source_strength"] = vehicle.imag_source_strength
+            self.cases[ID]["vehicles"][count]["sink_strength"] = vehicle.sink_strength
+            self.cases[ID]["vehicles"][count]["safety"] = vehicle.safety
         with open(self._filename,"w") as f:
             json.dump(self.cases,f,sort_keys=False,indent=4)
         return None
