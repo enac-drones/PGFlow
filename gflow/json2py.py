@@ -2,70 +2,16 @@ import json
 from gflow.building import Building, RegularPolygon
 from gflow.vehicle import Vehicle
 import os
-
-# sides = 7
-# position = (0,0)
-# orientation = 0
-# radius = 1
-
-# obstacle = RegularPolygon(sides = sides, centre = position, rotation=orientation,radius=radius)
-# building = Building(obstacle.points())
-# Vehicle1 = Vehicle(ID="V1",source_strength=0.5,imag_source_strength=0.5)
-# Vehicle1.Set_Goal(goal=[3,   0, 0.5], goal_strength = 5, safety = 0.0001)
-# Vehicle1.Set_Position(pos = [ -3,  0.0001 , 0.5])
-# #create dict to hold cases
-# cases = {}
-# #create sub dictionary within cases to hold the first case named "alpha"
-# cases["alpha"] = {}
-# #now set some info about the first case. Need to create a list of buildings first though
-# cases['alpha']["buildings"] = [{}]
-# cases['alpha']["buildings"][0]["ID"] = "Building 0"
-# cases['alpha']["buildings"][0]["vertices"] = building.vertices.tolist()
-
-# #now set some info about the first case. Need to create a list of buildings first though
-# cases['alpha']["vehicles"] = []
-# cases['alpha']["vehicles"].append({})
-# cases['alpha']["vehicles"][0]["ID"] = Vehicle1.ID
-# cases['alpha']["vehicles"][0]["position"] = Vehicle1.position.tolist()
-# cases['alpha']["vehicles"][0]["goal"] = Vehicle1.goal.tolist()
-# cases['alpha']["vehicles"][0]["source_strength"] = Vehicle1.source_strength
-# cases['alpha']["vehicles"][0]["imag_source_strength"] = Vehicle1.imag_source_strength
-# cases['alpha']["vehicles"][0]["sink_strength"] = Vehicle1.sink_strength
-# cases['alpha']["vehicles"][0]["safety"] = Vehicle1.safety
-# #cases['alpha']["vehicles"].append({})
-
-
-# with open("examples/cases.json","w") as f:
-#     json.dump(cases,f,sort_keys=False,indent=4)
-#     # can add this to line above if you wish: separators = (",",": ")
-
-# #print(cases)
-
-# with open("examples/cases.json","r") as f:
-#     cases = json.load(f)
-    
-
-# print(cases)
-# print(type(cases))
-# coords = cases['alpha']['buildings'][0]['vertices']
-# print(coords)
-
-# building1 = Building(coords)
-# print(building1.vertices)
-
-
-# print(f"Vehicle properties are: position {Vehicle1.position}, goal {Vehicle1.goal}")
-
+import shutil
 
 
 class JSON2Py:
     def __init__(self,filename="examples/cases.json") -> None:
         '''initiate the class with the json filename and the case within that file'''
         self._filename = filename
-        self.cases = self.load_file(self.filename)
+        self.cases = self.load_file(self._filename)
         #print(f"cases are {self.cases}")
-        self._casename = "alpha"
-        #self.buildings = self.obtain_buildings(self.cases,self.casename)
+        self._casename = "default"
 
     @property
     def casename(self):
@@ -78,7 +24,8 @@ class JSON2Py:
         if new_name in self.cases.keys():
             self._casename = new_name
         else:
-            print(f"Error: {new_name} is an invalid case name.")
+            print(f"Error: {new_name} is an invalid case name. Valid cases are: {[key for key in self.cases.keys()]}")
+            print("Using 'default' case instead")
 
     @property
     def filename(self):
@@ -88,27 +35,53 @@ class JSON2Py:
     def filename(self,new_name):
         """Set new filename and reset the cases object"""
         try:
-            self.cases = self.load_file(new_name)
             self._filename = new_name
-        except Exception:
-            print(Exception)
+            self.cases = self.load_file(new_name)
+        except FileNotFoundError as ex:
+            #User gives invalid filepath
+            print(ex,type(ex).__name__, ex.args)
+            print(f"File {new_name} contains a directory that does not exist. Please try again or create the directory.")
+
 
     def load_file(self,filename)->dict:
         '''return a dictionary of all the cases inside filename'''
-        # print(f"current directory is {os.getcwd()}")
-        # print([f for f in os.listdir('./examples')])
-        # print(f"path is {os.path}")
         try:
-            with open(filename,"r") as f:
-                # print("asd;lfajsl;dfja")
-                # print(f.read())
+            with open(filename,"a+") as f:
+                check_file = os.stat(filename).st_size
+                # print(f"check_file is {check_file}")
+                # print(f"inside load_file, filename is {filename}")
+                if check_file==0:
+                    #the file is empty so it was just created
+                    #load in a default case 
+                    self.cases = {}
+                    self.load_default_case()
+                else:
+                    #file already exists (is not empty), do nothing
+                    pass
+                #move the file pointer back to the start of the file otherwise json.load(f) doesn't work
+                f.seek(0)
                 cases = json.load(f)
-                return cases
-        except Exception as ex:
-            print(Exception)
-            # print(ex,type(ex).__name__, ex.args)
-            print(f"File {filename} not found. Please try again.")
-            return None
+            if "default" not in cases.keys():
+                #make sure there is at least a default case to fall back on 
+                self.cases = cases 
+                self.load_default_case()
+                return self.cases
+            return cases
+            
+        except json.JSONDecodeError as ex:
+            #improperly formatted json file will be wiped and replaced with a default case
+            #a backup will be stored in the same directory as {name}BACKUP.json
+            print(type(ex).__name__, ex.args)
+            # Backup the file
+            dir_path = os.path.dirname(filename)
+            file_name, file_ext = os.path.splitext(os.path.basename(filename))
+            new_file_path = os.path.join(dir_path, f"{file_name}BACKUP.json")
+            shutil.copyfile(filename, new_file_path)
+            #wipe and replace with the default case
+            self.cases = {}
+            self.load_default_case()
+            #return an empty dictionary so that it matches the format of an empty file
+            return self.cases
         
     def obtain_buildings(self):
         '''return a list of building objects'''
@@ -136,7 +109,25 @@ class JSON2Py:
             myVehicle.Go_to_Goal(altitude=0.5,AoAsgn=0,t_start=0,Vinfmag=0)
             vehicles.append(myVehicle)
         return vehicles
-        
+    
+    def load_default_case(self):
+        sides = 5
+        position = (0,0)
+        rotation = 0
+        radius = 0.5
+
+        obstacle = RegularPolygon(sides = sides, centre = position, rotation=rotation,radius=radius)
+        building = Building(obstacle.points())
+        Vehicle1 = Vehicle(ID="V1",source_strength=0.5,imag_source_strength=0.5)
+        Vehicle1.Set_Goal(goal=[3,   0, 0.5], goal_strength = 5, safety = 0.0001)
+        Vehicle1.Set_Position(pos = [ -3,  0.0001 , 0.5])
+        buildings, vehicles = [],[]
+        buildings.append(building)
+        vehicles.append(Vehicle1)
+        #print(f"the vehicle list should be {vehicles[0],len(vehicles)}")
+        self.add_case(ID="default",building_list=buildings,vehicle_list=vehicles)
+        return None
+    
     def add_case(self,ID,building_list,vehicle_list):
         '''add a case of name "ID" into the json data file'''
         #create sub dictionary within cases to hold the case
@@ -154,6 +145,7 @@ class JSON2Py:
         #now set some info about the first case. Need to create a list of buildings first though
         self.cases[ID]["vehicles"] = []
         for count, vehicle in enumerate(vehicle_list):
+            #print(f"the vehicle list is {vehicle_list}")
             self.cases[ID]["vehicles"].append({})
             self.cases[ID]["vehicles"][count]["ID"] = vehicle.ID
             self.cases[ID]["vehicles"][count]["position"] = vehicle.position.tolist()
@@ -162,9 +154,16 @@ class JSON2Py:
             self.cases[ID]["vehicles"][count]["imag_source_strength"] = vehicle.imag_source_strength
             self.cases[ID]["vehicles"][count]["sink_strength"] = vehicle.sink_strength
             self.cases[ID]["vehicles"][count]["safety"] = vehicle.safety
+            #print(f"The bad thing is {self.cases[ID]['vehicles'][count]}")
+            #print(f"Id is {ID}")
+
         with open(self._filename,"w") as f:
+            #print(f"self.cases is {self.cases} and filename is {self._filename}")
+            #opening in "w" mode wipes the existing file, and we replace the original with self.cases with the new case appended
             json.dump(self.cases,f,sort_keys=False,indent=4)
-        return None
+            # print("After dumping")
+        #return the case that was just added
+        return self.cases[ID]
     
     def remove_case(self,ID):
         '''Remove a particular case from the cases file, return that case'''
@@ -189,14 +188,13 @@ if __name__ == "__main__":
     Vehicle1.Set_Position(pos = [ -3,  0.0001 , 0.5])
 
     converter = JSON2Py()
-    print(f"al;sdjfas;ldfj{os.getcwd()}")
-    #converter.filename = "./examples/myjson.json"
+    #print(f"Now changing the filename")
+    converter.filename = "examples/myjson.json"
     buildings = []
     vehicles = []
     buildings.append(building)
     vehicles.append(Vehicle1)
-    converter.add_case(ID="test1",building_list=buildings,vehicle_list=vehicles)
-
-
-    print(converter.cases)
+    #converter.add_case(ID="test1",building_list=buildings,vehicle_list=vehicles)
+    #converter.add_case(ID="test2",building_list=buildings,vehicle_list=vehicles)
+    #print(converter.cases)
     

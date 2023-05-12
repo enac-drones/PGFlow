@@ -281,7 +281,7 @@ class plot_trajectories2:
     
     def plot_buildings(self,ax,Arena,ArenaR):
         for building in Arena.buildings:
-            print(f"building vertices are {(building.vertices[:,0],building.vertices[0,0])}")
+            #print(f"building vertices are {(building.vertices[:,0],building.vertices[0,0])}")
             ax.plot(     np.hstack((building.vertices[:,0],building.vertices[0,0]))  , np.hstack((building.vertices[:,1],building.vertices[0,1] )) ,'salmon', alpha=0.5 )
             ax.fill(     np.hstack((building.vertices[:,0],building.vertices[0,0]))  , np.hstack((building.vertices[:,1],building.vertices[0,1] )) ,'salmon', alpha=0.5 )
         for buildingR in ArenaR.buildings:

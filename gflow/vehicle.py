@@ -72,7 +72,7 @@ class Vehicle():
         self.correction      = np.zeros(3)
         self.velocity        = np.zeros(3)
         self.goal            = np.zeros(3)
-        self.source_strength = source_strength
+        self.source_strength = source_strength  
         self.imag_source_strength = imag_source_strength
         self.gamma           = 0
         self.altitude_mask   = None

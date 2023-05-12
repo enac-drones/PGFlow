@@ -3,52 +3,31 @@ from gflow.building import Building, RegularPolygon
 from gflow.arena import ArenaMap
 import numpy as np
 from copy import copy, deepcopy
-import json
 from gflow.json2py import JSON2Py
 
 class Cases():
 	def __init__(self, case_no=-1, arenamap=None, generate = 'manual', custom = None):
 
 		if generate == 'manual':
-			print(f"custom = {custom}")
+			#print(f"custom = {custom}")
 			if isinstance(custom,str):
-				# with open("examples/cases.json","r") as f:
-				# 	cases = json.load(f)
-				# if custom in cases.keys():
-				# 	self.buildings = []
-				# 	for building in cases[custom]["buildings"]:
-				# 		coords = building["vertices"]
-				# 		self.buildings.append(Building(coords))
+				print("Get here by typing json")
 				cases = JSON2Py()
 				cases.casename = "bravo"
 				cases.casename = "alpha"
-				print("waasaaaasfda")
+				#print("waasaaaasfda")
 				self.buildings = cases.obtain_buildings()
 				self.Vehicle_list = cases.obtain_vehicles()
 				cases.add_case(ID = "bravo", building_list=self.buildings, vehicle_list=self.Vehicle_list)
 				#cases.remove_case(ID="bravo")
 				#print(f"Vehicle list is {self.Vehicle_list}")
-				#Vehicle1 = Vehicle("V1",0.5,0.5)            # Vehicle ID, Source_strength imaginary source = 1.5
-				#Vehicle2 = Vehicle("V2",0.5,0.5)
-				#Vehicle3 = Vehicle("V3",0.5,0.5)
 				
-				#Vehicle1.Set_Goal([3,   0, 0.5], 5, 0.0001)       # goal,goal_strength all 5, safety 0.001 for V1 safety = 0 when there are sources
-				#Vehicle2.Set_Goal([ -3, 0, 0.5], 5, 0.0001)
-				#Vehicle3.Set_Goal([ 0,   3, 0.5], 5, 0.0001)
-
-				#Vehicle1.Go_to_Goal(0.5,0,0,0)         # altitude, AoA,t_start,Vinf=0.5,0.5,1.5
-				#Vehicle2.Go_to_Goal(0.5,0,0,0)        # np.arctan2(3.5+1,1.5+0.5) = 1.1525719 rad
-				#Vehicle3.Go_to_Goal(0.5,0,0,0)
-
-				#Vehicle1.Set_Position([ -3,  0.0001 , 0.5])
-				#Vehicle2.Set_Position([ 3, 0 , 0.5])
-				#Vehicle3.Set_Position([0,  -3 , 0.5])
-				#self.Vehicle_list = [Vehicle1] #, Vehicle2, Vehicle3] # , Vehicle2, Vehicle3]
-				print(f"Vehicle list is {self.Vehicle_list}")
+				#print(f"Vehicle list is {self.Vehicle_list}")
 
 			
 				
 			elif custom is not None:
+				print(f"Inside custom case, get here by typing none")
 				self.buildings = custom
 				Vehicle1 = Vehicle("V1",0.5,0.5)            # Vehicle ID, Source_strength imaginary source = 1.5
 				Vehicle2 = Vehicle("V2",0.5,0.5)
@@ -80,7 +59,7 @@ class Cases():
 
 
 			elif case_no==-1:
-				print('al;sdfjas;dlkfja;sljf;alsjfadjfdjfalsjfla')
+				print(f'inside case {case_no}, type done to get here')
 				cases = JSON2Py()
 				cases.casename = "crazyflie"
 				self.Vehicle_list = cases.obtain_vehicles()
@@ -479,7 +458,7 @@ class Cases():
 
 		# self.Vehicle_list = Vehicle_list
 		print('Arena Map for first arena')
-		print([building.vertices for building in self.buildings])
+		#print([building.vertices for building in self.buildings])
 		self.arena = ArenaMap(buildings=self.buildings)
 		print('Arena Map for second arena')
 		# self.arenaR = ArenaMap(buildings=self.buildings) # FIX ME , remove this ! 
