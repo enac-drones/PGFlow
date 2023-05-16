@@ -1,17 +1,28 @@
-import json
 from gflow.building import Building, RegularPolygon
+from gflow.arena import ArenaMap
 from gflow.vehicle import Vehicle
-import os
+from copy import copy, deepcopy
 import shutil
+import json
+import os
+
+class Case():
+    def __init__(self, name):
+        self.name = name
+        self.vehicle_list = []
+        self.buildings = []
+        self.arena = None
+        # FIXME add arena generation here, remove it from cases setup...
 
 
-class JSON2Py:
-    def __init__(self,filename="examples/cases.json") -> None:
+class Cases():
+    def __init__(self,filename="cases.json") -> None:
         '''initiate the class with the json filename and the case within that file'''
         self._filename = filename
         self.cases = self.load_file(self._filename)
         #print(f"cases are {self.cases}")
         self._casename = "default"
+        self.case = None
 
     @property
     def casename(self):
@@ -42,6 +53,23 @@ class JSON2Py:
             print(ex,type(ex).__name__, ex.args)
             print(f"File {new_name} contains a directory that does not exist. Please try again or create the directory.")
 
+    @classmethod
+    def get_case(cls, filename, casename):
+        case_cls = cls(filename=filename)
+        case_cls.case_setup(casename)
+        return case_cls.case
+
+
+    def case_setup(self, casename):
+        self.casename = casename
+        self.case = Case(self.casename)
+        self.case.vehicle_list =  self.obtain_vehicles()
+        self.case.buildings = self.obtain_buildings()
+        self.case.arena = ArenaMap(buildings=self.case.buildings)
+
+        for vehicle in self.case.vehicle_list:
+            vehicle.vehicle_list = deepcopy(self.case.vehicle_list)
+            vehicle.arena = deepcopy(self.case.arena)  # FIXME are these copies a problem ???
 
     def load_file(self,filename)->dict:
         '''return a dictionary of all the cases inside filename'''
@@ -187,14 +215,14 @@ if __name__ == "__main__":
     Vehicle1.Set_Goal(goal=[3,   0, 0.5], goal_strength = 5, safety = 0.0001)
     Vehicle1.Set_Position(pos = [ -3,  0.0001 , 0.5])
 
-    converter = JSON2Py()
+    case = Cases()
     #print(f"Now changing the filename")
-    converter.filename = "examples/myjson.json"
+    case.filename = "examples/myjson.json"
     buildings = []
     vehicles = []
     buildings.append(building)
     vehicles.append(Vehicle1)
-    #converter.add_case(ID="test1",building_list=buildings,vehicle_list=vehicles)
-    #converter.add_case(ID="test2",building_list=buildings,vehicle_list=vehicles)
-    #print(converter.cases)
+    #case.add_case(ID="test1",building_list=buildings,vehicle_list=vehicles)
+    #case.add_case(ID="test2",building_list=buildings,vehicle_list=vehicles)
+    #print(case.cases)
     

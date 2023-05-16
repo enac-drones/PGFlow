@@ -1,15 +1,14 @@
-from gflow.arena import ArenaMap
+# from gflow.arena import ArenaMap
 # from gflow.building import Building
 from gflow.vehicle import Vehicle
 import gflow.utils as ut
+from gflow.cases import Cases
 from time import sleep
 import numpy as np
 #from gflow.smart_input import create_buildings
 
 
-from cases import Cases
-
-
+# from cases import Cases
 # Case = Cases(117,Arena,'manual')
 # Case = Cases(13,Arena,'manual')
 # Case.arena  = ArenaMap(6,)
@@ -24,33 +23,33 @@ from cases import Cases
 
 
 #case = Cases(custom=buildings)
-case = Cases()
+case = Cases.get_case(filename='cases.json', casename='crazyflie')
 
 
 for i in range (700):
     #print(i)
     # Step the simulation
-    for index,vehicle in enumerate(case.Vehicle_list):
+    for index,vehicle in enumerate(case.vehicle_list):
         if vehicle.state != 1:
             vehicle.run_simple_sim()
 
     # Communication Block
     # Update positions
-    for index,vehicle in enumerate(case.Vehicle_list):
+    for index,vehicle in enumerate(case.vehicle_list):
         # Update only self position
         vehicle.vehicle_list[index].position = vehicle.position
 
         # Update the listed vehicle numbers wrt every one
         # the numbers in the if statement within the list, separated by commas indicate which drones are providing their position
-        if index in [0,2]:
+        if index in []:
             for list_index in range(len(vehicle.vehicle_list)):
-                vehicle.vehicle_list[list_index].position = case.Vehicle_list[list_index].position # calling case.Vehicle is not nice here... 1 unneccessary element update
+                vehicle.vehicle_list[list_index].position = case.vehicle_list[list_index].position # calling case.Vehicle is not nice here... 1 unneccessary element update
 
         if vehicle.state == 1:
             print('Vehicle ', str(index), 'has reached the goal', i)
 
 
-asdf = ut.plot_trajectories2(case.arena, case.arena, case.Vehicle_list)
+asdf = ut.plot_trajectories2(case.arena, case.arena, case.vehicle_list)
 asdf.show()
 
 #EOF
