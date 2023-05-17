@@ -24,7 +24,9 @@ def Flow_Velocity_Calculation(vehicles, arenamap, method = 'Vortex', update_velo
     for f,vehicle in enumerate(vehicles):
         # Remove current vehicle from vehicle list.
         othervehicleslist = vehicles[:f] + vehicles[f+1:]
+        othervehicleslist = []
 
+        #print("a;lsdjfal;ksdjfl;askdjakl;sfjdls;jfa;lsdfj;lk")
         # Remove buildings with heights below cruise altitue:
         vehicle.altitude_mask = np.zeros(( len(arenamap.buildings) )) #, dtype=int)
         for index,panelledbuilding in enumerate(arenamap.buildings):
@@ -63,7 +65,7 @@ def Flow_Velocity_Calculation(vehicles, arenamap, method = 'Vortex', update_velo
 
         # Remove current vehicle from vehicle list
         othervehicleslist = vehicles[:f] + vehicles[f+1:]
-
+        othervehicleslist = []
         # Velocity induced by 2D point sink, eqn. 10.2 & 10.3 in Katz & Plotkin:
         V_sink[f,0] = (-vehicle.sink_strength*(vehicle.position[0]-vehicle.goal[0]))/(2*np.pi*((vehicle.position[0]-vehicle.goal[0])**2+(vehicle.position[1]-vehicle.goal[1])**2))
         V_sink[f,1] = (-vehicle.sink_strength*(vehicle.position[1]-vehicle.goal[1]))/(2*np.pi*((vehicle.position[0]-vehicle.goal[0])**2+(vehicle.position[1]-vehicle.goal[1])**2))

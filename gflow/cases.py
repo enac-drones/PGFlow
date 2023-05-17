@@ -163,7 +163,7 @@ class Cases():
             myVehicle = Vehicle(ID=ID,source_strength=source_strength,imag_source_strength=imag_source_strength)
             myVehicle.Set_Position(position)
             myVehicle.Set_Goal(goal=goal,goal_strength=sink_strength,safety=safety)
-            myVehicle.Go_to_Goal(altitude=0.5,AoAsgn=0,t_start=0,Vinfmag=0)
+            myVehicle.Go_to_Goal(altitude=0.5,AoAsgn=0,t_start=0,Vinfmag=0) #FIXME add these to the json
             vehicles.append(myVehicle)
         return vehicles
     
@@ -248,15 +248,24 @@ if __name__ == "__main__":
     Vehicle1 = Vehicle(ID="V1",source_strength=0.5,imag_source_strength=0.5)
     Vehicle1.Set_Goal(goal=[3,   0, 0.5], goal_strength = 5, safety = 0.0001)
     Vehicle1.Set_Position(pos = [ -3,  0.0001 , 0.5])
+    Vehicle2 = Vehicle(ID="V2",source_strength=0.5,imag_source_strength=0.5)
+    Vehicle2.Set_Goal(goal=[-3,   0, 0.5], goal_strength = 5, safety = 0.0001)
+    Vehicle2.Set_Position(pos = [ 3,  0.0001 , 0.5])
+    Vehicle3 = Vehicle(ID="V3",source_strength=0.5,imag_source_strength=0.5)
+    Vehicle3.Set_Goal(goal=[0,   -3, 0.5], goal_strength = 5, safety = 0.0001)
+    Vehicle3.Set_Position(pos = [ 0,  3 , 0.5])
 
     case = Cases()
     #print(f"Now changing the filename")
-    case.filename = "examples/myjson.json"
+    case.filename = "examples/cases.json"
     buildings = []
     vehicles = []
-    buildings.append(building)
+    #buildings.append(building)
     vehicles.append(Vehicle1)
-    #case.add_case(ID="test1",building_list=buildings,vehicle_list=vehicles)
+    vehicles.append(Vehicle2)
+    vehicles.append(Vehicle3)
+
+    case.add_case(ID="threedrones",building_list=buildings,vehicle_list=vehicles)
     #case.add_case(ID="test2",building_list=buildings,vehicle_list=vehicles)
     #print(case.cases)
     

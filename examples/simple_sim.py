@@ -22,9 +22,10 @@ import numpy as np
 #print(f"buildings are {buildings}")
 
 
-#case = Cases(custom=buildings)
+#case1 = Cases()
 
-case = Cases.get_case(filename='examples/cases.json', casename='crazyfli')
+#case1.add_case("d",1,1)
+case = Cases.get_case(filename='examples/cases.json', casename='d')
 
 
 
