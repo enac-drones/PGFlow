@@ -4,19 +4,36 @@ from gflow.vehicle import Vehicle
 from copy import copy, deepcopy
 import shutil
 import json
-import os
+import os, sys
 
 class Case():
+    '''Class to store a particular case, takes a name string as an input'''
     def __init__(self, name):
         self.name = name
         self.vehicle_list = []
         self.buildings = []
-        self.arena = None
-        # FIXME add arena generation here, remove it from cases setup...
+        self._arena = None
+
+    @property
+    def arena(self):
+        return self._arena
+    
+    @arena.setter
+    def arena(self,new_arena):
+        try:
+            self._arena = new_arena
+            for vehicle in self.vehicle_list:
+                vehicle.vehicle_list = deepcopy(self.vehicle_list)
+                vehicle.arena = deepcopy(self._arena)  # FIXME are these copies a problem ???
+        except Exception as ex:
+            print(ex,type(ex).__name__, ex.args)
+            raise Exception
+                
+        # FIXME add arena generation here, remove it from cases setup...\
 
 
 class Cases():
-    def __init__(self,filename="cases.json") -> None:
+    def __init__(self,filename="examples/cases.json") -> None:
         '''initiate the class with the json filename and the case within that file'''
         self._filename = filename
         self.cases = self.load_file(self._filename)
@@ -35,8 +52,20 @@ class Cases():
         if new_name in self.cases.keys():
             self._casename = new_name
         else:
-            print(f"Error: {new_name} is an invalid case name. Valid cases are: {[key for key in self.cases.keys()]}")
-            print("Using 'default' case instead")
+            print(f"Error: '{new_name}' is an invalid case name. Valid cases are: {list(self.cases.keys())}")
+            while True:
+                user_input = input("Please input desired case, or type 'd' to use 'default' case or 'q' to quit: ")
+                if user_input == "q":
+                    sys.exit("Quitting simulation, please specify desired case")
+                elif user_input == "d":
+                    break
+                elif user_input in self.cases.keys():
+                    self._casename = user_input
+                    break
+                else:
+                    print("Invalid input")
+
+            print(f"Using '{self._casename}' case instead")
 
     @property
     def filename(self):
@@ -67,9 +96,9 @@ class Cases():
         self.case.buildings = self.obtain_buildings()
         self.case.arena = ArenaMap(buildings=self.case.buildings)
 
-        for vehicle in self.case.vehicle_list:
-            vehicle.vehicle_list = deepcopy(self.case.vehicle_list)
-            vehicle.arena = deepcopy(self.case.arena)  # FIXME are these copies a problem ???
+        # for vehicle in self.case.vehicle_list:
+        #     vehicle.vehicle_list = deepcopy(self.case.vehicle_list)
+        #     vehicle.arena = deepcopy(self.case.arena)  # FIXME are these copies a problem ???
 
     def load_file(self,filename)->dict:
         '''return a dictionary of all the cases inside filename'''
@@ -158,6 +187,10 @@ class Cases():
     
     def add_case(self,ID,building_list,vehicle_list):
         '''add a case of name "ID" into the json data file'''
+        if ID == "q" or ID == "d":
+            #q and d are used to quit or use the default case when the user requests an inexistent case name
+            #they are protected (ie the system quits when q is called instead of running a case named 'q')
+            raise ValueError(f"'d' and 'q' are protected names, please choose a different name for your case.")
         #create sub dictionary within cases to hold the case
         #print(f"self.cases is {self.cases}")
         self.cases[ID] = {}
@@ -191,6 +224,7 @@ class Cases():
             json.dump(self.cases,f,sort_keys=False,indent=4)
             # print("After dumping")
         #return the case that was just added
+        self.casename = ID
         return self.cases[ID]
     
     def remove_case(self,ID):

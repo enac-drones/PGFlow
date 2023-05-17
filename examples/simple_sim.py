@@ -23,7 +23,9 @@ import numpy as np
 
 
 #case = Cases(custom=buildings)
-case = Cases.get_case(filename='cases.json', casename='crazyflie')
+
+case = Cases.get_case(filename='examples/cases.json', casename='crazyfli')
+
 
 
 for i in range (700):
@@ -46,7 +48,8 @@ for i in range (700):
                 vehicle.vehicle_list[list_index].position = case.vehicle_list[list_index].position # calling case.Vehicle is not nice here... 1 unneccessary element update
 
         if vehicle.state == 1:
-            print('Vehicle ', str(index), 'has reached the goal', i)
+            #print('Vehicle ', str(index), 'has reached the goal', i)
+            pass
 
 
 asdf = ut.plot_trajectories2(case.arena, case.arena, case.vehicle_list)
