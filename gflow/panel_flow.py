@@ -24,7 +24,7 @@ def Flow_Velocity_Calculation(vehicles, arenamap, method = 'Vortex', update_velo
     for f,vehicle in enumerate(vehicles):
         # Remove current vehicle from vehicle list.
         othervehicleslist = vehicles[:f] + vehicles[f+1:]
-        othervehicleslist = []
+        # othervehicleslist = []
 
         #print("a;lsdjfal;ksdjfl;askdjakl;sfjdls;jfa;lsdfj;lk")
         # Remove buildings with heights below cruise altitue:
@@ -49,7 +49,8 @@ def Flow_Velocity_Calculation(vehicles, arenamap, method = 'Vortex', update_velo
     V_gamma   = np.zeros([len(vehicles),2]) # Velocity induced by vortices
     V_sink    = np.zeros([len(vehicles),2]) # Velocity induced by sink element
     V_source  = np.zeros([len(vehicles),2]) # Velocity induced by source elements
-    V_sum     = np.zeros([len(vehicles),2]) # V_gamma + V_sink + V_source
+    V_vortex  = np.zeros([len(vehicles),2]) # Velocity induced by votex elements of the vehicles
+    V_sum     = np.zeros([len(vehicles),2]) # V_gamma + V_sink + V_source +V_vortex
     V_normal  = np.zeros([len(vehicles),2]) # Normalized velocity
     V_flow    = np.zeros([len(vehicles),2]) # Normalized velocity inversly proportional to magnitude
     V_norm    = np.zeros([len(vehicles),1]) # L2 norm of velocity vector
@@ -65,7 +66,7 @@ def Flow_Velocity_Calculation(vehicles, arenamap, method = 'Vortex', update_velo
 
         # Remove current vehicle from vehicle list
         othervehicleslist = vehicles[:f] + vehicles[f+1:]
-        othervehicleslist = []
+        # othervehicleslist = []
         # Velocity induced by 2D point sink, eqn. 10.2 & 10.3 in Katz & Plotkin:
         V_sink[f,0] = (-vehicle.sink_strength*(vehicle.position[0]-vehicle.goal[0]))/(2*np.pi*((vehicle.position[0]-vehicle.goal[0])**2+(vehicle.position[1]-vehicle.goal[1])**2))
         V_sink[f,1] = (-vehicle.sink_strength*(vehicle.position[1]-vehicle.goal[1]))/(2*np.pi*((vehicle.position[0]-vehicle.goal[0])**2+(vehicle.position[1]-vehicle.goal[1])**2))
@@ -78,6 +79,9 @@ def Flow_Velocity_Calculation(vehicles, arenamap, method = 'Vortex', update_velo
             V_source[f,0] += (othervehicle.source_strength*(vehicle.position[0]-othervehicle.position[0]))/(2*np.pi*((vehicle.position[0]-othervehicle.position[0])**2+(vehicle.position[1]-othervehicle.position[1])**2))
             V_source[f,1] += (othervehicle.source_strength*(vehicle.position[1]-othervehicle.position[1]))/(2*np.pi*((vehicle.position[0]-othervehicle.position[0])**2+(vehicle.position[1]-othervehicle.position[1])**2))
             W_source[f,0] += (source_gain*othervehicle.source_strength*(vehicle.position[2]-othervehicle.position[2]))/(4*np.pi*((vehicle.position[0]-othervehicle.position[0])**2+(vehicle.position[1]-othervehicle.position[1])**2+(vehicle.position[2]-othervehicle.position[2])**2)**(3/2))
+            # Adding vortex elements attached to the vehicles. Using vortex strengths as 1/4 of the defined vehicle source_strength. FIXME to make it a design variable...
+            # V_vortex[f,0] += (othervehicle.source_strength/4. /(2*np.pi))  *((vehicle.position[1]-othervehicle.position[1]) /((vehicle.position[0]-othervehicle.position[0])**2+(vehicle.position[1]-othervehicle.position[1])**2)) ####
+            # V_vortex[f,1] += (othervehicle.source_strength/4. /(2*np.pi))  *((vehicle.position[0]-othervehicle.position[0]) /((vehicle.position[0]-othervehicle.position[0])**2+(vehicle.position[1]-othervehicle.position[1])**2))
 
         if method == 'Vortex':
             for building in arenamap.buildings:
@@ -134,8 +138,8 @@ def Flow_Velocity_Calculation(vehicles, arenamap, method = 'Vortex', update_velo
 ##########################################
 
         # Total velocity induced by all elements on map:
-        V_sum[f,0] = V_gamma[f,0] + V_sink[f,0] + 0*vehicle.V_inf[0] + V_source[f,0]
-        V_sum[f,1] = V_gamma[f,1] + V_sink[f,1] + 0*vehicle.V_inf[1] + V_source[f,1]
+        V_sum[f,0] = V_gamma[f,0] + V_sink[f,0] + 0*vehicle.V_inf[0] + V_source[f,0] + V_vortex[f,0]
+        V_sum[f,1] = V_gamma[f,1] + V_sink[f,1] + 0*vehicle.V_inf[1] + V_source[f,1] + V_vortex[f,1]
 
         # L2 norm of flow velocity:
         V_norm[f] = (V_sum[f,0]**2 + V_sum[f,1]**2)**0.5
