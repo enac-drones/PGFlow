@@ -1,13 +1,6 @@
-import math
-import matplotlib.pyplot as plt
 import numpy as np
-import pdb
-import pyclipper
 import scipy
-from datetime import datetime
-from itertools import compress
 from numpy import linalg
-from shapely.geometry import Point, Polygon
 
 from gflow.panel_flow import Flow_Velocity_Calculation
 

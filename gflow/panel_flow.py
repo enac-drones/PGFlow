@@ -1,17 +1,9 @@
-import math
-import matplotlib.pyplot as plt
-import numpy as np
-
 # from vehicle import Vehicle
-import pdb
-import pyclipper
 from datetime import datetime
 from itertools import compress
-from numpy import linalg
-from scipy.spatial import ConvexHull
-from shapely.geometry import Point, Polygon
 
-from gflow.building import Building
+import numpy as np
+from shapely.geometry import Point, Polygon
 
 """# Velocity Calculation"""
 

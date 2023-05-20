@@ -1,5 +1,8 @@
 import pytest
+
 from ..arena import ArenaMap
+
+
 @pytest.fixture
 def arena_map():
     return ArenaMap()

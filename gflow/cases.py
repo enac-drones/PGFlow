@@ -2,7 +2,7 @@ import json
 import os
 import shutil
 import sys
-from copy import copy, deepcopy
+from copy import deepcopy
 
 from gflow.arena import ArenaMap
 from gflow.building import Building, RegularPolygon

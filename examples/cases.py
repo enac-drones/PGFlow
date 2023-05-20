@@ -1,6 +1,7 @@
-import numpy as np
 import random
-from copy import copy, deepcopy
+from copy import deepcopy
+
+import numpy as np
 from gflow.json2py import JSON2Py
 
 from gflow.arena import ArenaMap

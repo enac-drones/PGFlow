@@ -1,15 +1,12 @@
 # from gflow.arena import ArenaMap
 # from gflow.building import Building
-import numpy as np
-from time import sleep
+
+import os
 
 import gflow.utils as ut
 from gflow.cases import Cases
-from gflow.vehicle import Vehicle
 
 # from gflow.smart_input import create_buildings
-
-
 # from cases import Cases
 # Case = Cases(117,Arena,'manual')
 # Case = Cases(13,Arena,'manual')
@@ -18,12 +15,8 @@ from gflow.vehicle import Vehicle
 # Case.arena.Inflate(radius = 0.2) #0.1
 # Case.arena.Panelize(size= 0.01) #0.08
 # Case.arena.Calculate_Coef_Matrix(method = 'Vortex')
-
-
 # buildings = create_buildings()
 # print(f"buildings are {buildings}")
-
-import os
 
 # case1 = Cases()
 abs_file = os.path.dirname(os.path.abspath(__file__))

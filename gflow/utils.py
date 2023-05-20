@@ -1,15 +1,13 @@
-import matplotlib as mpl
+import sys
+
 import matplotlib.pyplot as plt
 import numpy as np
-import sys
-import time
 
 # Import animation package
 from matplotlib.animation import FuncAnimation
 
 # Import slider package
 from matplotlib.widgets import Slider, Button
-from mpl_interactions import *
 
 
 def plot_trajectories(Arena, ArenaR, Vehicle_list):
