@@ -1,11 +1,13 @@
 # from gflow.arena import ArenaMap
 # from gflow.building import Building
-from gflow.vehicle import Vehicle
+import numpy as np
+from time import sleep
+
 import gflow.utils as ut
 from gflow.cases import Cases
-from time import sleep
-import numpy as np
-#from gflow.smart_input import create_buildings
+from gflow.vehicle import Vehicle
+
+# from gflow.smart_input import create_buildings
 
 
 # from cases import Cases
@@ -18,27 +20,27 @@ import numpy as np
 # Case.arena.Calculate_Coef_Matrix(method = 'Vortex')
 
 
-#buildings = create_buildings()
-#print(f"buildings are {buildings}")
+# buildings = create_buildings()
+# print(f"buildings are {buildings}")
+
+import os
+
+# case1 = Cases()
+abs_file = os.path.dirname(os.path.abspath(__file__))
+# case1.add_case("d",1,1)
+case = Cases.get_case(filename=f"{abs_file}/cases.json", casename="d")
 
 
-#case1 = Cases()
-
-#case1.add_case("d",1,1)
-case = Cases.get_case(filename='examples/cases.json', casename='d')
-
-
-
-for i in range (700):
-    #print(i)
+for i in range(700):
+    # print(i)
     # Step the simulation
-    for index,vehicle in enumerate(case.vehicle_list):
+    for index, vehicle in enumerate(case.vehicle_list):
         if vehicle.state != 1:
             vehicle.run_simple_sim()
 
     # Communication Block
     # Update positions
-    for index,vehicle in enumerate(case.vehicle_list):
+    for index, vehicle in enumerate(case.vehicle_list):
         # Update only self position
         vehicle.vehicle_list[index].position = vehicle.position
 
@@ -46,14 +48,16 @@ for i in range (700):
         # the numbers in the if statement within the list, separated by commas indicate which drones are providing their position
         if index in []:
             for list_index in range(len(vehicle.vehicle_list)):
-                vehicle.vehicle_list[list_index].position = case.vehicle_list[list_index].position # calling case.Vehicle is not nice here... 1 unneccessary element update
+                vehicle.vehicle_list[list_index].position = case.vehicle_list[
+                    list_index
+                ].position  # calling case.Vehicle is not nice here... 1 unneccessary element update
 
         if vehicle.state == 1:
-            #print('Vehicle ', str(index), 'has reached the goal', i)
+            # print('Vehicle ', str(index), 'has reached the goal', i)
             pass
 
 
 asdf = ut.plot_trajectories2(case.arena, case.arena, case.vehicle_list)
 asdf.show()
 
-#EOF
+# EOF
