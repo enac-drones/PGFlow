@@ -2,7 +2,8 @@ import math
 
 import numpy as np
 import pyclipper
-from numpy import linalg
+
+# from numpy import linalg
 
 """##Building Code"""
 
@@ -120,9 +121,9 @@ class Building:
         vel_sink = np.zeros((self.nop, 2))
         vel_source = np.zeros((self.nop, 2))
         vel_source_imag = np.zeros((self.nop, 2))
-        vel_source_imag1 = np.zeros((self.nop, 2))
-        vel_source_imag2 = np.zeros((self.nop, 2))
-        vel_source_imag3 = np.zeros((self.nop, 2))
+        # vel_source_imag1 = np.zeros((self.nop, 2))
+        # vel_source_imag2 = np.zeros((self.nop, 2))
+        # vel_source_imag3 = np.zeros((self.nop, 2))
         RHS = np.zeros((self.nop, 1))
 
         if method == "Vortex":

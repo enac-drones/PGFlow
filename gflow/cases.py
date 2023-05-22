@@ -7,6 +7,10 @@ from copy import deepcopy
 from gflow.arena import ArenaMap
 from gflow.building import Building, RegularPolygon
 from gflow.vehicle import Vehicle
+from random import random
+import numpy as np
+from scipy.spatial import distance
+import warnings
 
 
 class Case:
@@ -17,6 +21,22 @@ class Case:
         self.vehicle_list = []
         self.buildings = []
         self._arena = None
+
+    # @property
+    # def vehicle_list(self):
+    #     return self._vehicle_list
+
+    # @vehicle_list.setter
+    # def vehicle_list(self,new_vehicle_list):
+    #     try:
+    #         print("hi")
+    #         self._vehicle_list = new_vehicle_list
+    #         for vehicle in self._vehicle_list:
+    #             vehicle.vehicle_list = deepcopy(new_vehicle_list)
+    #         print("hi")
+    #     except Exception as ex:
+    #         print(ex, type(ex).__name__, ex.args)
+    #         raise Exception
 
     @property
     def arena(self):
@@ -44,38 +64,42 @@ class Cases:
         self._filename = filename
         self.cases = self.load_file(self._filename)
         # print(f"cases are {self.cases}")
-        self._casename = "default"
+        self._case_name = "default"
         self.case = None
 
     @property
-    def casename(self):
-        return self._casename
+    def case_name(self):
+        return self._case_name
 
-    @casename.setter
-    def casename(self, new_name):
+    @case_name.setter
+    def case_name(self, new_name):
         """Ensure the user sets a correct case"""
         # print(self.cases.keys())
         if new_name in self.cases.keys():
-            self._casename = new_name
+            self._case_name = new_name
         else:
-            print(
-                f"Error: '{new_name}' is an invalid case name. Valid cases are: {list(self.cases.keys())}"
-            )
-            while True:
-                user_input = input(
-                    "Please input desired case, or type 'd' to use 'default' case or 'q' to quit: "
-                )
-                if user_input == "q":
-                    sys.exit("Quitting simulation, please specify desired case")
-                elif user_input == "d":
-                    break
-                elif user_input in self.cases.keys():
-                    self._casename = user_input
-                    break
-                else:
-                    print("Invalid input")
+            self.select_case(new_name=new_name)
 
-            print(f"Using '{self._casename}' case instead")
+    def select_case(self, new_name):
+        """Allow the user to select a case manually. This function is called if the case requested does not exist"""
+        print(
+            f"Error: '{new_name}' is an invalid case name. Valid cases are: {list(self.cases.keys())}"
+        )
+        while True:
+            user_input = input(
+                "Please input desired case, or type 'd' to use 'default' case or 'q' to quit: "
+            )
+            if user_input == "q":
+                sys.exit("Quitting simulation, please specify desired case")
+            elif user_input == "d":
+                break
+            elif user_input in self.cases.keys():
+                self._case_name = user_input
+                break
+            else:
+                print("Invalid input")
+
+        print(f"Using '{self._case_name}' case instead")
 
     @property
     def filename(self):
@@ -95,14 +119,14 @@ class Cases:
             )
 
     @classmethod
-    def get_case(cls, filename, casename):
+    def get_case(cls, filename, case_name):
         case_cls = cls(filename=filename)
-        case_cls.case_setup(casename)
+        case_cls.case_setup(case_name)
         return case_cls.case
 
-    def case_setup(self, casename):
-        self.casename = casename
-        self.case = Case(self.casename)
+    def case_setup(self, case_name):
+        self.case_name = case_name
+        self.case = Case(self.case_name)
         self.case.vehicle_list = self.obtain_vehicles()
         self.case.buildings = self.obtain_buildings()
         self.case.arena = ArenaMap(buildings=self.case.buildings)
@@ -154,7 +178,7 @@ class Cases:
     def obtain_buildings(self):
         """return a list of building objects"""
         buildings = []
-        for building in self.cases[self.casename]["buildings"]:
+        for building in self.cases[self.case_name]["buildings"]:
             coords = building["vertices"]
             buildings.append(Building(coords))
         return buildings
@@ -162,7 +186,7 @@ class Cases:
     def obtain_vehicles(self):
         """return a list of vehicle objects"""
         vehicles = []
-        for vehicle in self.cases[self.casename]["vehicles"]:
+        for vehicle in self.cases[self.case_name]["vehicles"]:
             # print(f"vehicle is {vehicle}")
             position = vehicle["position"]
             goal = vehicle["goal"]
@@ -201,45 +225,53 @@ class Cases:
         buildings.append(building)
         vehicles.append(Vehicle1)
         # print(f"the vehicle list should be {vehicles[0],len(vehicles)}")
-        self.add_case(ID="default", building_list=buildings, vehicle_list=vehicles)
+        self.add_case(
+            case_name="default", building_list=buildings, vehicle_list=vehicles
+        )
         return None
 
-    def add_case(self, ID, building_list, vehicle_list):
+    def add_case(self, case_name, building_list, vehicle_list):
         """add a case of name "ID" into the json data file"""
-        if ID == "q" or ID == "d":
+        if case_name == "q" or case_name == "d":
             # q and d are used to quit or use the default case when the user requests an inexistent case name
             # they are protected (ie the system quits when q is called instead of running a case named 'q')
             raise ValueError(
-                f"'d' and 'q' are protected names, please choose a different name for your case."
+                "'d' and 'q' are protected names, please choose a different name for your case."
             )
         # create sub dictionary within cases to hold the case
         # print(f"self.cases is {self.cases}")
-        self.cases[ID] = {}
+        self.cases[case_name] = {}
         # now set some info about the case. Need to create a list of buildings first though
-        self.cases[ID]["buildings"] = []
+        self.cases[case_name]["buildings"] = []
         # print(f"self.cases is {self.cases}")
         # add the vertices and and number the buildings starting from 0
         for count, building in enumerate(building_list):
-            self.cases[ID]["buildings"].append({})
-            self.cases[ID]["buildings"][count]["ID"] = f"Building {count}"
-            self.cases[ID]["buildings"][count]["vertices"] = building.vertices.tolist()
+            self.cases[case_name]["buildings"].append({})
+            self.cases[case_name]["buildings"][count]["ID"] = f"Building {count}"
+            self.cases[case_name]["buildings"][count][
+                "vertices"
+            ] = building.vertices.tolist()
         # now the vehicles
         # now set some info about the first case. Need to create a list of buildings first though
-        self.cases[ID]["vehicles"] = []
+        self.cases[case_name]["vehicles"] = []
         for count, vehicle in enumerate(vehicle_list):
             # print(f"the vehicle list is {vehicle_list}")
-            self.cases[ID]["vehicles"].append({})
-            self.cases[ID]["vehicles"][count]["ID"] = vehicle.ID
-            self.cases[ID]["vehicles"][count]["position"] = vehicle.position.tolist()
-            self.cases[ID]["vehicles"][count]["goal"] = vehicle.goal.tolist()
-            self.cases[ID]["vehicles"][count][
+            self.cases[case_name]["vehicles"].append({})
+            self.cases[case_name]["vehicles"][count]["ID"] = vehicle.ID
+            self.cases[case_name]["vehicles"][count][
+                "position"
+            ] = vehicle.position.tolist()
+            self.cases[case_name]["vehicles"][count]["goal"] = vehicle.goal.tolist()
+            self.cases[case_name]["vehicles"][count][
                 "source_strength"
             ] = vehicle.source_strength
-            self.cases[ID]["vehicles"][count][
+            self.cases[case_name]["vehicles"][count][
                 "imag_source_strength"
             ] = vehicle.imag_source_strength
-            self.cases[ID]["vehicles"][count]["sink_strength"] = vehicle.sink_strength
-            self.cases[ID]["vehicles"][count]["safety"] = vehicle.safety
+            self.cases[case_name]["vehicles"][count][
+                "sink_strength"
+            ] = vehicle.sink_strength
+            self.cases[case_name]["vehicles"][count]["safety"] = vehicle.safety
             # print(f"The bad thing is {self.cases[ID]['vehicles'][count]}")
             # print(f"Id is {ID}")
 
@@ -249,15 +281,105 @@ class Cases:
             json.dump(self.cases, f, sort_keys=False, indent=4)
             # print("After dumping")
         # return the case that was just added
-        self.casename = ID
-        return self.cases[ID]
+        self.case_name = case_name
+        return self.cases[case_name]
 
-    def remove_case(self, ID):
+    def remove_case(self, case_name):
         """Remove a particular case from the cases file, return that case"""
-        deleted_case = self.cases.pop(ID)  # this returns the value of the removed key
+        deleted_case = self.cases.pop(
+            case_name
+        )  # this returns the value of the removed key
         with open(self._filename, "w") as f:
             json.dump(self.cases, f, sort_keys=False, indent=4)
         return deleted_case
+
+    def generate_random_case(self, case_name, n_drones):
+        # create a case with n_drones with random starting and ending coords
+        vehicle_list = []
+        starting_positions, goal_positions = self.generate_coordinates(
+            n_drones=n_drones, side_length=8, min_distance=0.5
+        )
+        for idx, coord in enumerate(starting_positions):
+            vehicle = Vehicle(
+                ID=f"V{idx}", source_strength=0.5, imag_source_strength=0.5
+            )
+            vehicle.Set_Position(pos=coord)
+            vehicle.Set_Goal(goal=goal_positions[idx], goal_strength=5, safety=0.0001)
+            vehicle_list.append(vehicle)
+        # add the case to the json file
+        self.add_case(case_name=case_name, building_list=[], vehicle_list=vehicle_list)
+
+        return None
+
+    def generate_coordinates(self, n_drones, side_length, min_distance):
+        """
+        Generate random starting and ending positions for n_drones within a square area.
+
+        Parameters:
+        n_drones (int): The number of drones.
+        side_length (float): The side length of the square area.
+        min_distance (float): The minimum allowed distance between any two drones.
+
+        Returns:
+        starting_positions (list): List of starting positions for each drone.
+        ending_positions (list): List of ending positions for each drone.
+
+        The function works by generating a random position within the square, then checking if it's
+        far enough away from all existing positions. If it's too close to any existing position, it's discarded
+        and a new position is generated. This continues until all drones have been placed or the maximum number
+        of iterations has been reached.
+
+        Note:
+        - The positions are completely random within the square, subject to the minimum distance constraint.
+        - If the number of drones, the side length, and the minimum distance are not compatible (i.e., if the drone
+        density is too high or the minimum distance is too large relative to the side length), the function may
+        not be able to place all the drones and will stop after a certain number of iterations, issuing a warning.
+        - Drones are more likely to be evenly spaced if the number of drones is small relative to the square of the
+        side length divided by the square of the minimum distance.
+        """
+        max_iterations = 10000  # Define a limit on the number of iterations
+        iteration = 0
+        starting_positions = []
+        ending_positions = []
+
+        density = n_drones * (np.pi * (min_distance / 2) ** 2) / (side_length**2)
+        if density > 0.8:
+            warnings.warn(
+                f"Drone density ({density}) or minimum distance might be too high for the side length. Adjust the parameters."
+            )
+
+        while len(starting_positions) < n_drones and iteration < max_iterations:
+            new_start = (
+                np.random.uniform(0, side_length, 3) - side_length / 2
+            )  # Generate a new start 3D point
+            new_end = (
+                np.random.uniform(0, side_length, 3) - side_length / 2
+            )  # Generate a new end 3D point
+            # temporarily set the z coordinate to 0.5 to match the 2d case
+            new_start[2] = new_end[2] = 0.5
+            if starting_positions:
+                dists = distance.cdist([new_start], starting_positions, "euclidean")[0]
+                if np.min(dists) < min_distance:
+                    iteration += 1
+                    continue  # Skip this point, it's too close
+
+            if ending_positions:
+                dists = distance.cdist([new_end], ending_positions, "euclidean")[0]
+                if np.min(dists) < min_distance:
+                    iteration += 1
+                    continue  # Skip this point, it's too close
+
+            # If the point passed all checks, add it to both starting and ending positions
+            starting_positions.append(new_start)
+            ending_positions.append(new_end)
+
+        if iteration == max_iterations:
+            warnings.warn(
+                f"Maximum iteration reached. Returning available positions."
+                f"There are {len(starting_positions)} available drones"
+            )
+
+        return starting_positions, ending_positions
 
 
 if __name__ == "__main__":
@@ -290,6 +412,8 @@ if __name__ == "__main__":
     vehicles.append(Vehicle2)
     vehicles.append(Vehicle3)
 
-    case.add_case(ID="threedrones", building_list=buildings, vehicle_list=vehicles)
+    case.add_case(
+        case_name="threedrones", building_list=buildings, vehicle_list=vehicles
+    )
     # case.add_case(ID="test2",building_list=buildings,vehicle_list=vehicles)
     # print(case.cases)

@@ -40,9 +40,8 @@ DOCKER_COMPOSE			= docker-compose
 DOCKER_COMPOSE_RUN		= $(DOCKER_COMPOSE) run --rm
 DOCKER_COMPOSE_DJANGO	= $(DOCKER_COMPOSE_RUN) django
 
-.PHONY: all help validate-system-packages  setup run
-.PHONY: clean pre-commit test psql
-.PHONY: migrate docker-logs makemessages compilemessages psql
+.PHONY: all help setup run
+.PHONY: pre-commit test
 
 
 all: help

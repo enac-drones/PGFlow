@@ -5,6 +5,7 @@ import os
 
 import gflow.utils as ut
 from gflow.cases import Cases
+from gflow.vehicle import Vehicle
 
 # from gflow.smart_input import create_buildings
 # from cases import Cases
@@ -17,19 +18,32 @@ from gflow.cases import Cases
 # Case.arena.Calculate_Coef_Matrix(method = 'Vortex')
 # buildings = create_buildings()
 # print(f"buildings are {buildings}")
-
+# print("hi")
 # case1 = Cases()
 abs_file = os.path.dirname(os.path.abspath(__file__))
 # case1.add_case("d",1,1)
-case = Cases.get_case(filename=f"{abs_file}/cases.json", casename="d")
+generator = Cases()
+# generator.generate_random_case(case_name="random10", n_drones=10)
+case = Cases.get_case(filename=f"{abs_file}/cases.json", case_name="random10")
+# print("Hi")
+# v_list = case.vehicle_list
+# for vehicle in v_list:
+#     vehicle.sink_strength = 15
+
+# print("hi")
+# case.vehicle_list = v_list
+
+# print(case.vehicle_list[0].sink_strength)
 
 
-for i in range(700):
+for i in range(2500):
     # print(i)
     # Step the simulation
     for index, vehicle in enumerate(case.vehicle_list):
         if vehicle.state != 1:
+            # print(vehicle.sink_strength)
             vehicle.run_simple_sim()
+            # print(vehicle.pos)
 
     # Communication Block
     # Update positions

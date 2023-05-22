@@ -11,7 +11,7 @@ from matplotlib.widgets import Slider, Button
 
 
 def plot_trajectories(Arena, ArenaR, Vehicle_list):
-    fig = plt.figure(figsize=(5, 5))
+    plt.figure(figsize=(5, 5))
     minx = -5
     maxx = 5
     miny = -5
@@ -311,8 +311,8 @@ class plot_trajectories2:
         ax = fig.add_subplot(111)
         fig.subplots_adjust(bottom=0.1, top=0.9)
 
-        ax.set_xlim([-5, 5])
-        ax.set_ylim([-5, 5])
+        ax.set_xlim([-50, 50])
+        ax.set_ylim([-50, 50])
         ax.set_box_aspect(1)
         ax.set_xlabel("East --> (m)")
         ax.set_ylabel("North --> (m)")
@@ -531,7 +531,7 @@ class plot_trajectories2:
             bounding_box = dict(
                 boxstyle="round", facecolor="wheat", edgecolor="g", alpha=1
             )
-            textstr = f"Safe"
+            textstr = "Safe"
             # info_box = ax.text(0.05, 0.95, textstr, transform=ax.transAxes, fontsize=14,
             #        verticalalignment='top', bbox=bounding_box,color = 'g')
             self.info_box.set_text(textstr)

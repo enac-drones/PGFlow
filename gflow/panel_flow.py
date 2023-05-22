@@ -1,9 +1,20 @@
-# from vehicle import Vehicle
-from datetime import datetime
+import numpy as np
+
+# from numpy import linalg
+# import math
+# import matplotlib.pyplot as plt
+# import pyclipper
+from shapely.geometry import Point, Polygon
+
+# from datetime import datetime
 from itertools import compress
 
-import numpy as np
-from shapely.geometry import Point, Polygon
+# from gflow.building import Building
+
+# from vehicle import Vehicle
+# import pdb
+
+# from scipy.spatial import ConvexHull
 
 """# Velocity Calculation"""
 
@@ -11,8 +22,8 @@ from shapely.geometry import Point, Polygon
 def Flow_Velocity_Calculation(
     vehicles, arenamap, method="Vortex", update_velocities=True
 ):
-
-    starttime = datetime.now()
+    # when simple_sim is called, vehicles is self.vehicle_list, ie the current vehicle's own list of vehicles
+    # starttime = datetime.now()
 
     # Calculating unknown vortex strengths using panel method:
     for f, vehicle in enumerate(vehicles):
@@ -20,15 +31,17 @@ def Flow_Velocity_Calculation(
         othervehicleslist = vehicles[:f] + vehicles[f + 1 :]
         # othervehicleslist = []
 
-        # print("a;lsdjfal;ksdjfl;askdjakl;sfjdls;jfa;lsdfj;lk")
+        # print("god")
         # Remove buildings with heights below cruise altitue:
         vehicle.altitude_mask = np.zeros((len(arenamap.buildings)))  # , dtype=int)
         for index, panelledbuilding in enumerate(arenamap.buildings):
             if (panelledbuilding.vertices[:, 2] > vehicle.altitude).any():
                 vehicle.altitude_mask[index] = 1
+        # related_buildings keeps only the buildings for which the altitude_mask is 1, ie buildings that are higher than the altitude...
+        # ... of the vehicle in question
         related_buildings = list(compress(arenamap.buildings, vehicle.altitude_mask))
 
-        # Vortex strenght calculation (related to panels of each building):
+        # Vortex strength calculation (related to panels of each building):
         for building in related_buildings:
             building.gamma_calc(vehicle, othervehicleslist, arenamap, method=method)
 
@@ -63,7 +76,7 @@ def Flow_Velocity_Calculation(
     W_normal = np.zeros([len(vehicles), 1])
 
     for f, vehicle in enumerate(vehicles):
-
+        # print(f"Inside FlowVelocityCalculation, vehicle sink strength is {vehicle.sink_strength}")
         # Remove current vehicle from vehicle list
         othervehicleslist = vehicles[:f] + vehicles[f + 1 :]
         # othervehicleslist = []
@@ -144,8 +157,20 @@ def Flow_Velocity_Calculation(
                 ** (3 / 2)
             )
             # Adding vortex elements attached to the vehicles. Using vortex strengths as 1/4 of the defined vehicle source_strength. FIXME to make it a design variable...
-            # V_vortex[f,0] += (othervehicle.source_strength/4. /(2*np.pi))  *((vehicle.position[1]-othervehicle.position[1]) /((vehicle.position[0]-othervehicle.position[0])**2+(vehicle.position[1]-othervehicle.position[1])**2)) ####
-            # V_vortex[f,1] += (othervehicle.source_strength/4. /(2*np.pi))  *((vehicle.position[0]-othervehicle.position[0]) /((vehicle.position[0]-othervehicle.position[0])**2+(vehicle.position[1]-othervehicle.position[1])**2))
+            V_vortex[f, 0] += (othervehicle.source_strength / 4.0 / (2 * np.pi)) * (
+                (vehicle.position[1] - othervehicle.position[1])
+                / (
+                    (vehicle.position[0] - othervehicle.position[0]) ** 2
+                    + (vehicle.position[1] - othervehicle.position[1]) ** 2
+                )
+            )
+            V_vortex[f, 1] += (othervehicle.source_strength / 4.0 / (2 * np.pi)) * (
+                (vehicle.position[0] - othervehicle.position[0])
+                / (
+                    (vehicle.position[0] - othervehicle.position[0]) ** 2
+                    + (vehicle.position[1] - othervehicle.position[1]) ** 2
+                )
+            )
 
         if method == "Vortex":
             for building in arenamap.buildings:
@@ -156,12 +181,12 @@ def Flow_Velocity_Calculation(
                 # print('Vehicle' + str(f))
                 # print(point)
                 # print(polygon)
-                if polygon.contains(point) == True:
+                if polygon.contains(point) is True:
                     # print(polygon.contains(point))
                     V_gamma[f, 0] = V_gamma[f, 0] + 0
                     V_gamma[f, 1] = V_gamma[f, 1] + 0
                     # print(polygon.contains(point))
-                elif polygon.contains(point) == False:
+                elif polygon.contains(point) is False:
                     # print(polygon.contains(point))
                     if vehicle.ID in building.gammas.keys():
                         # Velocity induced by vortices on each panel:
@@ -172,7 +197,7 @@ def Flow_Velocity_Calculation(
                                 (vehicle.position[0] - building.pcp[:, 0]) ** 2
                                 + (vehicle.position[1] - building.pcp[:, 1]) ** 2
                             )
-                        )  ####
+                        )
                         v = (-building.gammas[vehicle.ID][:].T / (2 * np.pi)) * (
                             (vehicle.position[0] - building.pcp[:, 0])
                             / (
@@ -192,12 +217,12 @@ def Flow_Velocity_Calculation(
                 # print('Vehicle' + str(f))
                 # print(point)
                 # print(polygon)
-                if polygon.contains(point) == True:
+                if polygon.contains(point):
                     # print(polygon.contains(point))
                     V_gamma[f, 0] = V_gamma[f, 0] + 0
                     V_gamma[f, 1] = V_gamma[f, 1] + 0
                     # print(polygon.contains(point))
-                elif polygon.contains(point) == False:
+                elif polygon.contains(point) is False:
                     # print(polygon.contains(point))
                     if vehicle.ID in building.gammas.keys():
                         # Velocity induced by vortices on each panel:
@@ -208,7 +233,7 @@ def Flow_Velocity_Calculation(
                                 (vehicle.position[0] - building.pcp[:, 0]) ** 2
                                 + (vehicle.position[1] - building.pcp[:, 1]) ** 2
                             )
-                        )  ####
+                        )
                         v = (-building.gammas[vehicle.ID][:].T / (2 * np.pi)) * (
                             (vehicle.position[0] - building.pcp[:, 0])
                             / (
@@ -221,9 +246,8 @@ def Flow_Velocity_Calculation(
         elif method == "Hybrid":
             pass
 
-        ########## !!!!!!FIX THIS!!!!!!!##########
-        ##########  0*vehicle.V_inf[0] ###########
-        ##########################################
+        # !!!!!!FIX THIS!!!!!!!
+        # 0*vehicle.V_inf[0]
 
         # Total velocity induced by all elements on map:
         V_sum[f, 0] = (

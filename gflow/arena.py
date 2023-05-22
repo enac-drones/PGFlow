@@ -22,7 +22,7 @@ class ArenaMap:
         self.wind = [0, 0]
         self.windT = 0
         self.buildings = []
-        if building_hulls != None:
+        if building_hulls is not None:
             generate = "auto"
             for key in building_hulls.keys():
                 posList = building_hulls[key]["pos"]
@@ -151,7 +151,7 @@ class ArenaMap:
     def AddCircularBuilding(
         self, x_offset, y_offset, no_of_pts, size, height=1, angle=0
     ):
-        n = 6  # number of points
+        # n = 6  # number of points
         circle_list = []
         # offset_x = -3
         # offset_y = 3
@@ -187,7 +187,7 @@ class ArenaMap:
         circle_list = []
         theta = np.sort(
             np.random.rand(n) * 2 * np.pi
-        )  ## Generate n random numbers btw 0-2pi and sort: small to large
+        )  # Generate n random numbers btw 0-2pi and sort: small to large
         for j in range(n):
             circle_list.append(
                 [
@@ -195,5 +195,5 @@ class ArenaMap:
                     round(math.sin(theta[j]) * radius + center_y, 3),
                     height,
                 ]
-            )  ######
+            )
         return Building(circle_list, position)

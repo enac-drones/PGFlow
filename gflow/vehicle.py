@@ -60,11 +60,11 @@ def line(p1, p2):
 
 def intersection(L1, L2):
     D = L1[0] * L2[1] - L1[1] * L2[0]
-    Dx = L1[2] * L2[1] - L1[1] * L2[2]
-    Dy = L1[0] * L2[2] - L1[2] * L2[0]
+    # Dx = L1[2] * L2[1] - L1[1] * L2[2]
+    # Dy = L1[0] * L2[2] - L1[2] * L2[0]
     if D != 0:
-        x = Dx / D
-        y = Dy / D
+        # x = Dx / D
+        # y = Dy / D
         return True
     else:
         return False
@@ -115,7 +115,7 @@ class Vehicle:
         self.position = np.array(pos)
         self.path = np.array(pos)
         # print('GOOOAAALLL : ', self.goal)
-        if np.all(self.goal) != None:
+        if np.all(self.goal) is not None:
             self.distance_to_destination = np.linalg.norm(
                 np.array(self.goal) - np.array(self.position)
             )
@@ -246,7 +246,7 @@ class Vehicle:
             + np.array([arenamap.wind[0], arenamap.wind[1], 0])
             + self.correction
         )
-        dif1 = self.position - prevpos
+        # dif1 = self.position - prevpos
         dif2 = self.desiredpos - prevpos
         dif3 = self.position - self.desiredpos
         if self.correction_type == "none":
@@ -321,12 +321,12 @@ class Vehicle:
             self.position[:] = Xe[:3]
             self.velocity[:] = Xe[3:]
         if set_best_state:
-            best = np.argmin(
-                [
-                    np.sum(curvature(path[i, 30:, 0], path[i, 30:, 1]))
-                    for i in range(len(vinfmag_list))
-                ]
-            )
+            # best = np.argmin(
+            #     [
+            #         np.sum(curvature(path[i, 30:, 0], path[i, 30:, 1]))
+            #         for i in range(len(vinfmag_list))
+            #     ]
+            # )
             self.position[:] = Xe[:3]
             self.velocity[:] = Xe[3:]
             """
@@ -342,7 +342,7 @@ class Vehicle:
         time_horizon = np.arange(t0 + dt, t0 + hor, dt)
         path = np.zeros((len(time_horizon), 6))
         X0 = Xe.copy()
-        ti = t0
+        # ti = t0
         flow_vels = Flow_Velocity_Calculation(
             self._vehicle_list, self._arena, method="Source"
         )
@@ -357,7 +357,7 @@ class Vehicle:
             # FIX ME : This will only work because we have only one vehicle...
             X = X0[:3] + U * dt  # scipy.integrate.odeint(dyn, X0, [ti, t_], args=(U,))
             X0 = X.copy()
-            ti = t_
+            # ti = t_
             path[i, :] = np.hstack(
                 [X, U]
             )  # Recording position and velocity to the path
@@ -369,9 +369,9 @@ class Vehicle:
             vertice_list = np.vstack((building.vertices, building.vertices[0]))
             for vert in range(building.vertices.shape[0] - 1):
                 polygon_line = line((vertice_list[vert]), (vertice_list[vert + 1]))
-                if intersection(future_line, polygon_line) == True:
+                if intersection(future_line, polygon_line) is True:
                     vinfmag = vinfmag
-                elif intersection(future_line, polygon_line) == False:
+                elif intersection(future_line, polygon_line) is False:
                     vinfmag = 0
         # print('For vehicle ', str('Best'), 'Best V_inf is: ', str(vinfmag))
         self.Go_to_Goal(AoAsgn=np.sign(vinfmag), Vinfmag=np.abs(vinfmag))

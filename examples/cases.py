@@ -33,7 +33,7 @@ class Cases:
                 # print(f"Vehicle list is {self.Vehicle_list}")
 
             elif custom is not None:
-                print(f"Inside custom case, get here by typing none")
+                print("Inside custom case, get here by typing none")
                 self.buildings = custom
                 Vehicle1 = Vehicle(
                     "V1", 0.5, 0.5
@@ -704,7 +704,7 @@ class Cases:
 
     def SetRandomStartGoal(self, arenamap, ID):
         loop = True
-        while loop == True:
+        while loop is True:
             goal_temp = [
                 round(random.uniform(-3.5, 3.5), 1),  # nosec
                 round(random.uniform(-3.5, 3.5), 1),  # nosec
