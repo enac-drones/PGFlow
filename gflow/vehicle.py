@@ -1,7 +1,7 @@
 import numpy as np
 import scipy
 from numpy import linalg
-
+from typing import List
 from gflow.panel_flow import Flow_Velocity_Calculation
 
 """##Vehicles"""
@@ -93,7 +93,8 @@ class Vehicle:
         self.velocity_corrected = np.zeros(3)
         self.vel_err = np.zeros(3)
         self.correction_type = correction_type
-        self._vehicle_list = []
+        self._personal_vehicle_list: List["Vehicle"] = []
+        self.transmitting = True
 
     @property
     def arena(self):
@@ -104,12 +105,12 @@ class Vehicle:
         self._arena = arena
 
     @property
-    def vehicle_list(self):
-        return self._vehicle_list
+    def personal_vehicle_list(self):
+        return self._personal_vehicle_list
 
-    @vehicle_list.setter
-    def vehicle_list(self, vehicle_list):
-        self._vehicle_list = vehicle_list
+    @personal_vehicle_list.setter
+    def personal_vehicle_list(self, vehicle_list):
+        self._personal_vehicle_list = vehicle_list
 
     def Set_Position(self, pos):
         self.position = np.array(pos)
@@ -206,10 +207,10 @@ class Vehicle:
 
     def run_simple_sim(self):
         flow_vels = Flow_Velocity_Calculation(
-            self.vehicle_list, self.arena, method="Vortex"
+            self.personal_vehicle_list, self.arena, method="Vortex"
         )
-        for index, vehicle in enumerate(self.vehicle_list):
-            if self.vehicle_list[index].ID == self.ID:
+        for index, vehicle in enumerate(self.personal_vehicle_list):
+            if self.personal_vehicle_list[index].ID == self.ID:
                 self.Update_Velocity(flow_vels[index], self.arena)
             else:
                 # Update the other nearby vehicles (be careful for the index)
@@ -217,10 +218,10 @@ class Vehicle:
 
     def run_flow_calc_alone(self):
         flow_vels = Flow_Velocity_Calculation(
-            self.vehicle_list, self.arena, method="Vortex"
+            self.personal_vehicle_list, self.arena, method="Vortex"
         )
-        for index, vehicle in enumerate(self.vehicle_list):
-            if self.vehicle_list[index].ID == self.ID:
+        for index, vehicle in enumerate(self.personal_vehicle_list):
+            if self.personal_vehicle_list[index].ID == self.ID:
                 # self.Update_Velocity(flow_vels[index], self.arena)
                 # Calculate the desired velocity and corrected one
                 self.Set_Desired_Velocity(flow_vels[index], correction_method="None")
@@ -302,7 +303,7 @@ class Vehicle:
                 )
                 # FIX ME : This will only work because we have only one vehicle...
                 flow_vels = Flow_Velocity_Calculation(
-                    self._vehicle_list, self._arena, method="Vortex"
+                    self._personal_vehicle_list, self._arena, method="Vortex"
                 )
                 V_des = flow_vels[0]
                 mag = np.linalg.norm(V_des)
@@ -344,7 +345,7 @@ class Vehicle:
         X0 = Xe.copy()
         # ti = t0
         flow_vels = Flow_Velocity_Calculation(
-            self._vehicle_list, self._arena, method="Source"
+            self._personal_vehicle_list, self._arena, method="Source"
         )
         V_des = flow_vels[0]
         mag = np.linalg.norm(V_des)

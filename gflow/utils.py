@@ -311,8 +311,8 @@ class plot_trajectories2:
         ax = fig.add_subplot(111)
         fig.subplots_adjust(bottom=0.1, top=0.9)
 
-        ax.set_xlim([-50, 50])
-        ax.set_ylim([-50, 50])
+        ax.set_xlim([-5, 5])
+        ax.set_ylim([-5, 5])
         ax.set_box_aspect(1)
         ax.set_xlabel("East --> (m)")
         ax.set_ylabel("North --> (m)")
@@ -517,10 +517,12 @@ class plot_trajectories2:
             self.info_box.set_bbox(bounding_box)
             # print(f"there is a conflict, slider value = {val}")
 
-            for conflict in self.conflicts[self.conflict_iterator]:
-                if int(self.conflict_iterator - 1) in self.conflicts.keys():
+            previous_conflicts = self.conflicts.get(self.conflict_iterator - 1)
+            current_conflicts = self.conflicts.get(self.conflict_iterator)
+            for conflict in current_conflicts:
+                if self.conflict_iterator - 1 in self.conflicts:
                     # print(self.conflict_iterator,self.conflicts[self.conflict_iterator],self.conflicts[self.conflict_iterator-1])
-                    if conflict not in self.conflicts[self.conflict_iterator - 1]:
+                    if conflict not in previous_conflicts:
                         # print("Conflict already addressed, not stopping simulation.")
                         self.stop()
                 else:

@@ -11,6 +11,7 @@ from random import random
 import numpy as np
 from scipy.spatial import distance
 import warnings
+from typing import List
 
 
 class Case:
@@ -18,25 +19,25 @@ class Case:
 
     def __init__(self, name):
         self.name = name
-        self.vehicle_list = []
+        self._vehicle_list: List["Vehicle"] = []
         self.buildings = []
         self._arena = None
+        self.collision_threshold = 0.5
 
-    # @property
-    # def vehicle_list(self):
-    #     return self._vehicle_list
+    @property
+    def vehicle_list(self):
+        return self._vehicle_list
 
-    # @vehicle_list.setter
-    # def vehicle_list(self,new_vehicle_list):
-    #     try:
-    #         print("hi")
-    #         self._vehicle_list = new_vehicle_list
-    #         for vehicle in self._vehicle_list:
-    #             vehicle.vehicle_list = deepcopy(new_vehicle_list)
-    #         print("hi")
-    #     except Exception as ex:
-    #         print(ex, type(ex).__name__, ex.args)
-    #         raise Exception
+    @vehicle_list.setter
+    def vehicle_list(self, new_vehicle_list):
+        if not isinstance(new_vehicle_list, list):
+            raise TypeError("new_vehicle_list must be a list")
+        for item in new_vehicle_list:
+            if not isinstance(item, Vehicle):
+                raise TypeError("new_vehicle_list must contain only Vehicle objects")
+        self._vehicle_list = deepcopy(new_vehicle_list)
+        for vehicle in self._vehicle_list:
+            vehicle.personal_vehicle_list = deepcopy(new_vehicle_list)
 
     @property
     def arena(self):
@@ -44,18 +45,28 @@ class Case:
 
     @arena.setter
     def arena(self, new_arena):
-        try:
-            self._arena = new_arena
-            for vehicle in self.vehicle_list:
-                vehicle.vehicle_list = deepcopy(self.vehicle_list)
-                vehicle.arena = deepcopy(
-                    self._arena
-                )  # FIXME are these copies a problem ???
-        except Exception as ex:
-            print(ex, type(ex).__name__, ex.args)
-            raise Exception
+        """Arena setter, need to add some error handling first probably, just like in the vehicle_list setter"""
+        self._arena = deepcopy(new_arena)
+        for vehicle in self._vehicle_list:
+            vehicle.arena = deepcopy(new_arena)
 
-        # FIXME add arena generation here, remove it from cases setup...\
+    def colliding(self):
+        squared_distance_threshold = self.collision_threshold**2
+        for i in range(len(self.vehicle_list)):
+            for j in range(i + 1, len(self.vehicle_list)):
+                if (
+                    self.calculate_squared_distance(
+                        self.vehicle_list[i].position, self.vehicle_list[j].position
+                    )
+                    < squared_distance_threshold
+                ):
+                    return True
+        return False
+
+    def calculate_squared_distance(self, position1, position2):
+        x1, y1, z1 = position1
+        x2, y2, z2 = position2
+        return (x2 - x1) ** 2 + (y2 - y1) ** 2 + (z2 - z1) ** 2
 
 
 class Cases:
@@ -337,6 +348,7 @@ class Cases:
         - Drones are more likely to be evenly spaced if the number of drones is small relative to the square of the
         side length divided by the square of the minimum distance.
         """
+
         max_iterations = 10000  # Define a limit on the number of iterations
         iteration = 0
         starting_positions = []
