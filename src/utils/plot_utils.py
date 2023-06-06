@@ -253,7 +253,7 @@ class plot_trajectories2:
         self.Vehicle_list = Vehicle_list
         # plt.close('all')
         self.fig, self.ax = self.plot_setup()
-        self.slider = self.create_slider(fig=self.fig)
+        self.slider:Slider = self.create_slider(fig=self.fig)
         self.play_button = self.create_button(fig=self.fig)
         self.info_box = self.create_info_box(ax=self.ax)
         self.plot_buildings(ax=self.ax, Arena=self.Arena, ArenaR=self.ArenaR)

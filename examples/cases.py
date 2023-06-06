@@ -2,11 +2,11 @@ import random
 from copy import deepcopy
 
 import numpy as np
-from gflow.json2py import JSON2Py
+from src.json2py import JSON2Py
 
-from gflow.arena import ArenaMap
-from gflow.building import Building, RegularPolygon
-from gflow.vehicle import Vehicle
+from src.arena import ArenaMap
+from src.building import Building, RegularPolygon
+from src.vehicle import Vehicle
 
 
 class Cases:

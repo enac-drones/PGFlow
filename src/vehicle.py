@@ -2,7 +2,7 @@ import numpy as np
 import scipy
 from numpy import linalg
 from typing import List
-from gflow.panel_flow import Flow_Velocity_Calculation
+from src.panel_flow import Flow_Velocity_Calculation
 
 """##Vehicles"""
 
