@@ -12,7 +12,8 @@ import numpy as np
 from scipy.spatial import distance
 import warnings
 from typing import List
-from src.utils.json_utils import dump_to_json,load_from_json
+from src.utils.json_utils import dump_to_json, load_from_json
+
 
 class Case:
     """Class to store a particular case, takes a name string as an input"""
@@ -68,7 +69,7 @@ class Case:
         x1, y1, z1 = position1
         x2, y2, z2 = position2
         return (x2 - x1) ** 2 + (y2 - y1) ** 2 + (z2 - z1) ** 2
-    
+
     def clean_case(self):
         self.vehicle_list = []
         return None
@@ -295,7 +296,7 @@ class Cases:
         #     # print(f"self.cases is {self.cases} and filename is {self._filename}")
         #     # opening in "w" mode wipes the existing file, and we replace the original with self.cases with the new case appended
         #     json.dump(self.cases, f, sort_keys=False, indent=4)
-            # print("After dumping")
+        # print("After dumping")
         dump_to_json(self.filename, self.cases)
         # return the case that was just added
         self.case_name = case_name

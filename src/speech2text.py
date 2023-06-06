@@ -1,21 +1,23 @@
 import speech_recognition as sr
 import re
 
+
 def replace_spelled_out_numbers(string):
     number_words = {
-        'zero': '0',
-        'one':  '1',
-        'two':  '2',
-        'three': '3',
-        'four': '4',
-        'five': '5',
-        'six': '6',
-        'seven': '7',
-        'eight': '8',
-        'nine': '9'
+        "zero": "0",
+        "one": "1",
+        "two": "2",
+        "three": "3",
+        "four": "4",
+        "five": "5",
+        "six": "6",
+        "seven": "7",
+        "eight": "8",
+        "nine": "9",
     }
-    pattern = re.compile(r'\b(' + '|'.join(number_words.keys()) + r')\b')
+    pattern = re.compile(r"\b(" + "|".join(number_words.keys()) + r")\b")
     return pattern.sub(lambda x: number_words[x.group()], string)
+
 
 def speech_to_text():
     # create a recognizer instance
@@ -48,6 +50,6 @@ def speech_to_text():
 
 
 if __name__ == "__main__":
-    #speech_to_text()
-    a =replace_spelled_out_numbers("I want one apple and two point three oranges")
+    # speech_to_text()
+    a = replace_spelled_out_numbers("I want one apple and two point three oranges")
     print(a)

@@ -4,7 +4,7 @@
 import os
 
 from src.utils.plot_utils import plot_trajectories2
-from src.cases import Cases,Case
+from src.cases import Cases, Case
 from src.vehicle import Vehicle
 from typing import List
 import time
@@ -34,10 +34,10 @@ def update_positions(case_vehicle_list: List[Vehicle]):
     return None
 
 
-def run_simulation(case:Case, t = 500, update_every:int = 1):
-    ''' function which runs the simulation for t seconds while updating the drone positions wrt each other every update_time seconds
-        Returns true if simulation run to the end without collistions, False if there is a collision. Note the collision threshold 
-        is an attribute of the Case class and can be set with case.collision_threshold = 5 for updates every 5 seconds'''
+def run_simulation(case: Case, t=500, update_every: int = 1):
+    """function which runs the simulation for t seconds while updating the drone positions wrt each other every update_time seconds
+    Returns true if simulation run to the end without collistions, False if there is a collision. Note the collision threshold
+    is an attribute of the Case class and can be set with case.collision_threshold = 5 for updates every 5 seconds"""
     collisions = False
     for i in range(t):
         # Step the simulation
@@ -45,12 +45,12 @@ def run_simulation(case:Case, t = 500, update_every:int = 1):
         if case.colliding():
             # a collision has been detected, do whatever you want
             collisions = True
-            #uncomment this line if you want the simulation to continue after a collision
+            # uncomment this line if you want the simulation to continue after a collision
             # return False
         # Communication Block
-        # Update positions        
+        # Update positions
         for vehicle in case.vehicle_list:
-            if i%update_every == 0:
+            if i % update_every == 0:
                 vehicle.transmitting = True
             else:
                 vehicle.transmitting = False
@@ -63,15 +63,17 @@ def run_simulation(case:Case, t = 500, update_every:int = 1):
     if collisions:
         return False
     return True
-    
-def optional_plot(case:Case):
+
+
+def optional_plot(case: Case):
     plot = plot_trajectories2(case.arena, case.arena, case.vehicle_list)
     plot.slider.set_val(1.0)
     plot.ax.set_title(f"Case number {idx+1}/{n_cases}")
     plot.show()
 
+
 def new_random_cases(n_cases, n_drones):
-    base_case_name = f'random{n_drones}'
+    base_case_name = f"random{n_drones}"
     file_name = f"data/{base_case_name}.json"
 
     for idx in range(n_cases):
@@ -80,8 +82,9 @@ def new_random_cases(n_cases, n_drones):
         generator.generate_random_case(case_name=case_name, n_drones=n_drones)
     return None
 
-def set_new_attribute(case_instance:Case, attribute_name:str, new_attribute_value):
-    '''change attributes such as sink strength for every vehicle in a case'''
+
+def set_new_attribute(case_instance: Case, attribute_name: str, new_attribute_value):
+    """change attributes such as sink strength for every vehicle in a case"""
     if not hasattr(Vehicle(ID="hi"), attribute_name):
         print(f"Attribute {attribute_name} does not exist in the Vehicle class.")
         return None
@@ -90,49 +93,53 @@ def set_new_attribute(case_instance:Case, attribute_name:str, new_attribute_valu
         # vehicle.sink_strength = 5*4/3
         vehicle.source_strength = 2
     case.vehicle_list = v_list
-    return True    
-    
-def run_specific_case(file_name, case_name,update_frequency):
+    return True
+
+
+def run_specific_case(file_name, case_name, update_frequency):
     case = Cases.get_case(filename=file_name, case_name=case_name)
     # optional:
-    set_new_attribute(case,"source_strength", new_attribute_value=20)
+    set_new_attribute(case, "source_strength", new_attribute_value=20)
     print(f"case source_strength = {case.vehicle_list[0].source_strength}")
-    print(f"personal source_strengths = {case.vehicle_list[0].personal_vehicle_list[0].source_strength}")
+    print(
+        f"personal source_strengths = {case.vehicle_list[0].personal_vehicle_list[0].source_strength}"
+    )
 
-    simulation_succeeded = run_simulation(case = case, t=500,update_every=update_frequency)
+    simulation_succeeded = run_simulation(
+        case=case, t=500, update_every=update_frequency
+    )
     optional_plot(case)
     return simulation_succeeded
 
 
-
-
 #%%
-if __name__ == '__main__':
+if __name__ == "__main__":
     plot_done = False
-    n_drones:int = 3
-    base_case_name = f'random{n_drones}'
+    n_drones: int = 3
+    base_case_name = f"random{n_drones}"
     file_name = f"data/{base_case_name}.json"
     n_cases = 1
 
     # new_random_cases(n_cases,n_drones)
-    update_frequency = [1,2,3,4,5,10,50,100,200,300,400,500]
+    update_frequency = [1, 2, 3, 4, 5, 10, 50, 100, 200, 300, 400, 500]
     # update_every_cases = [10]
     corresponding_failures = {}
     for num in update_frequency:
         print("new update rate started")
         total_failures = 0
         for idx in range(n_cases):
-            case = Cases.get_case(filename=file_name, case_name=f"{base_case_name}_{idx}")
+            case = Cases.get_case(
+                filename=file_name, case_name=f"{base_case_name}_{idx}"
+            )
 
             print(f"running case {idx} for update rate every {num} seconds")
 
             # some code to show how to change sink_strengths or source_strengths once the case has been initialised
-            set_new_attribute(case,"source_strength", new_attribute_value=20)
+            set_new_attribute(case, "source_strength", new_attribute_value=20)
             # print(f"case source_strength = {case.vehicle_list[0].source_strength}")
             # print(f"personal source_strengths = {case.vehicle_list[0].personal_vehicle_list[0].source_strength}")
 
-
-            simulation_succeeded = run_simulation(case = case, t=500,update_every=num)
+            simulation_succeeded = run_simulation(case=case, t=500, update_every=num)
 
             if not simulation_succeeded:
                 failure_index = idx
@@ -140,13 +147,15 @@ if __name__ == '__main__':
                 # if not plot_done:
                 #     optional_plot(case)
                 #     plot_done = True
-                total_failures+=1
+                total_failures += 1
 
         # print(f"There were {total_failures} failures out of {n_cases} when updating every {num} seconds")
         corresponding_failures[num] = total_failures
     print(corresponding_failures)
-    dump_to_json(f"results/{base_case_name}.json",corresponding_failures)
-    run_specific_case(file_name=file_name, case_name= f"{base_case_name}_3",update_frequency=1)
+    dump_to_json(f"results/{base_case_name}.json", corresponding_failures)
+    run_specific_case(
+        file_name=file_name, case_name=f"{base_case_name}_3", update_frequency=1
+    )
 
 
 # EOF
@@ -154,4 +163,3 @@ if __name__ == '__main__':
 # 1:38, 2: 41, 3:57/50, 4:49, 5:50,10:63,50:113, 100:145, 200: 202, 300:207, 400:231, 500:248
 
 # %%
-
