@@ -19,6 +19,8 @@ class Case:
     """Class to store a particular case, takes a name string as an input"""
 
     def __init__(self, name):
+        self._name = None
+        # this line ensures the setter is called even when the class instance is created
         self.name = name
         self._vehicle_list: List["Vehicle"] = []
         self.buildings = []
@@ -26,12 +28,25 @@ class Case:
         self.collision_threshold = 0.5
 
     @property
+    def name(self):
+        return self._name
+
+    @name.setter
+    def name(self, new_name):
+        if new_name == "q" or new_name == "d":
+            # q and d are used to quit or use the default case when the user requests an inexistent case name
+            # they are protected (ie the system quits when q is called instead of running a case named 'q')
+            raise ValueError(
+                "'d' and 'q' are protected names, please choose a different name for your case."
+            )
+        self._name = new_name
+
+    @property
     def vehicle_list(self):
         return self._vehicle_list
 
     @vehicle_list.setter
     def vehicle_list(self, new_vehicle_list):
-        print("vehicle_list setter called")
         if not isinstance(new_vehicle_list, list):
             raise TypeError("new_vehicle_list must be a list")
         for item in new_vehicle_list:
@@ -78,10 +93,10 @@ class Case:
 class Cases:
     def __init__(self, filename="examples/cases.json") -> None:
         """initiate the class with the json filename and the case within that file"""
-        self._filename = filename
-        self.cases = self.load_file(self._filename)
+        self._filename: str = filename
+        self.cases: dict = self._load_file(self._filename)
         # print(f"cases are {self.cases}")
-        self._case_name = "default"
+        self._case_name: str = "default"
         self.case = None
 
     @property
@@ -127,7 +142,7 @@ class Cases:
         """Set new filename and reset the cases object"""
         try:
             self._filename = new_name
-            self.cases = self.load_file(new_name)
+            self.cases = self._load_file(new_name)
         except FileNotFoundError as ex:
             # User gives invalid filepath
             print(ex, type(ex).__name__, ex.args)
@@ -148,49 +163,86 @@ class Cases:
         self.case.buildings = self.obtain_buildings()
         self.case.arena = ArenaMap(buildings=self.case.buildings)
 
-        # for vehicle in self.case.vehicle_list:
-        #     vehicle.vehicle_list = deepcopy(self.case.vehicle_list)
-        #     vehicle.arena = deepcopy(self.case.arena)  # FIXME are these copies a problem ???
+    def _load_file(self, filename) -> dict:
+        """Return a dictionary of all the cases inside filename."""
+        # self.filename = filename
+        self.cases = {}  # Initializing self.cases to be an empty dictionary
 
-    def load_file(self, filename) -> dict:
-        """return a dictionary of all the cases inside filename"""
-        try:
-            with open(filename, "a+") as f:
-                check_file = os.stat(filename).st_size
-                # print(f"check_file is {check_file}")
-                # print(f"inside load_file, filename is {filename}")
-                if check_file == 0:
-                    # the file is empty so it was just created
-                    # load in a default case
-                    self.cases = {}
-                    self.load_default_case()
-                else:
-                    # file already exists (is not empty), do nothing
-                    pass
-                # move the file pointer back to the start of the file otherwise json.load(f) doesn't work
-                f.seek(0)
-                cases = json.load(f)
-            if "default" not in cases.keys():
-                # make sure there is at least a default case to fall back on
-                self.cases = cases
-                self.load_default_case()
-                return self.cases
-            return cases
+        if not os.path.exists(filename):
+            # The file does not exist, create it.
+            with open(filename, "w") as f:
+                pass  # No need to write anything, just create the file.
 
-        except json.JSONDecodeError as ex:
-            # improperly formatted json file will be wiped and replaced with a default case
-            # a backup will be stored in the same directory as {name}BACKUP.json
-            print(type(ex).__name__, ex.args)
-            # Backup the file
-            dir_path = os.path.dirname(filename)
-            file_name, file_ext = os.path.splitext(os.path.basename(filename))
-            new_file_path = os.path.join(dir_path, f"{file_name}BACKUP.json")
-            shutil.copyfile(filename, new_file_path)
-            # wipe and replace with the default case
-            self.cases = {}
+        if self._is_file_empty():
             self.load_default_case()
-            # return an empty dictionary so that it matches the format of an empty file
-            return self.cases
+        else:
+            try:
+                self._load_cases_from_file()
+            except json.JSONDecodeError as ex:
+                self._handle_invalid_json(ex)
+
+        self._ensure_default_case_exists()
+        return self.cases
+
+    def _is_file_empty(self) -> bool:
+        """Check if file is empty."""
+        return os.stat(self.filename).st_size == 0
+
+    def _load_cases_from_file(self):
+        """Load cases from file."""
+        self.cases = load_from_json(self.filename)
+        # with open(self.filename, "r") as f:
+        #     self.cases = json.load(f)
+
+    def _handle_invalid_json(self, ex):
+        """Handle invalid JSON error."""
+        print(type(ex).__name__, ex.args)
+        self._backup_and_clear_file()
+        self.load_default_case()
+
+    def _backup_and_clear_file(self):
+        """Backup the file and clear the contents."""
+        self._backup_file()
+        self._clear_file_contents()
+
+    def _backup_file(self):
+        """Create a backup of the file."""
+        dir_path = os.path.dirname(self.filename)
+        file_name, file_ext = os.path.splitext(os.path.basename(self.filename))
+        backup_filename = os.path.join(dir_path, f"{file_name}BACKUP.json")
+        shutil.copyfile(self.filename, backup_filename)
+
+    def _clear_file_contents(self):
+        """Clear the contents of the file."""
+        open(self.filename, "w").close()
+
+    def _ensure_default_case_exists(self):
+        """Ensure that a default case exists."""
+        if "default" not in self.cases.keys():
+            self.load_default_case()
+
+    def load_default_case(self):
+        sides = 5
+        position = (0, 0)
+        rotation = 0
+        radius = 0.5
+
+        obstacle = RegularPolygon(
+            sides=sides, centre=position, rotation=rotation, radius=radius
+        )
+        building = Building(obstacle.points())
+        Vehicle1 = Vehicle(ID="V1", source_strength=0.5, imag_source_strength=0.5)
+        Vehicle1.Set_Goal(goal=[3, 0, 0.5], goal_strength=5, safety=0.0001)
+        Vehicle1.Set_Position(pos=[-3, 0.0001, 0.5])
+        buildings, vehicles = [], []
+        buildings.append(building)
+        vehicles.append(Vehicle1)
+        # print(f"the vehicle list should be {vehicles[0],len(vehicles)}")
+        case = Case(name="default")
+        case.vehicle_list = vehicles
+        case.buildings = buildings
+        self.add_case(case)
+        return None
 
     def obtain_buildings(self):
         """return a list of building objects"""
@@ -225,94 +277,57 @@ class Cases:
             vehicles.append(myVehicle)
         return vehicles
 
-    def load_default_case(self):
-        sides = 5
-        position = (0, 0)
-        rotation = 0
-        radius = 0.5
+    def add_case(self, case: Case):
+        """Add a case into the JSON data file"""
+        case_name = case.name
+        building_list = case.buildings
+        vehicle_list = case.vehicle_list
 
-        obstacle = RegularPolygon(
-            sides=sides, centre=position, rotation=rotation, radius=radius
-        )
-        building = Building(obstacle.points())
-        Vehicle1 = Vehicle(ID="V1", source_strength=0.5, imag_source_strength=0.5)
-        Vehicle1.Set_Goal(goal=[3, 0, 0.5], goal_strength=5, safety=0.0001)
-        Vehicle1.Set_Position(pos=[-3, 0.0001, 0.5])
-        buildings, vehicles = [], []
-        buildings.append(building)
-        vehicles.append(Vehicle1)
-        # print(f"the vehicle list should be {vehicles[0],len(vehicles)}")
-        self.add_case(
-            case_name="default", building_list=buildings, vehicle_list=vehicles
-        )
-        return None
-
-    def add_case(self, case_name, building_list, vehicle_list):
-        """add a case of name "ID" into the json data file"""
-        if case_name == "q" or case_name == "d":
-            # q and d are used to quit or use the default case when the user requests an inexistent case name
-            # they are protected (ie the system quits when q is called instead of running a case named 'q')
-            raise ValueError(
-                "'d' and 'q' are protected names, please choose a different name for your case."
-            )
         # create sub dictionary within cases to hold the case
-        # print(f"self.cases is {self.cases}")
         self.cases[case_name] = {}
-        # now set some info about the case. Need to create a list of buildings first though
-        self.cases[case_name]["buildings"] = []
-        # print(f"self.cases is {self.cases}")
-        # add the vertices and and number the buildings starting from 0
-        for count, building in enumerate(building_list):
-            self.cases[case_name]["buildings"].append({})
-            self.cases[case_name]["buildings"][count]["ID"] = f"Building {count}"
-            self.cases[case_name]["buildings"][count][
-                "vertices"
-            ] = building.vertices.tolist()
-        # now the vehicles
-        # now set some info about the first case. Need to create a list of buildings first though
-        self.cases[case_name]["vehicles"] = []
-        for count, vehicle in enumerate(vehicle_list):
-            # print(f"the vehicle list is {vehicle_list}")
-            self.cases[case_name]["vehicles"].append({})
-            self.cases[case_name]["vehicles"][count]["ID"] = vehicle.ID
-            self.cases[case_name]["vehicles"][count][
-                "position"
-            ] = vehicle.position.tolist()
-            self.cases[case_name]["vehicles"][count]["goal"] = vehicle.goal.tolist()
-            self.cases[case_name]["vehicles"][count][
-                "source_strength"
-            ] = vehicle.source_strength
-            self.cases[case_name]["vehicles"][count][
-                "imag_source_strength"
-            ] = vehicle.imag_source_strength
-            self.cases[case_name]["vehicles"][count][
-                "sink_strength"
-            ] = vehicle.sink_strength
-            self.cases[case_name]["vehicles"][count]["safety"] = vehicle.safety
-            # print(f"The bad thing is {self.cases[ID]['vehicles'][count]}")
-            # print(f"Id is {ID}")
 
-        # with open(self._filename, "w") as f:
-        #     # print(f"self.cases is {self.cases} and filename is {self._filename}")
-        #     # opening in "w" mode wipes the existing file, and we replace the original with self.cases with the new case appended
-        #     json.dump(self.cases, f, sort_keys=False, indent=4)
-        # print("After dumping")
+        # now set some info about the case. Need to create a list of buildings first though
+        self.cases[case_name]["buildings"] = [
+            {
+                "ID": f"Building {count}",
+                "vertices": building.vertices.tolist(),
+            }
+            for count, building in enumerate(building_list)
+        ]
+
+        # now the vehicles
+        self.cases[case_name]["vehicles"] = [
+            {
+                "ID": vehicle.ID,
+                "position": vehicle.position.tolist(),
+                "goal": vehicle.goal.tolist(),
+                "source_strength": vehicle.source_strength,
+                "imag_source_strength": vehicle.imag_source_strength,
+                "sink_strength": vehicle.sink_strength,
+                "safety": vehicle.safety,
+            }
+            for vehicle in vehicle_list
+        ]
+
         dump_to_json(self.filename, self.cases)
+
         # return the case that was just added
         self.case_name = case_name
-        return self.cases[case_name]
+        return case
 
     def remove_case(self, case_name):
         """Remove a particular case from the cases file, return that case"""
         deleted_case = self.cases.pop(
             case_name
         )  # this returns the value of the removed key
-        with open(self._filename, "w") as f:
-            json.dump(self.cases, f, sort_keys=False, indent=4)
+        # with open(self._filename, "w") as f:
+        #     json.dump(self.cases, f, sort_keys=False, indent=4)
+
+        dump_to_json(self._filename, self.cases)
         return deleted_case
 
     def generate_random_case(self, case_name, n_drones):
-        # create a case with n_drones with random starting and ending coords
+        """create a case with n_drones with random starting and ending coords"""
         vehicle_list = []
         starting_positions, goal_positions = self.generate_coordinates(
             n_drones=n_drones, side_length=8, min_distance=0.5
@@ -324,10 +339,12 @@ class Cases:
             vehicle.Set_Position(pos=coord)
             vehicle.Set_Goal(goal=goal_positions[idx], goal_strength=5, safety=0.0001)
             vehicle_list.append(vehicle)
+        case = Case(name=case_name)
+        case.vehicle_list = vehicle_list
         # add the case to the json file
-        self.add_case(case_name=case_name, building_list=[], vehicle_list=vehicle_list)
-
-        return None
+        # self.add_case(case_name=case_name, building_list=[], vehicle_list=vehicle_list)
+        # self.add_case(case)
+        return case
 
     def generate_coordinates(self, n_drones, side_length, min_distance):
         """
@@ -421,9 +438,9 @@ if __name__ == "__main__":
     Vehicle3.Set_Goal(goal=[0, -3, 0.5], goal_strength=5, safety=0.0001)
     Vehicle3.Set_Position(pos=[0, 3, 0.5])
 
-    case = Cases()
+    generator = Cases()
     # print(f"Now changing the filename")
-    case.filename = "examples/cases.json"
+    generator.filename = "examples/cases.json"
     buildings = []
     vehicles = []
     # buildings.append(building)
@@ -431,8 +448,10 @@ if __name__ == "__main__":
     vehicles.append(Vehicle2)
     vehicles.append(Vehicle3)
 
-    case.add_case(
-        case_name="threedrones", building_list=buildings, vehicle_list=vehicles
-    )
+    case = Case(name="default")
+    case.vehicle_list = vehicles
+    case.buildings = buildings
+
+    generator.add_case(case)
     # case.add_case(ID="test2",building_list=buildings,vehicle_list=vehicles)
     # print(case.cases)

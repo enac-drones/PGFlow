@@ -1,0 +1,379 @@
+{
+  "default": {
+    "buildings": [
+      {
+        "ID": "Building 0",
+        "vertices": [
+          [0.293892, -0.404508, 1.2],
+          [-0.293892, -0.404508, 1.2],
+          [-0.475528, 0.154508, 1.2],
+          [0.0, 0.5, 1.2],
+          [0.475528, 0.154508, 1.2]
+        ]
+      }
+    ],
+    "vehicles": [
+      {
+        "ID": "V1",
+        "position": [-3.0, 0.0001, 0.5],
+        "goal": [3.0, 0.0, 0.5],
+        "source_strength": 0.5,
+        "imag_source_strength": 0.5,
+        "sink_strength": 5,
+        "safety": 0.0001
+      }
+    ]
+  },
+  "random3": {
+    "buildings": [],
+    "vehicles": [
+      {
+        "ID": "V0",
+        "position": [2.511746458319484, 0.09211869686235818, 0.5],
+        "goal": [3.304343954241612, 0.024428191280449596, 0.5],
+        "source_strength": 0.5,
+        "imag_source_strength": 0.5,
+        "sink_strength": 5,
+        "safety": 0.0001
+      },
+      {
+        "ID": "V1",
+        "position": [3.873062789720189, 3.571115072968704, 0.5],
+        "goal": [0.35138582195545354, 2.204630048195014, 0.5],
+        "source_strength": 0.5,
+        "imag_source_strength": 0.5,
+        "sink_strength": 5,
+        "safety": 0.0001
+      },
+      {
+        "ID": "V2",
+        "position": [-1.9015903978713151, -1.1405498016761468, 0.5],
+        "goal": [2.5780486033441488, -2.2500440839107414, 0.5],
+        "source_strength": 0.5,
+        "imag_source_strength": 0.5,
+        "sink_strength": 5,
+        "safety": 0.0001
+      }
+    ]
+  },
+  "random3_0": {
+    "buildings": [],
+    "vehicles": [
+      {
+        "ID": "V0",
+        "position": [3.1576203621554146, 2.245283219831709, 0.5],
+        "goal": [-1.1522720976929808, -1.6063683917097578, 0.5],
+        "source_strength": 0.5,
+        "imag_source_strength": 0.5,
+        "sink_strength": 5,
+        "safety": 0.0001
+      },
+      {
+        "ID": "V1",
+        "position": [-0.7561152571651597, -3.3101983636571006, 0.5],
+        "goal": [-1.9415371343413508, 0.6878119620958127, 0.5],
+        "source_strength": 0.5,
+        "imag_source_strength": 0.5,
+        "sink_strength": 5,
+        "safety": 0.0001
+      },
+      {
+        "ID": "V2",
+        "position": [0.9812144515776167, -1.3205514734280985, 0.5],
+        "goal": [3.424250858911413, 1.3021097798747148, 0.5],
+        "source_strength": 0.5,
+        "imag_source_strength": 0.5,
+        "sink_strength": 5,
+        "safety": 0.0001
+      }
+    ]
+  },
+  "random3_1": {
+    "buildings": [],
+    "vehicles": [
+      {
+        "ID": "V0",
+        "position": [-2.6821028236192044, 3.3658089822958344, 0.5],
+        "goal": [2.6684141746101506, -0.05567304391163219, 0.5],
+        "source_strength": 0.5,
+        "imag_source_strength": 0.5,
+        "sink_strength": 5,
+        "safety": 0.0001
+      },
+      {
+        "ID": "V1",
+        "position": [-0.6186133453763656, 0.6220853787341358, 0.5],
+        "goal": [-0.7676118037885962, 1.2264004450388306, 0.5],
+        "source_strength": 0.5,
+        "imag_source_strength": 0.5,
+        "sink_strength": 5,
+        "safety": 0.0001
+      },
+      {
+        "ID": "V2",
+        "position": [-1.1082492903321661, -0.3251264473466584, 0.5],
+        "goal": [0.7520869548024809, 1.1567816281051497, 0.5],
+        "source_strength": 0.5,
+        "imag_source_strength": 0.5,
+        "sink_strength": 5,
+        "safety": 0.0001
+      }
+    ]
+  },
+  "random3_2": {
+    "buildings": [],
+    "vehicles": [
+      {
+        "ID": "V0",
+        "position": [0.04986691200996951, -0.5016950254151356, 0.5],
+        "goal": [-3.7466707886929562, -2.6208977439870846, 0.5],
+        "source_strength": 0.5,
+        "imag_source_strength": 0.5,
+        "sink_strength": 5,
+        "safety": 0.0001
+      },
+      {
+        "ID": "V1",
+        "position": [0.2692204005481402, 1.8472305214257396, 0.5],
+        "goal": [1.8611308427491835, -3.9151106466327876, 0.5],
+        "source_strength": 0.5,
+        "imag_source_strength": 0.5,
+        "sink_strength": 5,
+        "safety": 0.0001
+      },
+      {
+        "ID": "V2",
+        "position": [-2.9034460698585702, 3.1232569581731857, 0.5],
+        "goal": [-1.2781627460571485, 1.0455908710804795, 0.5],
+        "source_strength": 0.5,
+        "imag_source_strength": 0.5,
+        "sink_strength": 5,
+        "safety": 0.0001
+      }
+    ]
+  },
+  "random3_3": {
+    "buildings": [],
+    "vehicles": [
+      {
+        "ID": "V0",
+        "position": [-0.9769565933631545, -2.9135239231293424, 0.5],
+        "goal": [0.4432560597112838, 3.038453412843049, 0.5],
+        "source_strength": 0.5,
+        "imag_source_strength": 0.5,
+        "sink_strength": 5,
+        "safety": 0.0001
+      },
+      {
+        "ID": "V1",
+        "position": [-2.4063304292489924, -1.4871954897762993, 0.5],
+        "goal": [0.9615103669664293, -2.2832530319761872, 0.5],
+        "source_strength": 0.5,
+        "imag_source_strength": 0.5,
+        "sink_strength": 5,
+        "safety": 0.0001
+      },
+      {
+        "ID": "V2",
+        "position": [3.0093618960688104, -0.6440421793397135, 0.5],
+        "goal": [-0.90809363634569, 0.004813290092126721, 0.5],
+        "source_strength": 0.5,
+        "imag_source_strength": 0.5,
+        "sink_strength": 5,
+        "safety": 0.0001
+      }
+    ]
+  },
+  "random3_4": {
+    "buildings": [],
+    "vehicles": [
+      {
+        "ID": "V0",
+        "position": [-2.7687146271799836, -1.5375559538166614, 0.5],
+        "goal": [-1.0222596696144022, -3.064440211499104, 0.5],
+        "source_strength": 0.5,
+        "imag_source_strength": 0.5,
+        "sink_strength": 5,
+        "safety": 0.0001
+      },
+      {
+        "ID": "V1",
+        "position": [-0.6302175382028983, 0.3525006063287037, 0.5],
+        "goal": [1.7421737424535122, 3.430475146347768, 0.5],
+        "source_strength": 0.5,
+        "imag_source_strength": 0.5,
+        "sink_strength": 5,
+        "safety": 0.0001
+      },
+      {
+        "ID": "V2",
+        "position": [-3.305045344934908, 2.358755730809577, 0.5],
+        "goal": [-3.382227673748675, -1.7671372182465506, 0.5],
+        "source_strength": 0.5,
+        "imag_source_strength": 0.5,
+        "sink_strength": 5,
+        "safety": 0.0001
+      }
+    ]
+  },
+  "random3_5": {
+    "buildings": [],
+    "vehicles": [
+      {
+        "ID": "V0",
+        "position": [-2.588420431023901, -3.339138349952086, 0.5],
+        "goal": [3.7499426156350886, -3.800947336752049, 0.5],
+        "source_strength": 0.5,
+        "imag_source_strength": 0.5,
+        "sink_strength": 5,
+        "safety": 0.0001
+      },
+      {
+        "ID": "V1",
+        "position": [-1.8841971949381753, 0.7851385517061207, 0.5],
+        "goal": [0.6613628620200753, -2.4153403767707973, 0.5],
+        "source_strength": 0.5,
+        "imag_source_strength": 0.5,
+        "sink_strength": 5,
+        "safety": 0.0001
+      },
+      {
+        "ID": "V2",
+        "position": [3.5279986531539036, -3.486755962658636, 0.5],
+        "goal": [-3.6681251912171255, -3.798779083330041, 0.5],
+        "source_strength": 0.5,
+        "imag_source_strength": 0.5,
+        "sink_strength": 5,
+        "safety": 0.0001
+      }
+    ]
+  },
+  "random3_6": {
+    "buildings": [],
+    "vehicles": [
+      {
+        "ID": "V0",
+        "position": [1.5728363499868196, -1.569641592129427, 0.5],
+        "goal": [3.7537568089828035, 2.272124546965995, 0.5],
+        "source_strength": 0.5,
+        "imag_source_strength": 0.5,
+        "sink_strength": 5,
+        "safety": 0.0001
+      },
+      {
+        "ID": "V1",
+        "position": [0.5614453792311789, -2.0447959081968348, 0.5],
+        "goal": [0.5093645827394537, 3.96473771556815, 0.5],
+        "source_strength": 0.5,
+        "imag_source_strength": 0.5,
+        "sink_strength": 5,
+        "safety": 0.0001
+      },
+      {
+        "ID": "V2",
+        "position": [-2.767942929678756, -2.1831781309825864, 0.5],
+        "goal": [-2.5613892530802174, -3.5852159856531935, 0.5],
+        "source_strength": 0.5,
+        "imag_source_strength": 0.5,
+        "sink_strength": 5,
+        "safety": 0.0001
+      }
+    ]
+  },
+  "random3_7": {
+    "buildings": [],
+    "vehicles": [
+      {
+        "ID": "V0",
+        "position": [-2.8287322636903056, 1.5790695169653315, 0.5],
+        "goal": [3.776282581374703, 3.3974263049483087, 0.5],
+        "source_strength": 0.5,
+        "imag_source_strength": 0.5,
+        "sink_strength": 5,
+        "safety": 0.0001
+      },
+      {
+        "ID": "V1",
+        "position": [-2.021485055425706, -0.8163773059188264, 0.5],
+        "goal": [-2.1583999653980674, 0.13732592508864983, 0.5],
+        "source_strength": 0.5,
+        "imag_source_strength": 0.5,
+        "sink_strength": 5,
+        "safety": 0.0001
+      },
+      {
+        "ID": "V2",
+        "position": [3.0601053249449155, 2.431943181702583, 0.5],
+        "goal": [2.9068101710100143, 2.7143602810218903, 0.5],
+        "source_strength": 0.5,
+        "imag_source_strength": 0.5,
+        "sink_strength": 5,
+        "safety": 0.0001
+      }
+    ]
+  },
+  "random3_8": {
+    "buildings": [],
+    "vehicles": [
+      {
+        "ID": "V0",
+        "position": [-1.5675835874553554, 2.9695280519652023, 0.5],
+        "goal": [0.9349375087488898, 0.5678465992380959, 0.5],
+        "source_strength": 0.5,
+        "imag_source_strength": 0.5,
+        "sink_strength": 5,
+        "safety": 0.0001
+      },
+      {
+        "ID": "V1",
+        "position": [-2.9346862382311567, -3.090385186449348, 0.5],
+        "goal": [0.46256762275719954, -0.6495574765854322, 0.5],
+        "source_strength": 0.5,
+        "imag_source_strength": 0.5,
+        "sink_strength": 5,
+        "safety": 0.0001
+      },
+      {
+        "ID": "V2",
+        "position": [3.2161027913660227, -1.1207404063525566, 0.5],
+        "goal": [-1.567340277894779, -1.5517745700636896, 0.5],
+        "source_strength": 0.5,
+        "imag_source_strength": 0.5,
+        "sink_strength": 5,
+        "safety": 0.0001
+      }
+    ]
+  },
+  "random3_9": {
+    "buildings": [],
+    "vehicles": [
+      {
+        "ID": "V0",
+        "position": [2.8637197635732363, -2.8015339422162935, 0.5],
+        "goal": [0.14023975240216657, 2.175234900608695, 0.5],
+        "source_strength": 0.5,
+        "imag_source_strength": 0.5,
+        "sink_strength": 5,
+        "safety": 0.0001
+      },
+      {
+        "ID": "V1",
+        "position": [2.561537938468299, 0.3666262220821075, 0.5],
+        "goal": [-0.7508427738108292, -3.6812826028666894, 0.5],
+        "source_strength": 0.5,
+        "imag_source_strength": 0.5,
+        "sink_strength": 5,
+        "safety": 0.0001
+      },
+      {
+        "ID": "V2",
+        "position": [1.3330784568837473, 2.6920111820110435, 0.5],
+        "goal": [2.5838831158054534, 2.591315661545239, 0.5],
+        "source_strength": 0.5,
+        "imag_source_strength": 0.5,
+        "sink_strength": 5,
+        "safety": 0.0001
+      }
+    ]
+  }
+}

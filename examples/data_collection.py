@@ -46,7 +46,7 @@ def run_simulation(case: Case, t=500, update_every: int = 1):
             # a collision has been detected, do whatever you want
             collisions = True
             # uncomment this line if you want the simulation to continue after a collision
-            # return False
+            return False
         # Communication Block
         # Update positions
         for vehicle in case.vehicle_list:
@@ -65,45 +65,55 @@ def run_simulation(case: Case, t=500, update_every: int = 1):
     return True
 
 
-def optional_plot(case: Case):
+def optional_plot(case: Case, plot_title="No title"):
     plot = plot_trajectories2(case.arena, case.arena, case.vehicle_list)
     plot.slider.set_val(1.0)
-    plot.ax.set_title(f"Case number {idx+1}/{n_cases}")
+    plot.ax.set_title(plot_title)
     plot.show()
 
 
 def new_random_cases(n_cases, n_drones):
+    """
+    Generate a specified number of new random cases with a certain number of drones.
+    The generated cases are stored in a json file inside data/.
+
+    Args:
+    n_cases (int): The number of cases to be generated.
+    n_drones (int): The number of drones to be used in each case.
+
+    """
     base_case_name = f"random{n_drones}"
     file_name = f"data/{base_case_name}.json"
-
+    cases = {}
     for idx in range(n_cases):
         generator = Cases(filename=file_name)
         case_name = f"{base_case_name}_{idx}"
-        generator.generate_random_case(case_name=case_name, n_drones=n_drones)
-    return None
+        # generate a random case and add it to the json file as defined by file_name
+        case = generator.generate_random_case(case_name=case_name, n_drones=n_drones)
+        cases[case_name] = case
+        # add case to json file
+        generator.add_case(case)
+    return cases
 
 
-def set_new_attribute(case_instance: Case, attribute_name: str, new_attribute_value):
+def set_new_attribute(case: Case, attribute_name: str, new_attribute_value):
     """change attributes such as sink strength for every vehicle in a case"""
     if not hasattr(Vehicle(ID="hi"), attribute_name):
         print(f"Attribute {attribute_name} does not exist in the Vehicle class.")
         return None
-    v_list = case_instance.vehicle_list
+    v_list = case.vehicle_list
     for vehicle in v_list:
         # vehicle.sink_strength = 5*4/3
-        vehicle.source_strength = 2
+        vehicle.source_strength = new_attribute_value
     case.vehicle_list = v_list
+
     return True
 
 
 def run_specific_case(file_name, case_name, update_frequency):
     case = Cases.get_case(filename=file_name, case_name=case_name)
     # optional:
-    set_new_attribute(case, "source_strength", new_attribute_value=20)
-    print(f"case source_strength = {case.vehicle_list[0].source_strength}")
-    print(
-        f"personal source_strengths = {case.vehicle_list[0].personal_vehicle_list[0].source_strength}"
-    )
+    # set_new_attribute(case, "source_strength", new_attribute_value=1)
 
     simulation_succeeded = run_simulation(
         case=case, t=500, update_every=update_frequency
@@ -112,52 +122,86 @@ def run_specific_case(file_name, case_name, update_frequency):
     return simulation_succeeded
 
 
-#%%
-if __name__ == "__main__":
-    plot_done = False
-    n_drones: int = 3
+def simulate_cases(file_name, case_name, n_cases, update_frequency):
+    """
+    Simulate a number of cases for a given update frequency and count the total number of failures.
+
+    Args:
+    case_name (str): The base name of the cases to be simulated.
+    n_cases (int): The number of cases to simulate.
+    update_frequency (int): The frequency of updates to be used in the simulation.
+
+    Returns:
+    int: The total number of simulation failures.
+    """
+    total_failures = 0
+    for idx in range(n_cases):
+        case = Cases.get_case(filename=file_name, case_name=f"{case_name}_{idx}")
+
+        set_new_attribute(case, "source_strength", new_attribute_value=0.5)
+
+        simulation_succeeded = run_simulation(
+            case=case, t=500, update_every=update_frequency
+        )
+
+        if not simulation_succeeded:
+            total_failures += 1
+    return total_failures
+
+
+def collect_and_store_data(
+    file_name: str, n_drones: int, n_cases: int, update_frequency_list: list
+):
+    """
+    For a given drone number and update frequency list, simulate a number of cases, collect the failure data,
+    and store it to a json file.
+
+    Args:
+    n_drones (int): The number of drones.
+    n_cases (int): The number of cases to simulate.
+    update_frequency_list (list): A list of update frequencies to be used in the simulation.
+
+    """
     base_case_name = f"random{n_drones}"
-    file_name = f"data/{base_case_name}.json"
-    n_cases = 1
+    # file_name = f"data/{base_case_name}.json"
 
-    # new_random_cases(n_cases,n_drones)
-    update_frequency = [1, 2, 3, 4, 5, 10, 50, 100, 200, 300, 400, 500]
-    # update_every_cases = [10]
+    # run_specific_case(
+    #     file_name=file_name, case_name=f"{base_case_name}_3", update_frequency=1
+    # )
+
     corresponding_failures = {}
-    for num in update_frequency:
-        print("new update rate started")
-        total_failures = 0
-        for idx in range(n_cases):
-            case = Cases.get_case(
-                filename=file_name, case_name=f"{base_case_name}_{idx}"
-            )
-
-            print(f"running case {idx} for update rate every {num} seconds")
-
-            # some code to show how to change sink_strengths or source_strengths once the case has been initialised
-            set_new_attribute(case, "source_strength", new_attribute_value=20)
-            # print(f"case source_strength = {case.vehicle_list[0].source_strength}")
-            # print(f"personal source_strengths = {case.vehicle_list[0].personal_vehicle_list[0].source_strength}")
-
-            simulation_succeeded = run_simulation(case=case, t=500, update_every=num)
-
-            if not simulation_succeeded:
-                failure_index = idx
-                print(f"the case which failed was {base_case_name}_{idx}")
-                # if not plot_done:
-                #     optional_plot(case)
-                #     plot_done = True
-                total_failures += 1
-
-        # print(f"There were {total_failures} failures out of {n_cases} when updating every {num} seconds")
+    for num in update_frequency_list:
+        print(f"Now simulating with frequency of every {num} seconds")
+        total_failures = simulate_cases(file_name, base_case_name, n_cases, num)
         corresponding_failures[num] = total_failures
+
     print(corresponding_failures)
     dump_to_json(f"results/{base_case_name}.json", corresponding_failures)
-    run_specific_case(
-        file_name=file_name, case_name=f"{base_case_name}_3", update_frequency=1
-    )
+    return None
 
 
+def main():
+    """
+    The main function that defines input values and triggers the data collection and storage process.
+    """
+    n_drones = 8
+    n_cases = 1000
+    update_frequency_list = [1, 2, 3, 4, 5, 10, 50, 100, 200, 300, 400, 500]
+
+    base_case_name = f"random{n_drones}"
+    file_name = f"data/{base_case_name}.json"
+
+    random_cases = new_random_cases(n_cases, n_drones)
+    # dump_to_json(file_name,random_cases)
+    collect_and_store_data(file_name, n_drones, n_cases, update_frequency_list)
+
+
+if __name__ == "__main__":
+    main()
+
+
+# if __name__ == "__main__":
+#     collect_data()
 # EOF
 # 3 drones:
 # 1:38, 2: 41, 3:57/50, 4:49, 5:50,10:63,50:113, 100:145, 200: 202, 300:207, 400:231, 500:248
