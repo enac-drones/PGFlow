@@ -3,9 +3,11 @@
 from src.vehicle import Vehicle
 import src.utils.plot_utils as ut
 from src.cases import Cases
-from time import sleep
+from time import sleep, time
 import numpy as np
+from src.utils.simulation_utils import run_simulation
 
+# from src.panel_flow import vortex_calculation_time
 # from gflow.smart_input import create_buildings
 
 
@@ -16,7 +18,7 @@ import numpy as np
 # Case.arenaR = ArenaMap(6,)
 # Case.arena.Inflate(radius = 0.2) #0.1
 # Case.arena.Panelize(size= 0.01) #0.08
-# Case.arena.Calculate_Coef_Matrix(method = 'Vortex')
+# Case.arena.Calcula te_Coef_Matrix(method = 'Vortex')
 
 
 # buildings = create_buildings()
@@ -26,35 +28,19 @@ import numpy as np
 # case1 = Cases()
 
 # case1.add_case("d",1,1)
-case = Cases.get_case(filename="examples/cases.json", case_name="d")
+# case = Cases.get_case(filename="examples/cases.json", case_name="threedrones")
+case = Cases.get_case(
+    filename="bug_fixing/performance_enhancement.json", case_name="8_drones_1_building"
+)
+# case = Cases.get_case(filename="bug_fixing/performance_enhancement.json", case_name="8_drones")
 
+t0 = 0
 
-for i in range(700):
-    # print(i)
-    # Step the simulation
-    for index, vehicle in enumerate(case.vehicle_list):
-        if vehicle.state != 1:
-            vehicle.run_simple_sim()
-
-    # Communication Block
-    # Update positions
-    for index, vehicle in enumerate(case.vehicle_list):
-        # Update only self position
-        vehicle.personal_vehicle_list[index].position = vehicle.position
-
-        # Update the listed vehicle numbers wrt every one
-        # the numbers in the if statement within the list, separated by commas indicate which drones are providing their position
-        if index in [0]:
-            for list_index in range(len(vehicle.personal_vehicle_list)):
-                vehicle.personal_vehicle_list[list_index].position = case.vehicle_list[
-                    list_index
-                ].position  # calling case.Vehicle is not nice here... 1 unneccessary element update
-
-        if vehicle.state == 1:
-            # print('Vehicle ', str(index), 'has reached the goal', i)
-            pass
-
-
+start_time = time()
+run_simulation(case, update_every=1, stop_at_collision=False)
+time_taken = time() - start_time
+print(f"Time for simulation is {time_taken}")
+# print(f"vortex calc time is {vortex_calculation_time}")
 asdf = ut.plot_trajectories2(case.arena, case.arena, case.vehicle_list)
 asdf.show()
 

@@ -2,6 +2,7 @@ import math
 
 import numpy as np
 import pyclipper
+import time
 
 # from numpy import linalg
 
@@ -72,6 +73,7 @@ class Building:
                 self.panels = np.vstack((self.panels, np.linspace(xyz1, xyz2, n)[1:]))
 
     def calculate_coef_matrix(self, method="Vortex"):
+        t = time.time()
         # Calculates coefficient matrix.
         if method == "Vortex":
             self.nop = self.panels.shape[0]  # Number of Panels
@@ -111,7 +113,10 @@ class Building:
                         )
                     )
             # Inverse of coefficient matrix: (Needed for solution of panel method eqn.)
+
             self.K_inv = np.linalg.inv(self.K)
+            t1 = time.time() - t
+            print(f"time taken to inverse is {t1}")
         elif method == "Source":
             pass
 

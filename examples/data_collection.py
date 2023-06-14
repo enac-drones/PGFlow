@@ -9,60 +9,7 @@ from src.vehicle import Vehicle
 from typing import List
 import time
 from src.utils.json_utils import dump_to_json
-
-
-def step_simulation(list_of_vehicles: List[Vehicle]):
-    """'Step the simulation by one timstep"""
-    for vehicle in list_of_vehicles:
-        if vehicle.state != 1:
-            vehicle.run_simple_sim()
-    return None
-
-
-def update_positions(case_vehicle_list: List[Vehicle]):
-    """Go through case.vehicle_list and update each drone's personal vehicle list with
-    its own current position and the positions of any other drones that are transmitting"""
-    for index, vehicle in enumerate(case_vehicle_list):
-        # the following updates my own position within my own vehicle list (I am the current vehicle)
-        me_according_to_me = vehicle.personal_vehicle_list[index]
-        me_according_to_me.position = vehicle.position
-        # now update the rest of the current vehicle's personal vehicle list with the drones that are transmitting
-        for idx, personal_vehicle in enumerate(vehicle.personal_vehicle_list):
-            other_vehicle = case_vehicle_list[idx]
-            if other_vehicle.transmitting and idx != index:
-                personal_vehicle.position = case_vehicle_list[idx].position
-    return None
-
-
-def run_simulation(case: Case, t=500, update_every: int = 1):
-    """function which runs the simulation for t seconds while updating the drone positions wrt each other every update_time seconds
-    Returns true if simulation run to the end without collistions, False if there is a collision. Note the collision threshold
-    is an attribute of the Case class and can be set with case.collision_threshold = 5 for updates every 5 seconds"""
-    collisions = False
-    for i in range(t):
-        # Step the simulation
-        step_simulation(case.vehicle_list)
-        if case.colliding():
-            # a collision has been detected, do whatever you want
-            collisions = True
-            # uncomment this line if you want the simulation to continue after a collision
-            return False
-        # Communication Block
-        # Update positions
-        for vehicle in case.vehicle_list:
-            if i % update_every == 0:
-                vehicle.transmitting = True
-            else:
-                vehicle.transmitting = False
-
-        update_positions(case.vehicle_list)
-
-        # if vehicle.state == 1:
-        #     # print('Vehicle ', str(index), 'has reached the goal', i)
-        #     pass
-    if collisions:
-        return False
-    return True
+from src.utils.simulation_utils import run_simulation
 
 
 def optional_plot(case: Case, plot_title="No title"):
@@ -116,7 +63,7 @@ def run_specific_case(file_name, case_name, update_frequency):
     # set_new_attribute(case, "source_strength", new_attribute_value=1)
 
     simulation_succeeded = run_simulation(
-        case=case, t=500, update_every=update_frequency
+        case=case, t=500, update_every=update_frequency, stop_at_collision=True
     )
     optional_plot(case)
     return simulation_succeeded
@@ -135,7 +82,13 @@ def simulate_cases(file_name, case_name, n_cases, update_frequency):
     int: The total number of simulation failures.
     """
     total_failures = 0
+    t = time.time()
     for idx in range(n_cases):
+        if idx % 50 == 0:
+            print(
+                f"running case {idx} at frequency {update_frequency}, time taken = {time.time()-t}"
+            )
+            t = time.time()
         case = Cases.get_case(filename=file_name, case_name=f"{case_name}_{idx}")
 
         set_new_attribute(case, "source_strength", new_attribute_value=0.5)
@@ -184,14 +137,14 @@ def main():
     """
     The main function that defines input values and triggers the data collection and storage process.
     """
-    n_drones = 8
-    n_cases = 1000
+    n_drones = 9
+    n_cases = 100
     update_frequency_list = [1, 2, 3, 4, 5, 10, 50, 100, 200, 300, 400, 500]
 
     base_case_name = f"random{n_drones}"
     file_name = f"data/{base_case_name}.json"
 
-    random_cases = new_random_cases(n_cases, n_drones)
+    # random_cases = new_random_cases(n_cases, n_drones)
     # dump_to_json(file_name,random_cases)
     collect_and_store_data(file_name, n_drones, n_cases, update_frequency_list)
 

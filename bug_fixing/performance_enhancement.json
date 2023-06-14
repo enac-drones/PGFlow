@@ -1,0 +1,363 @@
+{
+    "default": {
+        "buildings": [
+            {
+                "ID": "Building 0",
+                "vertices": [
+                    [
+                        0.293892,
+                        -0.404508,
+                        1.2
+                    ],
+                    [
+                        -0.293892,
+                        -0.404508,
+                        1.2
+                    ],
+                    [
+                        -0.475528,
+                        0.154508,
+                        1.2
+                    ],
+                    [
+                        0.0,
+                        0.5,
+                        1.2
+                    ],
+                    [
+                        0.475528,
+                        0.154508,
+                        1.2
+                    ]
+                ]
+            }
+        ],
+        "vehicles": [
+            {
+                "ID": "V1",
+                "position": [
+                    -3.0,
+                    0.0001,
+                    0.5
+                ],
+                "goal": [
+                    3.0,
+                    0.0,
+                    0.5
+                ],
+                "source_strength": 0.5,
+                "imag_source_strength": 0.5,
+                "sink_strength": 5,
+                "safety": 0.0001
+            }
+        ]
+    },
+    "8_drones_1_building": {
+        "buildings": [
+            {
+                "ID": "Building 0",
+                "vertices": [
+                    [
+                        -1.5,
+                        -1.5,
+                        1.2
+                    ],
+                    [
+                        -0.5,
+                        -1.5,
+                        1.2
+                    ],
+                    [
+                        -0.5,
+                        -0.5,
+                        1.2
+                    ],
+                    [
+                        -1.5,
+                        -0.5,
+                        1.2
+                    ]
+                ]
+            }
+        ],
+        "vehicles": [
+          {
+            "ID": "V0",
+            "position": [-2.8218915386734578, -2.3251995124991733, 0.5],
+            "goal": [0.8564571149847211, 3.091954882044875, 0.5],
+            "source_strength": 0.5,
+            "imag_source_strength": 0.5,
+            "sink_strength": 5,
+            "safety": 0.0001
+          },
+          {
+            "ID": "V1",
+            "position": [-0.007246569369930178, 1.7772068091015836, 0.5],
+            "goal": [-0.030411322426705745, 2.3990914514724597, 0.5],
+            "source_strength": 0.5,
+            "imag_source_strength": 0.5,
+            "sink_strength": 5,
+            "safety": 0.0001
+          },
+          {
+            "ID": "V2",
+            "position": [-1.1091722031073266, 2.5256094899940438, 0.5],
+            "goal": [3.3456657835262114, -1.8831583918034074, 0.5],
+            "source_strength": 0.5,
+            "imag_source_strength": 0.5,
+            "sink_strength": 5,
+            "safety": 0.0001
+          },
+          {
+            "ID": "V3",
+            "position": [0.5470443340228401, 0.6256511015979536, 0.5],
+            "goal": [3.769040048100811, -2.6127528245306424, 0.5],
+            "source_strength": 0.5,
+            "imag_source_strength": 0.5,
+            "sink_strength": 5,
+            "safety": 0.0001
+          },
+          {
+            "ID": "V4",
+            "position": [0.031105031279580864, 3.2582963861656964, 0.5],
+            "goal": [0.9256466793231857, -2.7249870798961524, 0.5],
+            "source_strength": 0.5,
+            "imag_source_strength": 0.5,
+            "sink_strength": 5,
+            "safety": 0.0001
+          },
+          {
+            "ID": "V5",
+            "position": [-3.165761083498719, 1.2772735124608001, 0.5],
+            "goal": [-0.5743486089977976, 1.0943781899288103, 0.5],
+            "source_strength": 0.5,
+            "imag_source_strength": 0.5,
+            "sink_strength": 5,
+            "safety": 0.0001
+          },
+          {
+            "ID": "V6",
+            "position": [1.6514492546517108, 3.190839673601574, 0.5],
+            "goal": [-3.9983171933699255, -1.768436807504144, 0.5],
+            "source_strength": 0.5,
+            "imag_source_strength": 0.5,
+            "sink_strength": 5,
+            "safety": 0.0001
+          },
+          {
+            "ID": "V7",
+            "position": [-3.326164178717316, 3.470126015771677, 0.5],
+            "goal": [1.4272788406109251, 1.5953280017360676, 0.5],
+            "source_strength": 0.5,
+            "imag_source_strength": 0.5,
+            "sink_strength": 5,
+            "safety": 0.0001
+          }
+        ]
+      },
+      "8_drones_2_buildings": {
+          "buildings": [
+              {
+                  "ID": "Building 0",
+                  "vertices": [
+                      [
+                          -1.5,
+                          -1.5,
+                          1.2
+                      ],
+                      [
+                          -0.5,
+                          -1.5,
+                          1.2
+                      ],
+                      [
+                          -0.5,
+                          -0.5,
+                          1.2
+                      ],
+                      [
+                          -1.5,
+                          -0.5,
+                          1.2
+                      ]
+                  ]
+              },
+              {
+                "ID": "Building 1",
+                "vertices": [
+                    [
+                        0.5,
+                        -1.5,
+                        1.2
+                    ],
+                    [
+                        1.5,
+                        -1.5,
+                        1.2
+                    ],
+                    [
+                        1.5,
+                        -0.5,
+                        1.2
+                    ],
+                    [
+                        0.5,
+                        -0.5,
+                        1.2
+                    ]
+                ]
+            }
+          ],
+          "vehicles": [
+            {
+              "ID": "V0",
+              "position": [-2.8218915386734578, -2.3251995124991733, 0.5],
+              "goal": [0.8564571149847211, 3.091954882044875, 0.5],
+              "source_strength": 0.5,
+              "imag_source_strength": 0.5,
+              "sink_strength": 5,
+              "safety": 0.0001
+            },
+            {
+              "ID": "V1",
+              "position": [-0.007246569369930178, 1.7772068091015836, 0.5],
+              "goal": [-0.030411322426705745, 2.3990914514724597, 0.5],
+              "source_strength": 0.5,
+              "imag_source_strength": 0.5,
+              "sink_strength": 5,
+              "safety": 0.0001
+            },
+            {
+              "ID": "V2",
+              "position": [-1.1091722031073266, 2.5256094899940438, 0.5],
+              "goal": [3.3456657835262114, -1.8831583918034074, 0.5],
+              "source_strength": 0.5,
+              "imag_source_strength": 0.5,
+              "sink_strength": 5,
+              "safety": 0.0001
+            },
+            {
+              "ID": "V3",
+              "position": [0.5470443340228401, 0.6256511015979536, 0.5],
+              "goal": [3.769040048100811, -2.6127528245306424, 0.5],
+              "source_strength": 0.5,
+              "imag_source_strength": 0.5,
+              "sink_strength": 5,
+              "safety": 0.0001
+            },
+            {
+              "ID": "V4",
+              "position": [0.031105031279580864, 3.2582963861656964, 0.5],
+              "goal": [0.9256466793231857, -2.7249870798961524, 0.5],
+              "source_strength": 0.5,
+              "imag_source_strength": 0.5,
+              "sink_strength": 5,
+              "safety": 0.0001
+            },
+            {
+              "ID": "V5",
+              "position": [-3.165761083498719, 1.2772735124608001, 0.5],
+              "goal": [-0.5743486089977976, 1.0943781899288103, 0.5],
+              "source_strength": 0.5,
+              "imag_source_strength": 0.5,
+              "sink_strength": 5,
+              "safety": 0.0001
+            },
+            {
+              "ID": "V6",
+              "position": [1.6514492546517108, 3.190839673601574, 0.5],
+              "goal": [-3.9983171933699255, -1.768436807504144, 0.5],
+              "source_strength": 0.5,
+              "imag_source_strength": 0.5,
+              "sink_strength": 5,
+              "safety": 0.0001
+            },
+            {
+              "ID": "V7",
+              "position": [-3.326164178717316, 3.470126015771677, 0.5],
+              "goal": [1.4272788406109251, 1.5953280017360676, 0.5],
+              "source_strength": 0.5,
+              "imag_source_strength": 0.5,
+              "sink_strength": 5,
+              "safety": 0.0001
+            }
+          ]
+        },
+    "8_drones": {
+        "buildings": [],
+        "vehicles": [
+          {
+            "ID": "V0",
+            "position": [-2.8218915386734578, -2.3251995124991733, 0.5],
+            "goal": [0.8564571149847211, 3.091954882044875, 0.5],
+            "source_strength": 0.5,
+            "imag_source_strength": 0.5,
+            "sink_strength": 5,
+            "safety": 0.0001
+          },
+          {
+            "ID": "V1",
+            "position": [-0.007246569369930178, 1.7772068091015836, 0.5],
+            "goal": [-0.030411322426705745, 2.3990914514724597, 0.5],
+            "source_strength": 0.5,
+            "imag_source_strength": 0.5,
+            "sink_strength": 5,
+            "safety": 0.0001
+          },
+          {
+            "ID": "V2",
+            "position": [-1.1091722031073266, 2.5256094899940438, 0.5],
+            "goal": [3.3456657835262114, -1.8831583918034074, 0.5],
+            "source_strength": 0.5,
+            "imag_source_strength": 0.5,
+            "sink_strength": 5,
+            "safety": 0.0001
+          },
+          {
+            "ID": "V3",
+            "position": [0.5470443340228401, 0.6256511015979536, 0.5],
+            "goal": [3.769040048100811, -2.6127528245306424, 0.5],
+            "source_strength": 0.5,
+            "imag_source_strength": 0.5,
+            "sink_strength": 5,
+            "safety": 0.0001
+          },
+          {
+            "ID": "V4",
+            "position": [0.031105031279580864, 3.2582963861656964, 0.5],
+            "goal": [0.9256466793231857, -2.7249870798961524, 0.5],
+            "source_strength": 0.5,
+            "imag_source_strength": 0.5,
+            "sink_strength": 5,
+            "safety": 0.0001
+          },
+          {
+            "ID": "V5",
+            "position": [-3.165761083498719, 1.2772735124608001, 0.5],
+            "goal": [-0.5743486089977976, 1.0943781899288103, 0.5],
+            "source_strength": 0.5,
+            "imag_source_strength": 0.5,
+            "sink_strength": 5,
+            "safety": 0.0001
+          },
+          {
+            "ID": "V6",
+            "position": [1.6514492546517108, 3.190839673601574, 0.5],
+            "goal": [-3.9983171933699255, -1.768436807504144, 0.5],
+            "source_strength": 0.5,
+            "imag_source_strength": 0.5,
+            "sink_strength": 5,
+            "safety": 0.0001
+          },
+          {
+            "ID": "V7",
+            "position": [-3.326164178717316, 3.470126015771677, 0.5],
+            "goal": [1.4272788406109251, 1.5953280017360676, 0.5],
+            "source_strength": 0.5,
+            "imag_source_strength": 0.5,
+            "sink_strength": 5,
+            "safety": 0.0001
+          }
+        ]
+      }
+}

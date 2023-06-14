@@ -5,7 +5,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy.spatial import ConvexHull
 
-from .building import Building
+from src.building import Building
+from typing import List
 
 """##Arena Code"""
 
