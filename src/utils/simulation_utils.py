@@ -2,11 +2,18 @@ from src.vehicle import Vehicle
 from typing import List
 from src.cases import Case
 
-def step_simulation(list_of_vehicles: List[Vehicle]):
-    """'Step the simulation by one timstep"""
-    for vehicle in list_of_vehicles:
+def step_simulation(case_vehicle_list:List[Vehicle]):
+    """'Step the simulation by one timstep, list_of_vehicles is case.vehicle_list"""
+    # case_vehicle_list:List[Vehicle] = case.vehicle_list
+    for idx,vehicle in enumerate(case_vehicle_list):
         if vehicle.state != 1:
             vehicle.run_simple_sim()
+            # if vehicle.state==1:
+                # print(case_vehicle_list[idx].state)
+        # if the current vehicle has reached its destination, tell the global vehicle list that it has (this is a bit dodgy but it works for now)
+        # print([v.state for v in vehicle.personal_vehicle_list])
+        if vehicle.personal_vehicle_list[idx].state == 1:
+            vehicle.state=1
     return None
 
 
@@ -21,7 +28,7 @@ def update_positions(case_vehicle_list: List[Vehicle]):
         for idx, personal_vehicle in enumerate(vehicle.personal_vehicle_list):
             other_vehicle = case_vehicle_list[idx]
             if other_vehicle.transmitting and idx != index:
-                personal_vehicle.position = case_vehicle_list[idx].position
+                personal_vehicle.position = other_vehicle.position
     return None
 
 
@@ -33,9 +40,11 @@ def run_simulation(case: Case, t=500, update_every: int = 1, stop_at_collision =
     Returns true if simulation run to the end without collistions, False if there is a collision. Note the collision threshold
     is an attribute of the Case class and can be set with case.collision_threshold = 5 for updates every 5 seconds"""
     collisions = False
+    # case_vehicle_list = case.vehicle_list
     for i in range(t):
         # Step the simulation
         step_simulation(case.vehicle_list)
+        print([v.state for v in case.vehicle_list])
         if case.colliding():
             # a collision has been detected, do whatever you want
             collisions = True
@@ -51,6 +60,7 @@ def run_simulation(case: Case, t=500, update_every: int = 1, stop_at_collision =
 
         update_positions(case.vehicle_list)
 
+        # case.vehicle_list = case_vehicle_list
         # if vehicle.state == 1:
         #     # print('Vehicle ', str(index), 'has reached the goal', i)
         #     pass

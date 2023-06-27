@@ -18,6 +18,8 @@ from src.building import Building
 from src.arena import ArenaMap
 from src.building import Building
 import time
+from numba import jit
+
 
 # from vehicle import Vehicle
 # import pdb
@@ -30,20 +32,13 @@ import time
 def create_other_vehicles_list(vehicles, current_index: int):
     return vehicles[:current_index] + vehicles[current_index + 1 :]
 
+# def other_vehicle_positions(other_vehicles):
+#     other_vehicles_positions = np.array([other_vehicle.position for other_vehicle in other_vehicles])
+#     return other_vehicles_positions
 
-def other_vehicle_positions(other_vehicles):
-    other_vehicles_positions = np.array(
-        [other_vehicle.position for other_vehicle in other_vehicles]
-    )
-    return other_vehicles_positions
-
-
-def other_vehicle_source_strengths(other_vehicles):
-    other_vehicles_source_strengths = np.array(
-        [other_vehicle.source_strength for other_vehicle in other_vehicles]
-    )
-    return other_vehicles_source_strengths
-
+# def other_vehicle_source_strengths(other_vehicles):
+#     other_vehicles_source_strengths = np.array([other_vehicle.source_strength for other_vehicle in other_vehicles])
+#     return other_vehicles_source_strengths
 
 def calculate_vortex_strengths(vehicles, arenamap: ArenaMap, method):
     for f, vehicle in enumerate(vehicles):
@@ -108,8 +103,8 @@ def altitude_mask(vehicle, arenamap: ArenaMap):
 #     return vehicle1.position - vehicle2.position
 
 
-def squared_vector_magnitude(vector):
-    return np.sum(vector**2)
+# def squared_vector_magnitude(vector):
+#     return np.sum(vector**2)
 
 
 # def induced_source_velocity2D_old(affected_vehicle, source_vehicle):
@@ -181,13 +176,12 @@ def squared_vector_magnitude(vector):
 #     # make the vector point perpendicular
 #     return induced_v[:,::-1]
 
-
 def calculate_all_induced_sink_velocities(vehicles):
+
+
     vehicle_positions = np.array([v.position for v in vehicles])
     sink_strengths = np.array([v.sink_strength for v in vehicles])
-    sink_positions = np.array(
-        [v.goal for v in vehicles]
-    )  # Assuming the sink position is stored in 'goal' attribute
+    sink_positions = np.array([v.goal for v in vehicles])  # Assuming the sink position is stored in 'goal' attribute
 
     # Calculate position differences and distances
     position_diff_3D = vehicle_positions - sink_positions
@@ -198,21 +192,15 @@ def calculate_all_induced_sink_velocities(vehicles):
     squared_distances[squared_distances == 0] = 1
 
     # Calculate induced velocity
-    induced_v = (
-        -sink_strengths[:, np.newaxis]
-        * position_diff_2D
-        / (2 * np.pi * squared_distances[:, np.newaxis])
-    )
+    induced_v = - sink_strengths[:, np.newaxis] * position_diff_2D / (2 * np.pi * squared_distances[:, np.newaxis])
 
     return induced_v
 
-
 def calculate_all_induced_sink_velocities3D(vehicles):
+
     vehicle_positions = np.array([v.position for v in vehicles])
     sink_strengths = np.array([v.sink_strength for v in vehicles])
-    sink_positions = np.array(
-        [v.goal for v in vehicles]
-    )  # Assuming the sink position is stored in 'goal' attribute
+    sink_positions = np.array([v.goal for v in vehicles])  # Assuming the sink position is stored in 'goal' attribute
 
     # Calculate position differences and distances
     position_diff_3D = vehicle_positions - sink_positions
@@ -222,16 +210,16 @@ def calculate_all_induced_sink_velocities3D(vehicles):
     squared_distances[squared_distances == 0] = 1
 
     # Calculate induced velocity
-    induced_v = (
-        -sink_strengths[:, np.newaxis]
-        * position_diff_3D
-        / (2 * np.pi * squared_distances[:, np.newaxis])
-    )
+    induced_v = - sink_strengths[:, np.newaxis] * position_diff_3D / (2 * np.pi * squared_distances[:, np.newaxis])
 
     return induced_v
 
 
 def calculate_all_induced_source_velocities(vehicles):
+    # print(f"states are {vehicle_states}")
+    vehicles = [v for v in vehicles if v.state == 0]
+    # print(len(vehicles))
+    # print(len(vehicles))
     vehicle_positions = np.array([v.position for v in vehicles])
     vehicle_source_strengths = np.array([v.source_strength for v in vehicles])
 
@@ -242,17 +230,13 @@ def calculate_all_induced_source_velocities(vehicles):
     # Calculate position differences and distances
     position_diff_3D = vehicle_positions_extended - vehicle_positions
     position_diff_2D = position_diff_3D[:, :, :2]
-    squared_distances = np.sum(position_diff_2D**2, axis=-1)
+    squared_distances = np.sum(np.abs(position_diff_2D)**4, axis=-1)
 
     # Replace zero self-distances with ones to avoid division by zero
     np.fill_diagonal(squared_distances, 1)
 
     # Calculate induced velocity
-    induced_v = (
-        vehicle_source_strengths_extended
-        * position_diff_2D
-        / (2 * np.pi * squared_distances[..., np.newaxis])
-    )
+    induced_v = vehicle_source_strengths_extended * position_diff_2D / (2 * np.pi * squared_distances[..., np.newaxis])
 
     # Remove self-interaction (diagonal elements in the array)
     for i in range(2):
@@ -262,7 +246,6 @@ def calculate_all_induced_source_velocities(vehicles):
     V_source = np.sum(induced_v, axis=1)
 
     return V_source
-
 
 def calculate_all_induced_source_velocities3D(vehicles):
     vehicle_positions = np.array([v.position for v in vehicles])
@@ -281,11 +264,7 @@ def calculate_all_induced_source_velocities3D(vehicles):
     np.fill_diagonal(squared_distances, 1)
 
     # Calculate induced velocity
-    induced_v = (
-        vehicle_source_strengths_extended
-        * position_diff_3D
-        / (4 * np.pi * squared_distances[..., np.newaxis] ** 1.5)
-    )
+    induced_v = vehicle_source_strengths_extended * position_diff_3D / (4 * np.pi * squared_distances[..., np.newaxis]**1.5)
 
     # Remove self-interaction (diagonal elements in the array)
     for i in range(2):
@@ -296,11 +275,10 @@ def calculate_all_induced_source_velocities3D(vehicles):
 
     return V_source
 
-
 def calculate_all_induced_vortex_velocities(vehicles):
     vehicle_positions = np.array([v.position for v in vehicles])
     vehicle_source_strengths = np.array([v.source_strength for v in vehicles])
-    vehicle_vortex_strengths = vehicle_source_strengths / 4
+    vehicle_vortex_strengths = vehicle_source_strengths/4
 
     # Extend dimensions for broadcasting
     vehicle_positions_extended = vehicle_positions[:, np.newaxis, :]
@@ -309,17 +287,18 @@ def calculate_all_induced_vortex_velocities(vehicles):
     # Calculate position differences and distances
     position_diff_3D = vehicle_positions_extended - vehicle_positions
     position_diff_2D = position_diff_3D[:, :, :2]
+    perpendicular_array = np.zeros_like(position_diff_2D)
+    perpendicular_array[..., 0] =  -position_diff_2D[..., 1]  # replace x with y
+    perpendicular_array[..., 1] = position_diff_2D[..., 0]  # replace y with -x
+
+
     squared_distances = np.sum(position_diff_2D**2, axis=-1)
 
     # Replace zero self-distances with ones to avoid division by zero
     np.fill_diagonal(squared_distances, 1)
 
     # Calculate induced velocity
-    induced_v = (
-        vehicle_vortex_strengths_extended
-        * position_diff_2D
-        / (2 * np.pi * squared_distances[..., np.newaxis])
-    )
+    induced_v = vehicle_vortex_strengths_extended * perpendicular_array / (2 * np.pi * squared_distances[..., np.newaxis])
 
     # Remove self-interaction (diagonal elements in the array)
     for i in range(2):
@@ -327,14 +306,14 @@ def calculate_all_induced_vortex_velocities(vehicles):
 
     # Sum over all interactions
     V_vortex = np.sum(induced_v, axis=1)
-
-    return V_vortex[:, ::-1]
+    # swap the x and y coordinates (whoops bug)
+    return V_vortex#[:,::-1]
 
 
 # def calculate_V_gamma(vehicles, arenamap):
 #     vehicle_positions_2D = np.array([v.position[:2] for v in vehicles])
 #     V_gamma = np.zeros((len(vehicles), 2))
-
+    
 #     # Prepare building polygons for faster point-in-polygon tests
 #     prepared_polygons = [prep(Polygon(b.vertices)) for b in arenamap.buildings]
 
@@ -354,8 +333,10 @@ def calculate_all_induced_vortex_velocities(vehicles):
 
 # vortex_calculation_time = 0
 def Flow_Velocity_Calculation(
-    vehicles, arenamap: ArenaMap, method="Vortex", update_velocities=True
+    vehicles, arenamap:ArenaMap, method="Vortex", update_velocities=True
 ):
+    # Filter vehicles based on the state
+    vehicles = [v for v in vehicles if v.state == 0]
     # when simple_sim is called, vehicles is self.vehicle_list, ie the current vehicle's own list of vehicles
     # starttime = datetime.now()
 
@@ -364,7 +345,7 @@ def Flow_Velocity_Calculation(
     calculate_vortex_strengths(vehicles, arenamap, method)
     # t1 = time.time()-t
     # print(t1)
-    # global vortex_calculation_time
+    # global vortex_calculation_time 
     # vortex_calculation_time += 1
 
     # --------------------------------------------------------------------
@@ -405,16 +386,33 @@ def Flow_Velocity_Calculation(
     # Velocity induced by 2D point sink, eqn. 10.2 & 10.3 in Katz & Plotkin:
 
     V_sink = calculate_all_induced_sink_velocities(vehicles)
-    W_sink = calculate_all_induced_sink_velocities3D(vehicles)[:, 2]
+    W_sink = calculate_all_induced_sink_velocities3D(vehicles)[:,2]
     # Velocity induced by 2D point source, eqn. 10.2 & 10.3 in Katz & Plotkin:
     V_source = calculate_all_induced_source_velocities(vehicles)
-    # TODO everything involving W_source is super dodgy, why are we only using the z component, weird... needs serious testing
+    #TODO everything involving W_source is super dodgy, why are we only using the z component, weird... needs serious testing
     # Velocity induced by 3-D point sink. Katz&Plotkin Eqn. 3.25
-    W_source = source_gain * calculate_all_induced_source_velocities3D(vehicles)[:, 2]
+    W_source = source_gain * calculate_all_induced_source_velocities3D(vehicles)[:,2]
     V_vortex = calculate_all_induced_vortex_velocities(vehicles)
 
     t = time.time()
+    # Pre-calculate the arrays
+    # gammas_all_buildings = np.array([building.gammas for building in arenamap.buildings])
+    # pcp_0_all_buildings = np.array([building.pcp[:, 0] for building in arenamap.buildings])
+    # pcp_1_all_buildings = np.array([building.pcp[:, 1] for building in arenamap.buildings])
+
     for f, vehicle in enumerate(vehicles):
+        # Make sure the vehicle.ID is in all building.gammas keys
+        # valid_indices = np.array([vehicle.ID in gammas for gammas in gammas_all_buildings])
+
+        # if method =="TestVortex":
+        #     gammas_vehicle = np.array([gammas[vehicle.ID] for gammas in gammas_all_buildings[valid_indices]])
+        #     pcp_0_vehicle = pcp_0_all_buildings[valid_indices]
+        #     pcp_1_vehicle = pcp_1_all_buildings[valid_indices]
+        #     squared_distances = (vehicle.position[0] - pcp_0_vehicle) ** 2 + (vehicle.position[1] - pcp_1_vehicle) ** 2
+        #     uv = gammas_vehicle.T / (2 * np.pi) * np.array([(vehicle.position[1] - pcp_1_vehicle), -(vehicle.position[0] - pcp_0_vehicle)]) / squared_distances[:, np.newaxis]
+        #     # Now uv should have shape (2, nop) where nop is the total number of panels over all buildings
+        #     V_gamma[f] += np.sum(uv, axis=-1).sum(axis=-1)
+
 
         if method == "Vortex":
             for building in arenamap.buildings:
@@ -423,49 +421,32 @@ def Flow_Velocity_Calculation(
                 v = np.zeros((building.nop, 1))
                 polygon = Polygon(building.vertices)
                 point = Point(vehicle.position[0], vehicle.position[1])
-                # print('Vehicle' + str(f))
-                # print(point)
-                # print(polygon)
-                # t= time.time()
-                # a = polygon.contains(point)
-                # print(time.time()-t)
+
 
                 if not polygon.contains(point):
                     if vehicle.ID in building.gammas.keys():
                         # Velocity induced by vortices on each panel:
                         # Velocity induced by vortices on each panel:
-                        squared_distances = (
-                            vehicle.position[0] - building.pcp[:, 0]
-                        ) ** 2 + (vehicle.position[1] - building.pcp[:, 1]) ** 2
+                        squared_distances = (vehicle.position[0] - building.pcp[:, 0]) ** 2 + (vehicle.position[1] - building.pcp[:, 1]) ** 2
                         # vortex strengths normalised by 2pi
                         gammas = building.gammas[vehicle.ID][:].T / (2 * np.pi)
-                        numerators = np.array(
-                            [
-                                (vehicle.position[1] - building.pcp[:, 1]),
-                                -(vehicle.position[0] - building.pcp[:, 0]),
-                            ]
-                        )
 
+                        # numerators of u and v, shape (2, nop)
+                        numerators = np.array([
+                            (vehicle.position[1] - building.pcp[:, 1]), 
+                            -(vehicle.position[0] - building.pcp[:, 0])
+                            ])
+                        
+                        # array of u and v 
                         uv = gammas * numerators / squared_distances
 
-                        # u = (building.gammas[vehicle.ID][:].T / (2 * np.pi)) * (
-                        #     (vehicle.position[1] - building.pcp[:, 1])
-                        #     / squared_distances
-                        # )
-                        # v = (-building.gammas[vehicle.ID][:].T / (2 * np.pi)) * (
-                        #     (vehicle.position[0] - building.pcp[:, 0])
-                        #     / squared_distances
-                        # )
-                        # V_gamma[f, 0] = V_gamma[f, 0] + np.sum(u)
-                        # V_gamma[f, 1] = V_gamma[f, 1] + np.sum(v)
                         V_gamma[f] += np.sum(uv, axis=1)
 
-                # V_gamma = calculate_V_gamma(vehicles,arenamap)
+            # V_gamma = calculate_V_gamma(vehicles,arenamap)
                 elif polygon.contains(point):
                     # this code does nothing, what is it?
-                    V_gamma[f, 0] = V_gamma[f, 0] + 0
-                    V_gamma[f, 1] = V_gamma[f, 1] + 0
-
+                    V_gamma[f] += 0
+        
         elif method == "Source":
             for building in arenamap.buildings:
                 u = np.zeros((building.nop, 1))
@@ -554,31 +535,32 @@ def Flow_Velocity_Calculation(
     return flow_vels
 
 
+
 # comments
-# Remove current vehicle from vehicle list
-# othervehicleslist = create_other_vehicles_list(vehicles, f)
-# Velocity induced by 2D point sink, eqn. 10.2 & 10.3 in Katz & Plotkin:
-# V_sink[f] = induced_sink_velocity2D(vehicle)
-# Velocity induced by 3-D point sink. Katz&Plotkin Eqn. 3.25
-# BUG why is only this one 3D?
-# W_sink[f, 0] = induced_sink_velocity3D(vehicle)[2]
+        # Remove current vehicle from vehicle list
+        # othervehicleslist = create_other_vehicles_list(vehicles, f)
+        # Velocity induced by 2D point sink, eqn. 10.2 & 10.3 in Katz & Plotkin:
+        # V_sink[f] = induced_sink_velocity2D(vehicle)
+        # Velocity induced by 3-D point sink. Katz&Plotkin Eqn. 3.25
+        # BUG why is only this one 3D?
+        # W_sink[f, 0] = induced_sink_velocity3D(vehicle)[2]
 
-# Velocity induced by 2D point source, eqn. 10.2 & 10.3 in Katz & Plotkin:
-# source_gain = 0
-# other_vehicles_pos = other_vehicle_positions(othervehicleslist)
-# other_vehicles_source_stren = other_vehicle_source_strengths(othervehicleslist)
-# other_vehicles_pos = np.concatenate([vehicle_positions[:f], vehicle_positions[f + 1:]])
-# other_vehicles_source_stren = np.concatenate([vehicle_source_strengths[:f], vehicle_source_strengths[f + 1:]])
+        # Velocity induced by 2D point source, eqn. 10.2 & 10.3 in Katz & Plotkin:
+        # source_gain = 0
+        # other_vehicles_pos = other_vehicle_positions(othervehicleslist)
+        # other_vehicles_source_stren = other_vehicle_source_strengths(othervehicleslist)
+        # other_vehicles_pos = np.concatenate([vehicle_positions[:f], vehicle_positions[f + 1:]])
+        # other_vehicles_source_stren = np.concatenate([vehicle_source_strengths[:f], vehicle_source_strengths[f + 1:]])
 
-# TODO these are fake vortex strengths based of the source strengths
-# other_vehicles_vortex_stren = other_vehicles_source_stren/4
+        # TODO these are fake vortex strengths based of the source strengths
+        # other_vehicles_vortex_stren = other_vehicles_source_stren/4
 
-# Now add all the effect from other vehicles onto the current vehicle
+        # Now add all the effect from other vehicles onto the current vehicle
 
-# adding effect of 2d sources from other vehicles
-# V_source[f] = np.sum(induced_source_velocity2D(vehicle, other_vehicles_pos, other_vehicles_source_stren), axis=0)
-# TODO everything involving W_source is super dodgy, why are we only using the z component, weird... needs serious testing
-# induced_velocity_vectors = induced_source_velocity3D(vehicle, other_vehicles_pos, other_vehicles_source_stren)
-# W_source[f] = source_gain*np.sum(induced_velocity_vectors[:, 2])  # selecting the 3rd column, which corresponds to the z-components
-# W_source[f] += np.sum(induced_source_velocity3D(vehicle, other_vehicles_pos, other_vehicles_source_stren)[:,2])
-# V_vortex[f] += np.sum(induced_vortex_velocity(vehicle, other_vehicles_pos, other_vehicles_vortex_stren),axis=0)
+        #adding effect of 2d sources from other vehicles 
+        # V_source[f] = np.sum(induced_source_velocity2D(vehicle, other_vehicles_pos, other_vehicles_source_stren), axis=0)
+        #TODO everything involving W_source is super dodgy, why are we only using the z component, weird... needs serious testing
+        # induced_velocity_vectors = induced_source_velocity3D(vehicle, other_vehicles_pos, other_vehicles_source_stren)
+        # W_source[f] = source_gain*np.sum(induced_velocity_vectors[:, 2])  # selecting the 3rd column, which corresponds to the z-components
+        # W_source[f] += np.sum(induced_source_velocity3D(vehicle, other_vehicles_pos, other_vehicles_source_stren)[:,2])
+        # V_vortex[f] += np.sum(induced_vortex_velocity(vehicle, other_vehicles_pos, other_vehicles_vortex_stren),axis=0)

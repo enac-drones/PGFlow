@@ -86,15 +86,18 @@ class Vehicle:
         self.altitude_mask = None
         self.ID = ID
         self.path = []
+        #FIXME there is a magic number of 0.2 for the destination, fix this
         self.state = 0
         self.distance_to_destination = None
-        self.velocitygain = 1 / 50  # 1/300 or less for vortex method, 1/50 for hybrid
+        #originally 1/50
+        self.delta_t = 1 / 50  # 1/300 or less for vortex method, 1/50 for hybrid
         self.velocity_desired = np.zeros(3)
         self.velocity_corrected = np.zeros(3)
         self.vel_err = np.zeros(3)
         self.correction_type = correction_type
         self._personal_vehicle_list: List["Vehicle"] = []
         self.transmitting = True
+        self.max_speed = 1.0
 
     @property
     def arena(self):
@@ -115,6 +118,8 @@ class Vehicle:
     def Set_Position(self, pos):
         self.position = np.array(pos)
         self.path = np.array(pos)
+        self.path = self.path.reshape(1, 3)
+        # print(f"path = {self.path.shape}")
         # print('GOOOAAALLL : ', self.goal)
         if np.all(self.goal) is not None:
             self.distance_to_destination = np.linalg.norm(
@@ -210,7 +215,7 @@ class Vehicle:
             self.personal_vehicle_list, self.arena, method="Vortex"
         )
         for index, vehicle in enumerate(self.personal_vehicle_list):
-            if self.personal_vehicle_list[index].ID == self.ID:
+            if vehicle.ID == self.ID:
                 self.Update_Velocity(flow_vels[index], self.arena)
             else:
                 # Update the other nearby vehicles (be careful for the index)
@@ -230,20 +235,29 @@ class Vehicle:
 
     def Update_Velocity(self, flow_vels, arenamap):
         # K is vehicle speed coefficient, a design parameter
-        # flow_vels = flow_vels * self.velocitygain
+        # flow_vels = flow_vels * self.delta_t
         V_des = flow_vels
+        # magnitude of the induced velocity vector
         mag = np.linalg.norm(V_des)
+        # print(f"magnitude = {mag}")
+        # induced velocity unit vector
         V_des_unit = V_des / mag
+        # set z component to 0
         V_des_unit[2] = 0
-        mag = np.clip(mag, 0.0, 1)  # 0.3 tello 0.5 pprz
-        mag_converted = mag  # This is Tellos max speed 30Km/h
-        flow_vels2 = V_des_unit * mag_converted
-        flow_vels2 = flow_vels2 * self.velocitygain
+        #force mag to lie between 0 and 1
+        mag_clipped = np.clip(mag, 0.0, self.max_speed)  # 0.3 tello 0.5 pprz
+        # define new mag (rename for some reason)
+        # mag_clipped = mag  # This is Tellos max speed 30Km/h
+        #set the magnitude of the induced velocity vector to mag_converted (ie the clipped value between 0 and 1)
+        clipped_velocity = V_des_unit * mag_clipped
+        # multiply the flow velocity by some predefined constant, this is sort of like imposing the delaT
+        # change in position = ds = v dt so velocitygain is actually dt here  
+        delta_s = clipped_velocity * self.delta_t
         prevpos = self.position
-        self.desiredpos = self.position + np.array(flow_vels2)
+        self.desiredpos = self.position + np.array(delta_s)
         self.position = (
             self.position
-            + np.array(flow_vels2)
+            + np.array(delta_s)
             + np.array([arenamap.wind[0], arenamap.wind[1], 0])
             + self.correction
         )
@@ -263,9 +277,11 @@ class Vehicle:
                 + self.correction
             )
         self.path = np.vstack((self.path, self.position))
-        # print('writing to the path...',)
+        # print(f"path = {self.path.shape}")
+        # print(f"Drone {self.ID}, distance left = {np.linalg.norm(self.goal - self.position)}")
         if np.linalg.norm(self.goal - self.position) < 0.2:  # 0.1 for 2d
             self.state = 1
+            print("Goal reached")
         return self.position
 
     def Update_Position(self):

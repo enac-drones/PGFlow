@@ -3,7 +3,7 @@ import math
 import numpy as np
 import pyclipper
 import time
-
+from typing import List
 # from numpy import linalg
 
 """##Building Code"""
@@ -113,9 +113,9 @@ class Building:
                         )
                     )
             # Inverse of coefficient matrix: (Needed for solution of panel method eqn.)
-
+            
             self.K_inv = np.linalg.inv(self.K)
-            t1 = time.time() - t
+            t1 = time.time()-t
             print(f"time taken to inverse is {t1}")
         elif method == "Source":
             pass

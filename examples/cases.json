@@ -26,6 +26,42 @@
       }
     ]
   },
+  "alpha1": {
+    "buildings": [
+      {
+        "ID": "Building 0",
+        "vertices": [
+          [0.974927, -0.22252, 1.2],
+          [0.433883, -0.900968, 1.2],
+          [-0.433883, -0.900968, 1.2],
+          [-0.974927, -0.22252, 1.2],
+          [-0.781831, 0.623489, 1.2],
+          [0.0, 1.0, 1.2],
+          [0.781831, 0.623489, 1.2]
+        ]
+      }
+    ],
+    "vehicles": [
+      {
+        "ID": "V1",
+        "position": [-3.0, 0.0001, 0.5],
+        "goal": [3.0, 0.0, 0.5],
+        "source_strength": 0.5,
+        "imag_source_strength": 0.5,
+        "sink_strength": 5,
+        "safety": 0.0001
+      },
+      {
+        "ID": "V2",
+        "position": [2.0, -4, 0.5],
+        "goal": [0.0, 3.0, 0.5],
+        "source_strength": 0.5,
+        "imag_source_strength": 0.5,
+        "sink_strength": 5,
+        "safety": 0.0001
+      }
+    ]
+  },
   "crazyflie": {
     "buildings": [
       {
@@ -122,6 +158,29 @@
         "ID": "V2",
         "position": [3.0, 0.0001, 0.5],
         "goal": [-3.0, 0.0, 0.5],
+        "source_strength": 0.5,
+        "imag_source_strength": 0.5,
+        "sink_strength": 5,
+        "safety": 0.0001
+      }
+    ]
+  },
+  "twodronesxy": {
+    "buildings": [],
+    "vehicles": [
+      {
+        "ID": "V1",
+        "position": [3.0, -3.0, 0.5],
+        "goal": [-3.0, 3.0, 0.5],
+        "source_strength": 0.5,
+        "imag_source_strength": 0.5,
+        "sink_strength": 5,
+        "safety": 0.0001
+      },
+      {
+        "ID": "V2",
+        "position": [-3.0, 3, 0.5],
+        "goal": [3.0, -3.0, 0.5],
         "source_strength": 0.5,
         "imag_source_strength": 0.5,
         "sink_strength": 5,

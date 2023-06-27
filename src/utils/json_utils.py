@@ -1,5 +1,5 @@
 # file to store useful json utilities
-import json
+import json, os
 
 
 def load_from_json(file_path: str) -> dict:
@@ -9,6 +9,9 @@ def load_from_json(file_path: str) -> dict:
 
 
 def dump_to_json(file_path: str, data: dict) -> dict:
+    #ensure the directory exists
+    directory = os.path.dirname(file_path)
+    os.makedirs(directory, exist_ok=True)
     with open(file_path, "w") as f:
         json.dump(data, f, indent=4)
         return None

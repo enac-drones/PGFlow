@@ -20,6 +20,7 @@ class ArenaMap:
         number_of_vehicles=1,
     ):
         self.panels = None
+        self.size = 0.05
         self.wind = [0, 0]
         self.windT = 0
         self.buildings = []
@@ -66,7 +67,7 @@ class ArenaMap:
         self.Inflate(
             radius=0.2
         )  # BUG Does weird clippings sometimes, eg when inflating a triangle #FIXME
-        self.Panelize(size=0.01)
+        self.Panelize(size=self.size)
         self.Calculate_Coef_Matrix(method="Vortex")
 
     def Inflate(self, visualize=False, radius=1e-4):

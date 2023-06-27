@@ -241,7 +241,10 @@ class Cases:
         case = Case(name="default")
         case.vehicle_list = vehicles
         case.buildings = buildings
+        #add the case to the self.cases dict
         self.add_case(case)
+        #dump self.cases to the json data file
+        self.update_json()
         return None
 
     def obtain_buildings(self):
@@ -278,7 +281,7 @@ class Cases:
         return vehicles
 
     def add_case(self, case: Case):
-        """Add a case into the JSON data file"""
+        """Add a case into self.cases dictionary"""
         case_name = case.name
         building_list = case.buildings
         vehicle_list = case.vehicle_list
@@ -309,11 +312,16 @@ class Cases:
             for vehicle in vehicle_list
         ]
 
-        dump_to_json(self.filename, self.cases)
+        # dump_to_json(self.filename, self.cases)
 
         # return the case that was just added
         self.case_name = case_name
-        return case
+        # json_case holds the case in the format that it will be written as in the json file
+        json_case = self.cases[case_name]
+        return json_case
+
+    def update_json(self):
+        dump_to_json(self.filename, self.cases)
 
     def remove_case(self, case_name):
         """Remove a particular case from the cases file, return that case"""
@@ -341,9 +349,6 @@ class Cases:
             vehicle_list.append(vehicle)
         case = Case(name=case_name)
         case.vehicle_list = vehicle_list
-        # add the case to the json file
-        # self.add_case(case_name=case_name, building_list=[], vehicle_list=vehicle_list)
-        # self.add_case(case)
         return case
 
     def generate_coordinates(self, n_drones, side_length, min_distance):
@@ -418,40 +423,40 @@ class Cases:
         return starting_positions, ending_positions
 
 
-if __name__ == "__main__":
-    sides = 7
-    position = (0, 0)
-    orientation = 0
-    radius = 1
+# if __name__ == "__main__":
+#     sides = 7
+#     position = (0, 0)
+#     orientation = 0
+#     radius = 1
 
-    obstacle = RegularPolygon(
-        sides=sides, centre=position, rotation=orientation, radius=radius
-    )
-    building = Building(obstacle.points())
-    Vehicle1 = Vehicle(ID="V1", source_strength=0.5, imag_source_strength=0.5)
-    Vehicle1.Set_Goal(goal=[3, 0, 0.5], goal_strength=5, safety=0.0001)
-    Vehicle1.Set_Position(pos=[-3, 0.0001, 0.5])
-    Vehicle2 = Vehicle(ID="V2", source_strength=0.5, imag_source_strength=0.5)
-    Vehicle2.Set_Goal(goal=[-3, 0, 0.5], goal_strength=5, safety=0.0001)
-    Vehicle2.Set_Position(pos=[3, 0.0001, 0.5])
-    Vehicle3 = Vehicle(ID="V3", source_strength=0.5, imag_source_strength=0.5)
-    Vehicle3.Set_Goal(goal=[0, -3, 0.5], goal_strength=5, safety=0.0001)
-    Vehicle3.Set_Position(pos=[0, 3, 0.5])
+#     obstacle = RegularPolygon(
+#         sides=sides, centre=position, rotation=orientation, radius=radius
+#     )
+#     building = Building(obstacle.points())
+#     Vehicle1 = Vehicle(ID="V1", source_strength=0.5, imag_source_strength=0.5)
+#     Vehicle1.Set_Goal(goal=[3, 0, 0.5], goal_strength=5, safety=0.0001)
+#     Vehicle1.Set_Position(pos=[-3, 0.0001, 0.5])
+#     Vehicle2 = Vehicle(ID="V2", source_strength=0.5, imag_source_strength=0.5)
+#     Vehicle2.Set_Goal(goal=[-3, 0, 0.5], goal_strength=5, safety=0.0001)
+#     Vehicle2.Set_Position(pos=[3, 0.0001, 0.5])
+#     Vehicle3 = Vehicle(ID="V3", source_strength=0.5, imag_source_strength=0.5)
+#     Vehicle3.Set_Goal(goal=[0, -3, 0.5], goal_strength=5, safety=0.0001)
+#     Vehicle3.Set_Position(pos=[0, 3, 0.5])
 
-    generator = Cases()
-    # print(f"Now changing the filename")
-    generator.filename = "examples/cases.json"
-    buildings = []
-    vehicles = []
-    # buildings.append(building)
-    vehicles.append(Vehicle1)
-    vehicles.append(Vehicle2)
-    vehicles.append(Vehicle3)
+#     generator = Cases()
+#     # print(f"Now changing the filename")
+#     generator.filename = "examples/cases.json"
+#     buildings = []
+#     vehicles = []
+#     # buildings.append(building)
+#     vehicles.append(Vehicle1)
+#     vehicles.append(Vehicle2)
+#     vehicles.append(Vehicle3)
 
-    case = Case(name="default")
-    case.vehicle_list = vehicles
-    case.buildings = buildings
+#     case = Case(name="default")
+#     case.vehicle_list = vehicles
+#     case.buildings = buildings
 
-    generator.add_case(case)
+#     generator.add_case(case)
     # case.add_case(ID="test2",building_list=buildings,vehicle_list=vehicles)
     # print(case.cases)
