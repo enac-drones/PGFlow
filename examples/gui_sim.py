@@ -33,6 +33,8 @@ class InteractivePlot:
     def on_click(self, event):
         # print(f'{self.mode = }')
         # print(self.buildings,self.current_building, len(self.current_building),self.mode)
+        if not event.xdata or not event.ydata:
+            return None
         if self.mode == 'building':
             self.current_drone = None
             # print("in building mode")
@@ -172,6 +174,18 @@ class InteractivePlot:
         ax.grid(color="k", linestyle=":", linewidth=0.5, which="minor")
         # ax.grid(True)
         ax.minorticks_on()
+
+        # Add instructions
+        instructions = (
+            "Instructions:\n"
+            "'b': switch to building mode, "
+            "'d': switch to drone mode \n"
+            "Tab: complete a building, "
+            "Enter: run the simulation"
+        )
+        fig.text(0.2, 0.93, instructions, fontsize=10,
+             bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.5))
+
         return fig, ax
 
 # Example usage:
