@@ -6,6 +6,21 @@ import numpy as np
 from src.panel_flow import Flow_Velocity_Calculation
 
 
+def set_new_attribute(case: Case, attribute_name: str, new_attribute_value):
+    """change attributes such as sink strength for every vehicle in a case"""
+    if not hasattr(Vehicle(ID="hi"), attribute_name):
+        print(f"Attribute {attribute_name} does not exist in the Vehicle class.")
+        return None
+    v_list = case.vehicle_list
+    for vehicle in v_list:
+        # vehicle.sink_strength = 5*4/3
+        setattr(vehicle, attribute_name, new_attribute_value)
+        # vehicle.source_strength = new_attribute_value
+    case.vehicle_list = v_list
+
+    return True
+
+
 def valid_vehicle_list(
     vehicle: Vehicle, case_vehicle_list: List[Vehicle], max_avoidance_distance
 ):

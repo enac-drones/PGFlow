@@ -20,6 +20,7 @@ class ArenaMap:
         number_of_vehicles=1,
     ):
         self.panels = None
+        self.inflation_radius = 0.0
         self.size = 0.05
         self.wind = [0, 0]
         self.windT = 0
@@ -65,7 +66,7 @@ class ArenaMap:
 
         # this adds a sort of safety radius? Set to 0.2 previously, I will set it to 0 so it matches the exact buildings specified.
         self.Inflate(
-            radius=0.2
+            radius=self.inflation_radius
         )  # BUG Does weird clippings sometimes, eg when inflating a triangle #FIXME
         self.Panelize(size=self.size)
         self.Calculate_Coef_Matrix(method="Vortex")

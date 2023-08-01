@@ -6,7 +6,7 @@ from copy import deepcopy
 
 from src.arena import ArenaMap
 from src.building import Building, RegularPolygon
-from src.vehicle import Vehicle
+from src.vehicle import Vehicle, PersonalVehicle
 from random import random
 import numpy as np
 from scipy.spatial import distance
@@ -47,6 +47,7 @@ class Case:
 
     @vehicle_list.setter
     def vehicle_list(self, new_vehicle_list):
+        # print("vehicle_list setter is called")
         if not isinstance(new_vehicle_list, list):
             raise TypeError("new_vehicle_list must be a list")
         for item in new_vehicle_list:
@@ -54,7 +55,10 @@ class Case:
                 raise TypeError("new_vehicle_list must contain only Vehicle objects")
         self._vehicle_list = deepcopy(new_vehicle_list)
         for vehicle in self._vehicle_list:
-            vehicle.personal_vehicle_list = deepcopy(new_vehicle_list)
+            # vehicle.personal_vehicle_list = deepcopy(new_vehicle_list)
+            vehicle.personal_vehicle_list = [
+                PersonalVehicle(*v.basic_properties()) for v in new_vehicle_list
+            ]
 
     @property
     def arena(self):
@@ -67,17 +71,21 @@ class Case:
         for vehicle in self._vehicle_list:
             vehicle.arena = deepcopy(new_arena)
 
-    def colliding(self):
+    def colliding(self, get_culprits=False):
         squared_distance_threshold = self.collision_threshold**2
-        for i in range(len(self.vehicle_list)):
-            for j in range(i + 1, len(self.vehicle_list)):
+        active_vehicles = [v for v in self.vehicle_list if v.state == 0]
+        for i in range(len(active_vehicles)):
+            for j in range(i + 1, len(active_vehicles)):
                 if (
                     self.calculate_squared_distance(
-                        self.vehicle_list[i].position, self.vehicle_list[j].position
+                        active_vehicles[i].position, active_vehicles[j].position
                     )
                     < squared_distance_threshold
                 ):
-                    return True
+                    if not get_culprits:
+                        return True
+                    else:
+                        return (active_vehicles[i].ID, active_vehicles[j].ID)
         return False
 
     def calculate_squared_distance(self, position1, position2):
@@ -241,9 +249,9 @@ class Cases:
         case = Case(name="default")
         case.vehicle_list = vehicles
         case.buildings = buildings
-        #add the case to the self.cases dict
+        # add the case to the self.cases dict
         self.add_case(case)
-        #dump self.cases to the json data file
+        # dump self.cases to the json data file
         self.update_json()
         return None
 
@@ -252,6 +260,7 @@ class Cases:
         buildings = []
         for building in self.cases[self.case_name]["buildings"]:
             coords = building["vertices"]
+            print(f'{coords = }',type(coords))
             buildings.append(Building(coords))
         return buildings
 
@@ -458,5 +467,5 @@ class Cases:
 #     case.buildings = buildings
 
 #     generator.add_case(case)
-    # case.add_case(ID="test2",building_list=buildings,vehicle_list=vehicles)
-    # print(case.cases)
+# case.add_case(ID="test2",building_list=buildings,vehicle_list=vehicles)
+# print(case.cases)

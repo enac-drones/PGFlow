@@ -77,6 +77,7 @@ class PersonalVehicle:
         self.ID = ID
         self.position = position
         self.source_strength = source_strength
+        self.imag_source_strength = 0.75
         self.sink_strength = sink_strength
         self.goal = goal
         self.state = 0

@@ -8,10 +8,12 @@ from src.cases import Cases, Case
 from src.vehicle import Vehicle
 from typing import List
 import time
-from src.utils.json_utils import dump_to_json,load_from_json
+from src.utils.json_utils import dump_to_json, load_from_json
 from src.utils.simulation_utils import run_simulation
 from multiprocessing import Process
 import numpy as np
+import json
+
 
 def optional_plot(case: Case, plot_title="No title"):
     plot = plot_trajectories2(case.arena, case.arena, case.vehicle_list)
@@ -42,6 +44,7 @@ def optional_plot(case: Case, plot_title="No title"):
 #         # add case to json file
 #         generator.add_case(case)
 #     return cases
+
 
 def new_random_cases(n_cases, n_drones):
     """
@@ -76,7 +79,8 @@ def set_new_attribute(case: Case, attribute_name: str, new_attribute_value):
     v_list = case.vehicle_list
     for vehicle in v_list:
         # vehicle.sink_strength = 5*4/3
-        vehicle.source_strength = new_attribute_value
+        setattr(vehicle, attribute_name, new_attribute_value)
+        # vehicle.source_strength = new_attribute_value
     case.vehicle_list = v_list
 
     return True
@@ -94,7 +98,7 @@ def set_new_attribute(case: Case, attribute_name: str, new_attribute_value):
 #     return simulation_succeeded
 
 
-def simulate_cases(file_name, base_name,n_cases, update_frequency, n_cases_start = 0):
+def simulate_cases(file_name, base_name, n_cases, update_frequency, n_cases_start=0):
     """
     Simulate a number of cases for a given update frequency and count the total number of failures.
 
@@ -109,7 +113,9 @@ def simulate_cases(file_name, base_name,n_cases, update_frequency, n_cases_start
     """
     total_failures = 0
     t = time.time()
+    # everything_results = load_from_json('results/everything.json')
     failure_indices = {}
+    # culprits_dict = {}
     for idx in range(n_cases_start, n_cases):
         case_name = f"{base_name}_{idx}"
         if idx % 250 == 0:
@@ -122,13 +128,36 @@ def simulate_cases(file_name, base_name,n_cases, update_frequency, n_cases_start
         set_new_attribute(case, "source_strength", new_attribute_value=1)
 
         simulation_succeeded = run_simulation(
-            case=case, t=2000, update_every=update_frequency,stop_at_collision=True)
+            case=case,
+            t=2000,
+            update_every=update_frequency,
+            stop_at_collision=True,
+            max_avoidance_distance=2,
+        )
 
         if not simulation_succeeded:
+            # culprits = case.colliding(get_culprits=True)
+            # collision_location = [v.position.tolist() for v in case.vehicle_list if v.ID in culprits]
+            # culprits_dict[case_name] = culprits
             total_failures += 1
             failure_indices[case_name] = idx
+        else:
+            culprits = None
+            # collision_location = None
+
+        # if case_name not in everything_results:
+        #     everything_results[case_name] = {}
+        # if update_frequency not in everything_results[case_name]:
+        #     everything_results[case_name][update_frequency] = {}
+        # everything_results[case_name][update_frequency]["colliding"] = case.colliding()
+        # everything_results[case_name][update_frequency]["culprits"] = culprits
+        # everything_results[case_name]["paths"] = {vehicle.ID:np.concatenate(vehicle.path).tolist() for vehicle in case.vehicle_list}
+        # everything_results[case_name][update_frequency]["collision_location"] = collision_location
+
+        # print(everything_results)
+
     # print(f"failures:{failure_indices}")
-    return total_failures,failure_indices
+    return total_failures, failure_indices  # ,everything_results
 
 
 # def collect_and_store_data(
@@ -161,177 +190,248 @@ def simulate_cases(file_name, base_name,n_cases, update_frequency, n_cases_start
 #     dump_to_json(f"results/{base_case_name}.json", corresponding_failures)
 #     return None
 
-def worker(file_name: str, n_drones: int, n_cases: int, update_frequency_sublist: list,worker_id: int):
+
+def worker(
+    file_name: str,
+    n_drones: int,
+    n_cases: int,
+    update_frequency_sublist: list,
+    worker_id: int,
+):
     base_case_name = f"random{n_drones}"
     results = {}
     # corresponding_failures = {}
 
     for num in update_frequency_sublist:
         print(f"Now simulating with frequency of every {num} seconds")
-        total_failures,failure_indices = simulate_cases(file_name, base_case_name, n_cases, num)
+        total_failures, failure_indices = simulate_cases(
+            file_name, base_case_name, n_cases, num
+        )
         results[num] = total_failures
 
     print(results)
     dump_to_json(f"results/temp_{worker_id}.json", results)
     dump_to_json(f"results/{base_case_name}/failures_{worker_id}.json", failure_indices)
+    # dump_to_json(f"results/everything_temp_{worker_id}.json", everything_results)
     return None
 
-def worker_multi_cases(file_name: str, n_drones: int, n_cases_start:int, n_cases: int, update_frequency_sublist: list,worker_id: int):
-    '''Multi processing on the number of cases'''
-    base_case_name = f"random{n_drones}"
-    results = {}
-    # corresponding_failures = {}
 
-    for num in update_frequency_sublist:
-        print(f"Now simulating with frequency of every {num} seconds")
-        total_failures,failure_indices = simulate_cases(file_name, base_case_name, n_cases, num, n_cases_start)
-        results[num] = total_failures
+# def worker_multi_cases(
+#     file_name: str,
+#     n_drones: int,
+#     n_cases_start: int,
+#     n_cases: int,
+#     update_frequency_sublist: list,
+#     worker_id: int,
+# ):
+#     """Multi processing on the number of cases"""
+#     base_case_name = f"random{n_drones}"
+#     results = {}
+#     # corresponding_failures = {}
 
-    print(results)
-    dump_to_json(f"results/temp_{worker_id}.json", results)
-    dump_to_json(f"results/{base_case_name}/failures_{n_cases_start}_{n_cases}.json", failure_indices)
-    return None
+#     for num in update_frequency_sublist:
+#         print(f"Now simulating with frequency of every {num} seconds")
+#         total_failures, failure_indices = simulate_cases(
+#             file_name, base_case_name, n_cases, num, n_cases_start
+#         )
+#         results[num] = total_failures
 
-def main_multi_frequencies():
+#     print(results)
+#     dump_to_json(f"results/temp_{worker_id}.json", results)
+#     dump_to_json(
+#         f"results/{base_case_name}/failures_{n_cases_start}_{n_cases}.json",
+#         failure_indices,
+#     )
+#     return None
+
+
+def main_multi_frequencies(filename):
     """
     The main function that defines input values and triggers the data collection and storage process.
     """
     # n_drones = 2
-    n_drones_list = [2,3,4,5,6,7,8,9]
-    # n_drones_list = [2]
+    # n_drones_list = [2,3,4,5,6,7,8,9]
+    n_drones_list = [2]
 
     # n_drones_sublists = np.array_split(n_drones_list, 8)
 
     n_cases = 1000
-    # random_cases = new_random_cases(n_cases, n_drones)
+    # random_cases = new_random_cases(n_cases, 10)
     # dump_to_json(file_name,random_cases)
-    # update_frequency_list = [1, 2, 3, 4, 5, 10, 50, 100, 200, 300]
-    # update_frequency_list = [400, 600, 800, 1000, 1200, 1400, 1600, 1800, 2000]
-    update_frequency_list = [20,40,60,70,80,90]
+    update_frequency_list = [30, 40, 75, 150, 2000]
+    # update_frequency_list = [500, 800,1000,1500,2000]
+    # update_frequency_list = [20,40,60,70,80,90]
 
     # Split update_frequency_list into 4 sublists
-    update_frequency_sublists = np.array_split(update_frequency_list, 6)
+    update_frequency_sublists = np.array_split(
+        update_frequency_list, len(update_frequency_list)
+    )
 
-
+    try:
+        previous_results = load_from_json(filename)
+        # previous_everything = load_from_json("results/everything.json")
+    except json.JSONDecodeError:
+        previous_results = {}
+        # previous_everything = {}
+    print(f"previous results are {previous_results}")
     for n_drones in n_drones_list:
         base_case_name = f"random{n_drones}"
         file_name = f"data/{base_case_name}.json"
         # Create and start a process for each sublist
         processes = []
         for i, sublist in enumerate(update_frequency_sublists):
-            p = Process(target=worker, args=(file_name, n_drones, n_cases, sublist.tolist(), i))
+            p = Process(
+                target=worker, args=(file_name, n_drones, n_cases, sublist.tolist(), i)
+            )
             p.start()
             processes.append(p)
 
         # Wait for all processes to finish
         for p in processes:
             p.join()
-        
+
         # Combine the results from all workers into one dictionary
         combined_results = {}
+        # combined_everything = {}
         for i in range(len(processes)):
             results = load_from_json(f"results/temp_{i}.json")
             combined_results.update(results)
             os.remove(f"results/temp_{i}.json")  # delete the temporary file
+            # everything_results = load_from_json(f"results/everything_temp_{i}.json")
+            # combined_everything.update(everything_results)
+            # os.remove(f"results/everything_temp_{i}.json")
 
         # dump_to_json(f"results/{base_case_name}.json", combined_results)
-        print(n_drones, {int(key):value for key,value in combined_results.items()})
+        # get results corresponding to n drones from previous results,
+        previous_drone_n_results = previous_results.get(str(n_drones), {})
+        # previous_drone_n_everything = previous_everything.get(str(n_drones),{})
+        # print(previous_drone_n_results,"hi")
+        new_drone_n_results = previous_drone_n_results | combined_results
+        # new_drone_n_everything = previous_drone_n_everything | combined_everything
 
-def main_multi_cases():
-    """
-    MultiProcess over the cases
-    """
-    # n_drones = 2
-    # n_drones_list = [2,3,4,5,6,7,8,9]
-    n_drones_list = [7,8,9]
-
-    # n_drones_sublists = np.array_split(n_drones_list, 8)
-
-    n_cases = 1000
-    cases_per_worker = 100
-    n_cases_sublist = list(range(0,n_cases,cases_per_worker))
-    print(n_cases_sublist)
-    # random_cases = new_random_cases(n_cases, n_drones)
-    # dump_to_json(file_name,random_cases)
-    # update_frequency_list = [1, 2, 3, 4, 5, 10, 50, 100, 200, 300, 500, 1000]
-    # update_frequency_list = [1,3,5,50,300,500]
-    update_frequency_list = [1]
-
-    # Split update_frequency_list into 4 sublists
-    # update_frequency_sublists = np.array_split(update_frequency_list, 1)
+        # print(new_drone_n_results,"hi1")
+        previous_results[str(n_drones)] = new_drone_n_results
+        # previous_everything[str(n_drones)] = new_drone_n_everything
+        # print(previous_results,"hi2")
+        dump_to_json(filename, previous_results)
+        # dump_to_json("results/everything.json",previous_everything)
+        print(n_drones, {int(key): value for key, value in combined_results.items()})
 
 
-    for n_drones in n_drones_list:
-        base_case_name = f"random{n_drones}"
-        file_name = f"data/{base_case_name}.json"
-        # Create and start a process for each sublist
-        processes = []
-        for i, n_start in enumerate(n_cases_sublist):
-            p = Process(target=worker_multi_cases, args=(file_name, n_drones,n_start, n_start+cases_per_worker, update_frequency_list, i))
-            p.start()
-            processes.append(p)
+# def main_multi_cases():
+#     """
+#     MultiProcess over the cases
+#     """
+#     # n_drones = 2
+#     # n_drones_list = [2,3,4,5,6,7,8,9]
+#     n_drones_list = [7, 8, 9]
 
-        # Wait for all processes to finish
-        for p in processes:
-            p.join()
-        
-        # Combine the results from all workers into one dictionary
-        combined_results = {}
-        for n_cases_start in n_cases_sublist:
-            results = load_from_json(f"results/{base_case_name}/failures_{n_cases_start}_{n_cases_start+cases_per_worker}.json")
-            combined_results.update(results)
-            os.remove(f"results/{base_case_name}/failures_{n_cases_start}_{n_cases_start+cases_per_worker}.json")  # delete the temporary file
+#     # n_drones_sublists = np.array_split(n_drones_list, 8)
 
-        dump_to_json(f"results/{base_case_name}/failures_0_1000.json", combined_results)
-        print(combined_results)
-        # print(n_drones, {int(key):value for key,value in combined_results.items()})
+#     n_cases = 1000
+#     cases_per_worker = 100
+#     n_cases_sublist = list(range(0, n_cases, cases_per_worker))
+#     print(n_cases_sublist)
+#     # random_cases = new_random_cases(n_cases, n_drones)
+#     # dump_to_json(file_name,random_cases)
+#     # update_frequency_list = [1, 2, 3, 4, 5, 10, 50, 100, 200, 300, 500, 1000]
+#     # update_frequency_list = [1,3,5,50,300,500]
+#     update_frequency_list = [1]
 
-def main_multi_drones():
-    """
-    Same as main but multiprocessing is done on the n_drones_list instead of frequency_list
-    """
-    # n_drones = 2
-    n_drones_list = [2,3,4,5,6,7,8,9]
-    # n_drones_sublists = np.array_split(n_drones_list, 8)
+#     # Split update_frequency_list into 4 sublists
+#     # update_frequency_sublists = np.array_split(update_frequency_list, 1)
 
-    n_cases = 100
-    # random_cases = new_random_cases(n_cases, n_drones)
-    # dump_to_json(file_name,random_cases)
-    # update_frequency_list = [1, 2, 3, 4, 5, 10, 50, 100, 200, 300, 500, 1000]
-    # update_frequency_list = [1,3,5,50,300,500]
-    update_frequencies = [1]
-    # Split update_frequency_ist into 4 sublists
-    # update_frequency_sublists = np.array_split(update_frequency_list, 6)
+#     for n_drones in n_drones_list:
+#         base_case_name = f"random{n_drones}"
+#         file_name = f"data/{base_case_name}.json"
+#         # Create and start a process for each sublist
+#         processes = []
+#         for i, n_start in enumerate(n_cases_sublist):
+#             p = Process(
+#                 target=worker_multi_cases,
+#                 args=(
+#                     file_name,
+#                     n_drones,
+#                     n_start,
+#                     n_start + cases_per_worker,
+#                     update_frequency_list,
+#                     i,
+#                 ),
+#             )
+#             p.start()
+#             processes.append(p)
 
-        
-    # Create and start a process for each sublist
-    processes = []
-    for idx, n_drones in enumerate(n_drones_list):
-        base_case_name = f"random{n_drones}"
-        file_name = f"data/{base_case_name}.json"
-        p = Process(target=worker, args=(file_name, n_drones, n_cases, update_frequencies, n_drones))
-        p.start()
-        processes.append(p)
+#         # Wait for all processes to finish
+#         for p in processes:
+#             p.join()
 
-    # Wait for all processes to finish
-    for p in processes:
-        p.join()
-    
-    # Combine the results from all workers into one dictionary
-    combined_results = {}
-    for i in range(len(processes)):
-        results = load_from_json(f"results/temp_{i}.json")
-        combined_results.update(results)
-        os.remove(f"results/temp_{i}.json")  # delete the temporary file
+#         # Combine the results from all workers into one dictionary
+#         combined_results = {}
+#         for n_cases_start in n_cases_sublist:
+#             results = load_from_json(
+#                 f"results/{base_case_name}/failures_{n_cases_start}_{n_cases_start+cases_per_worker}.json"
+#             )
+#             combined_results.update(results)
+#             os.remove(
+#                 f"results/{base_case_name}/failures_{n_cases_start}_{n_cases_start+cases_per_worker}.json"
+#             )  # delete the temporary file
 
-    # dump_to_json(f"results/{base_case_name}.json", combined_results)
-    print({int(key):value for key,value in combined_results.items()})
+#         dump_to_json(f"results/{base_case_name}/failures_0_1000.json", combined_results)
+#         print(combined_results)
+# print(n_drones, {int(key):value for key,value in combined_results.items()})
 
-    
+
+# def main_multi_drones():
+#     """
+#     Same as main but multiprocessing is done on the n_drones_list instead of frequency_list
+#     """
+#     # n_drones = 2
+#     n_drones_list = [2, 3, 4, 5, 6, 7, 8, 9]
+#     # n_drones_sublists = np.array_split(n_drones_list, 8)
+
+#     n_cases = 100
+#     # random_cases = new_random_cases(n_cases, n_drones)
+#     # dump_to_json(file_name,random_cases)
+#     # update_frequency_list = [1, 2, 3, 4, 5, 10, 50, 100, 200, 300, 500, 1000]
+#     # update_frequency_list = [1,3,5,50,300,500]
+#     update_frequencies = [1]
+#     # Split update_frequency_ist into 4 sublists
+#     # update_frequency_sublists = np.array_split(update_frequency_list, 6)
+
+#     # Create and start a process for each sublist
+#     processes = []
+#     for idx, n_drones in enumerate(n_drones_list):
+#         base_case_name = f"random{n_drones}"
+#         file_name = f"data/{base_case_name}.json"
+#         p = Process(
+#             target=worker,
+#             args=(file_name, n_drones, n_cases, update_frequencies, n_drones),
+#         )
+#         p.start()
+#         processes.append(p)
+
+#     # Wait for all processes to finish
+#     for p in processes:
+#         p.join()
+
+#     # Combine the results from all workers into one dictionary
+#     combined_results = {}
+#     for i in range(len(processes)):
+#         results = load_from_json(f"results/temp_{i}.json")
+#         combined_results.update(results)
+#         os.remove(f"results/temp_{i}.json")  # delete the temporary file
+
+#     # dump_to_json(f"results/{base_case_name}.json", combined_results)
+#     print({int(key): value for key, value in combined_results.items()})
 
 
 if __name__ == "__main__":
-    main_multi_frequencies()
+    source_cuttoff = 4
+    maxD = 2  # see simulate cases, need to change both there and here for now
+    sink_source_ratio = 5  # see simulate cases
+    main_multi_frequencies(
+        f"results/results_power{source_cuttoff}_maxD{maxD}_ratio{sink_source_ratio}.json"
+    )
 
 
 # if __name__ == "__main__":
