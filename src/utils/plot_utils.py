@@ -680,7 +680,7 @@ class PlotTrajectories:
         self.slider = self.create_slider(fig=self.fig)
         self.play_button = self.create_button(fig=self.fig)
         self.info_box = self.create_info_box(ax=self.ax)
-        self.case_name = self.show_case_name(ax=self.ax)
+        # self.case_name = self.show_case_name(ax=self.ax)
         self.plot_buildings(ax=self.ax, Arena=self.Arena, ArenaR=self.ArenaR)
         self.time_steps_max = self.get_max_timesteps(self.vehicle_list)
 
@@ -814,7 +814,7 @@ class PlotTrajectories:
             ax.plot(
                 np.hstack((building.vertices[:, 0], building.vertices[0, 0])),
                 np.hstack((building.vertices[:, 1], building.vertices[0, 1])),
-                "salmon",
+                "black",
                 alpha=0.5,
             )
             ax.fill(

@@ -18,7 +18,7 @@ from src.building import Building
 from src.arena import ArenaMap
 from src.building import Building
 import time
-from numba import jit
+# from numba import jit
 
 
 # from vehicle import Vehicle

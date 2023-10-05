@@ -4,6 +4,7 @@ import numpy as np
 import pyclipper
 import time
 from typing import List
+from matplotlib.patches import Polygon
 # from numpy import linalg
 
 """##Building Code"""
@@ -71,6 +72,11 @@ class Building:
             else:
                 # Divide the edge into "n" equal segments:
                 self.panels = np.vstack((self.panels, np.linspace(xyz1, xyz2, n)[1:]))
+
+    def contains_point(self, point):
+        # Checks if a point lies within the building.
+        p = Polygon(self.vertices[:,:2])
+        return p.contains_point(point)
 
     def calculate_coef_matrix(self, method="Vortex"):
         t = time.time()
