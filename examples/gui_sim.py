@@ -105,10 +105,8 @@ class InteractivePlot:
         if self.current_drone:
             self.drone_start.remove()
             self.current_drone = None
-        # print("in building mode")
         # Add a corner to the current building at the click location
 
-        print(event.xdata,event.ydata)
         self.current_building.append([event.xdata, event.ydata,1.2])
         point, = self.ax.plot(event.xdata, event.ydata,'go')
         self.current_building_points.append(point)
@@ -177,7 +175,6 @@ class InteractivePlot:
         
         # Proceed with drone placement
         elif self.mode == 'drone':
-            print("in drone mode")
             self.handle_drone_placement(event)
             return
             
@@ -185,7 +182,6 @@ class InteractivePlot:
         self.update()
 
     def on_mouse_move(self, event):
-        # print("mouse moved")
         if self.selected_building and self.initial_click_position:
             dx = event.xdata - self.initial_click_position[0]
             dy = event.ydata - self.initial_click_position[1]
@@ -209,6 +205,7 @@ class InteractivePlot:
             building = self.buildings[self.selected_building_index]
             building.vertices[self.selected_vertex, :2] = [event.xdata, event.ydata]
             building_patch = self.building_patches[building]
+            
             building_patch.set_xy(building.vertices[:, :2])
             self.update()  # Redraw to show the moved vertex
             
@@ -250,7 +247,7 @@ class InteractivePlot:
         # elif event.key == 'm':
         #     self.mode = 'move_building'
         elif event.key == 'tab' and self.mode == 'building' and len(self.current_building) >= 3:
-            # add the building the self.buildings
+            # add the building the self.buildings. The Building class is useful to get the vertices
             building = Building(self.current_building)
             self.buildings.append(building)
             # add the building to the actions stack
@@ -281,7 +278,6 @@ class InteractivePlot:
 
         elif event.key == 'enter':
             my_case = self.generate_case(name = "Test Case")
-            # print(my_case.vehicle_list,"dad")
             result = run_simulation(
                 my_case,
                 t=2000,
@@ -289,7 +285,6 @@ class InteractivePlot:
                 stop_at_collision=False,
                 max_avoidance_distance=3,
             )
-            # print(my_case.vehicle_list,"dad")
             # plt.close()
             asdf = plt_utils.PlotTrajectories(my_case, update_every=50)
             asdf.show()
@@ -298,99 +293,29 @@ class InteractivePlot:
     def generate_case(self,name):
         c = Case(name = name)
         c.buildings = self.buildings
-        # print(f'{self.drones=}') 
         c.vehicle_list = self.drones
-        # print(f'{c.vehicle_list=}')
         generator = Cases(filename='examples/gui_testing.json')
         generator.add_case(c)
         generator.update_json()
 
         complete_case = generator.get_case('examples/gui_testing.json','Test Case')
         # c.arena = ArenaMap(buildings=self.buildings)
-        # print(c.buildings,c.vehicle_list)
         return complete_case
 
 
     def update(self):
-        # Clear the plot
-        # self.update_buildings()
-        # Plot the current drones
-        # self.update_drones()
-        
-
+        # draw the canvas again
         self.fig.canvas.draw()
 
-    # def update_buildings(self):
-    #     # First, remove the old patches
-    #     for patch in self.building_patches.values():
-    #         patch.remove()
-    #     # self.building_patches.clear()  # clear the list
-
-    #     if not self.current_building:
-    #         for point in self.current_building_points:
-    #             point.remove()
-    #         self.current_building_points = []
-    #     for coord in self.current_building:
-    #         continue
-    #         point, = self.ax.plot(*coord[:2],'go')
-    #         self.current_building_points.append(point)
-    #         # self.actions_stack.append(('point', point))
-
-    #         # self.temp_elements.append(point)
-    #     # Plot the current buildings
-    #     # for building in self.buildings:
-    #         # print(building.vertices.shape)
-    #         # column_slice = slice(None,2,None) testing the slice class and failing lol
-    #     for building in self.buildings:      
-    #         continue      
-    #         patch = plt.Polygon(
-    #             building.vertices[:, :2],
-    #             edgecolor=(0,0,0,1),      # for example, set border color to Black (R,G,B,A) where A is transparency
-    #             facecolor=(0,0,1,0.5),     # set fill color to blue and alpha to 0.5
-    #             # alpha=0.5,             # make it semi-transparent, applies to whole patch 
-    #             linewidth=2.0 
-    #         )
-    #         self.ax.add_patch(patch)
-    #         self.building_patches[building] = patch  # Store the patch
-    #         # self.actions_stack.append(('building', building))  # New line to track the action
-
-    # def update_drones(self):
-    #     for marker_start, marker_end, arrow in self.drone_patches.values():
-    #         marker_start.remove()
-    #         marker_end.remove()
-    #         arrow.remove()
-        
-    #     for drone in self.drones:
-    #         continue
-    #         marker_start, = self.ax.plot(*drone.position[:2], 'b*')  # Initial position in blue
-    #         marker_end, = self.ax.plot(*drone.goal[:2], 'r*')  # Goal position in red
-    #         # Add an arrow with a line using the 'arrow' function
-    #         arrow = self.ax.arrow(*drone.position[:2], drone.goal[0]-drone.position[0], drone.goal[1]-drone.position[1], length_includes_head = True, head_width=0.2, head_length=0.2, fc='k', ec='k',linestyle = '-')
-    #         self.drone_patches[drone] = (marker_start, marker_end, arrow)
-    #         # self.actions_stack.append(('drone', self.current_drone))  # New line to track the action
-    #     return
-    #     if self.current_drone:
-    #         # print(mark starting position)
-    #         self.drone_start, = self.ax.plot(*self.current_drone.position[:2],'ko')
-    #         # self.actions_stack.append(('point', self.drone_start))
-
-    #         # self.temp_elements.append(self.drone_start)
-    #     elif self.drone_start:
-    #         # print('hahahah')
-    #         self.drone_start.remove()
-    #         # self.clear_temp_elements()
-    #         self.drone_start = None
-            
+    
 
     def clear_temp_elements(self):
-        print(len(self.temp_elements))
         for elem in self.temp_elements:
-            print(elem,type(elem))
             elem.remove()
         self.temp_elements = []  # Clear the list after removing all elements from the plot.
         self.current_building = []
         self.current_drone = None
-        self.ax.figure.canvas.draw()
+        self.update()
 
 
     def undo_last_action(self):
@@ -398,7 +323,6 @@ class InteractivePlot:
             return
 
         action, obj = self.actions_stack.pop()
-        print(action)
         if action == 'building':
             if obj in self.buildings:
                 self.buildings.remove(obj)
@@ -417,7 +341,6 @@ class InteractivePlot:
         #     obj.remove()
         #     self.current_building.pop()
         #     self.current_building_points.pop()
-        # print(self.ax.patches)
         self.fig.canvas.draw()  # Redraw the figure to reflect changes
         # self.update()
 
