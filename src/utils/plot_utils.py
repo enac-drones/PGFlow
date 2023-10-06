@@ -814,7 +814,7 @@ class PlotTrajectories:
             ax.plot(
                 np.hstack((building.vertices[:, 0], building.vertices[0, 0])),
                 np.hstack((building.vertices[:, 1], building.vertices[0, 1])),
-                "black",
+                "salmon",
                 alpha=0.5,
             )
             ax.fill(
