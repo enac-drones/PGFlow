@@ -76,6 +76,7 @@ class Building:
     def contains_point(self, point):
         # Checks if a point lies within the building.
         p = Polygon(self.vertices[:,:2])
+        print(p.get_xy())
         return p.contains_point(point)
 
     def calculate_coef_matrix(self, method="Vortex"):
