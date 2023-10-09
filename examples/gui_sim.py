@@ -62,29 +62,31 @@ class InteractivePlot:
     def selected_building(self):
         return self._selected_building
 
+
     @selected_building.setter
     def selected_building(self, patch):
-        # If we're deselecting (setting to None), revert the color.
-        if patch is None and self.selected_building is not None:
+        # Deselect the current building if one is selected
+        if self._selected_building is not None:
             orig_colors = self.original_colors.get(self._selected_building, {})
             self._selected_building.set_facecolor(orig_colors.get("facecolor", "default_face_color"))
             self._selected_building.set_edgecolor(orig_colors.get("edgecolor", "default_edge_color"))
-            # Remove from the dictionary
-            del self.original_colors[self._selected_building]
+            # Remove from the dictionary only if we're setting to None
+            if patch is None:
+                del self.original_colors[self._selected_building]
 
-        # If we're selecting a new building, store its original colors and then change them.
-        elif patch is not None:
-            self.original_colors[patch] = {
-                "facecolor": patch.get_facecolor(),
-                "edgecolor": patch.get_edgecolor(),
-            }
-            
-            # patch.set_facecolor((0.678, 0.847, 0.902, 0.7)) #Lightblue
-            patch.set_facecolor((1,0.4,1, 0.7)) #Transparent red
-
+        # If selecting a new building, store its original colors (if they aren't stored already) and then change them
+        if patch is not None:
+            # Only store original colors if we haven't stored them before
+            if patch not in self.original_colors:
+                self.original_colors[patch] = {
+                    "facecolor": patch.get_facecolor(),
+                    "edgecolor": patch.get_edgecolor(),
+                }
+            # Modify the appearance of the new building
+            patch.set_facecolor((1, 0.4, 1, 0.7))  # Transparent red
             patch.set_edgecolor("black")
 
-        # Set the actual value
+        # Finally, set the actual value
         self._selected_building = patch
         self.update()
 
@@ -106,6 +108,7 @@ class InteractivePlot:
         # self.selected_building = None
         self.selected_building_index = None
         self.selected_vertex = None
+        self.building_picked = False
 
         return None
     
@@ -115,6 +118,8 @@ class InteractivePlot:
         self.fig.canvas.mpl_connect('key_press_event', self.on_key_press)
         self.fig.canvas.mpl_connect('button_release_event', self.on_button_release)
         self.fig.canvas.mpl_connect('motion_notify_event', self.on_mouse_move)
+        self.fig.canvas.mpl_connect('pick_event', self.on_pick)
+
         return None
     
     def handle_vertex_movement(self,event):
@@ -135,6 +140,7 @@ class InteractivePlot:
             return False
         # self.selected_building_index = closest_building_index
         self.selected_vertex = closest_vertex_index
+        self.initial_click_position = None
         self.selected_building = closest_building
 
 
@@ -183,7 +189,9 @@ class InteractivePlot:
         return False
     
     def handle_building_placement(self,event)->None:
+        self.selected_building = None
         if self.current_drone:
+            self.temp_elements.remove(self.drone_start)
             self.drone_start.remove()
             self.current_drone = None
         # Add a corner to the current building at the click location
@@ -196,6 +204,7 @@ class InteractivePlot:
     def handle_drone_placement(self,event)->None:
         # clear any buildings before starting drones
             # Add a drone at the click location
+            self.selected_building = None
             if self.current_drone is None:
                 # initialise the drone
                 # what to do when we draw the initial position of the drone
@@ -217,6 +226,7 @@ class InteractivePlot:
                 )  # FIXME add these to the json
                 self.drones.append(self.current_drone)
                 self.actions_stack.append(('drone', self.current_drone))
+                self.temp_elements.remove(self.drone_start)
                 self.drone_start.remove()
                 self.drone_start = None
                 
@@ -264,6 +274,8 @@ class InteractivePlot:
     def on_click(self, event):
         #ORDER MATTERS
 
+        print(self.selected_building)
+
         # If clicked outside of the plot, do nothing
         if not event.xdata or not event.ydata:
             return
@@ -271,12 +283,17 @@ class InteractivePlot:
         # handle moving building vertices
         if self.handle_vertex_movement(event):
             return
+        
+        if self.selected_building:
+            return 
+        self.selected_building = None
+        
         # Check if a drone was clicked and handle its movement if necessary
         if self.handle_drone_movement(event):
             return
         # Check if a building was clicked and handle its movement if necessary
-        if self.handle_building_movement(event):
-            return
+        # if self.handle_building_movement(event):
+        #     return
         
 
         # if self.click_near_arrow(event):
@@ -295,6 +312,20 @@ class InteractivePlot:
         # Update the plot
         self.update()
 
+    def on_pick(self, event):
+        # Check if the picked artist is a Polygon (optional but can be useful)
+        if isinstance(event.artist, plt.Polygon):
+            # print(True)
+            # print(dir(event))
+            # print(dir(event.mouseevent))
+            # print(event.mouseevent.x, event.mouseevent.xdata)
+            # self.building_picked = True
+            polygon = event.artist
+            self.selected_building = polygon
+            self.initial_click_position = [event.mouseevent.xdata, event.mouseevent.ydata]
+            # Your code to handle the picked building here
+            # ...
+
     def on_mouse_move(self, event):
 
         point = [event.xdata, event.ydata]
@@ -302,19 +333,8 @@ class InteractivePlot:
         #If the point is out of the map area, skip the rest of this method
         if any(not isinstance(item, (int, float)) for item in point):
             return
-        
-        if self.selected_building and self.initial_click_position:
-            ds = np.array(point) - np.array(self.initial_click_position)
-            # Move the building
-            # set the vertices of the src.Building object, then copy them into the building patch
-            self.selected_building.get_xy()[:, :2] += ds
-            
-            # Update the initial click position for next movement calculation
-            self.initial_click_position = point
-            
-            # Redraw to show the moved building
-            self.update()
-
+        ##########################################################################################
+        # move the vertex if one is selected
         if self.selected_building is not None and self.selected_vertex is not None:
             # move the relevent vertex
             # If the selected vertex is the first or last of the polygon, move both first and last 
@@ -329,8 +349,23 @@ class InteractivePlot:
                 self.selected_building.get_xy()[self.selected_vertex] = point
 
             self.update()  # Redraw to show the moved vertex
+        
+        ###########################################################################################
+        # move the whole building patch
+        elif self.selected_building and self.initial_click_position:
+            ds = np.array(point) - np.array(self.initial_click_position)
+            # Move the building
+            # set the vertices of the src.Building object, then copy them into the building patch
+            self.selected_building.get_xy()[:, :2] += ds
             
-        if self.selected_drone:
+            # Update the initial click position for next movement calculation
+            self.initial_click_position = point
+            
+            # Redraw to show the moved building
+            self.update()
+        ###########################################################################################
+        # Move the drone
+        elif self.selected_drone:
             if self.dragging_drone_point == 'start':
                 self.selected_drone.position = np.array([event.xdata, event.ydata, 0.5])
             elif self.dragging_drone_point == 'end':
@@ -344,27 +379,14 @@ class InteractivePlot:
             self.initial_click_position = point
             marker_start, marker_end, arrow = self.drone_patches[self.selected_drone]
             d = self.selected_drone
-            # marker_start.set(xdata = d.position[0], ydata = d.position[1])
             marker_start.set_xdata([d.position[0]])
             marker_start.set_ydata([d.position[1]]) 
-            # marker_end.set(xdata = d.goal[0], ydata = d.goal[1])
             marker_end.set_xdata([d.goal[0]])
             marker_end.set_ydata([d.goal[1]]) 
-            # arrow.set_positions(d.position[:2], d.goal[:2])
             self.update_arrow_position(arrow,d.position[:2],d.goal[:2])
-            # arrow.posA = *d.position[:2]
 
             
             marker_start, marker_end, arrow = self.drone_patches[self.selected_drone]
-            #remove the old ones
-            # marker_start.remove()
-            # marker_end.remove()
-            # arrow.remove()
-
-            # marker_start, = self.ax.plot(*d.position[:2], 'b*')  # Initial position in blue
-            # marker_end, = self.ax.plot(*d.goal[:2], 'r*')  # Goal position in red
-            # Add an arrow with a line using the 'arrow' function
-            # arrow = self.ax.arrow(*d.position[:2], d.goal[0]-d.position[0], d.goal[1]-d.position[1], length_includes_head = True, head_width=0.2, head_length=0.2, fc='k', ec='k',linestyle = '-')
             self.drone_patches[d] = (marker_start, marker_end, arrow)
             
             self.update()  # This will redraw the drone starting or ending point in its new position
@@ -402,7 +424,8 @@ class InteractivePlot:
                 facecolor=(0,0,1,0.5),     # set fill color to blue and alpha to 0.5
                 # alpha=0.5,             # make it semi-transparent, applies to whole patch 
                 closed=True,
-                linewidth=2.0 
+                linewidth=2.0,
+                picker = True 
             )
             self.actions_stack.append(('building', patch))
 
@@ -463,7 +486,9 @@ class InteractivePlot:
     
 
     def clear_temp_elements(self):
+        print(self.temp_elements)
         for elem in self.temp_elements:
+            print(elem)
             elem.remove()
         for point in self.current_building_points:
             point.remove()
@@ -503,6 +528,30 @@ class InteractivePlot:
 
     def switch_to_drone_mode(self):
         self.mode = 'drone'
+
+
+    def clicked_near_edge(self, polygon, event, threshold=0.2):
+        vertices = polygon.get_xy()
+        num_vertices = len(vertices)
+        
+        for i in range(num_vertices - 1):
+            p0, p1 = vertices[i], vertices[i+1]
+            if self.click_near_arrow(p0, p1, event, threshold):
+                return True, (p0, p1)
+                
+        return False, (None, None)
+    
+    def add_vertex_to_polygon(self, polygon, edge_points, event):
+        vertices = polygon.get_xy().tolist()
+        new_vertex = [event.xdata, event.ydata]
+        
+        # Find the index of the start point of the edge
+        index = vertices.index(list(edge_points[0]))
+        
+        # Insert the new vertex after the start point of the edge
+        vertices.insert(index + 1, new_vertex)
+        
+        polygon.set_xy(vertices)
 
     def plot_setup(self):
         fig = plt.figure(figsize=self.FIG_SIZE)
