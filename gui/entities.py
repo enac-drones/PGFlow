@@ -32,13 +32,15 @@ class Drone(Entity, ClickableMixin):
     def move_end(self, new_position):
         self.goal = new_position
 
+
     def move_whole_drone(self, delta):
         self.position[:2] += delta
         self.goal[:2] += delta
     
     def click_near_arrow(self, p0, p1, event, threshold=0.2):
         click_position = np.array([event.xdata, event.ydata])
-        
+        p0 = np.array(p0)
+        p1 = np.array(p1)
         dist_start = np.linalg.norm(click_position - p0)
         dist_end = np.linalg.norm(click_position - p1)
         arrow_length = np.linalg.norm(p1-p0)

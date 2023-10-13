@@ -9,7 +9,7 @@ from src.utils.simulation_utils import run_simulation, set_new_attribute
 import src.utils.plot_utils as plt_utils
 from matplotlib.patches import Polygon, FancyArrow
 from matplotlib.lines import Line2D
-from typing import List
+from typing import List,Dict
 
 from gui.entities import Drone
 from gui.patches import Marker, DronePath, ObstaclePatch
@@ -74,11 +74,11 @@ class InteractivePlot:
 
     def setup_data(self)->None:
         # self.buildings = []
-        self.drones = []
+        self.drones:List[Drone] = []
         self.current_drone = None
         self.mode = 'building'  # 'building', 'drone', or None
         self.drone_start = None
-        self.drone_patches = {}
+        self.drone_patches:Dict[Drone,DronePath] = {}
         self.actions_stack = []  # New line to track the actions
 
         self.temp_elements = []  # List to store temporary graphical elements.
@@ -156,9 +156,9 @@ class InteractivePlot:
                 return True
             
              # Check if the click is on the arrow connecting the drone start and end points
-            marker_start, marker_end, arrow = self.drone_patches[drone]
-            p0, p1 = np.array(marker_start.get_data()).flatten(), np.array(marker_end.get_data()).flatten() # Assuming your arrow has these methods
-            if drone.click_near_arrow(p0, p1, event, threshold=self.CLICK_THRESHOLD):
+            # marker_start, marker_end, arrow = self.drone_patches[drone]
+            # p0, p1 = np.array(marker_start.get_data()).flatten(), np.array(marker_end.get_data()).flatten() # Assuming your arrow has these methods
+            if drone.click_near_arrow(drone.position[:2], drone.goal[:2], event, threshold=self.CLICK_THRESHOLD):
                 self.selected_drone = drone
                 self.dragging_drone_point = 'arrow'
                 self.initial_click_position = point
@@ -214,7 +214,8 @@ class InteractivePlot:
                 # d = self.current_drone
 
                 current_drone_path = DronePath(self.current_drone, self.ax)
-                current_drone_patches = current_drone_path.create_patches()
+                current_drone_path.create_patches()
+                # current_drone_patches = current_drone_path.create_patches()
                 # patches = DronePath(d.))
                 # plot the arrow 
                 # marker_start, = Marker(d.position[:2], 'b*').create_marker() # Initial position in blue
@@ -223,7 +224,7 @@ class InteractivePlot:
                 # # Add an arrow with a line using the 'arrow' function
                 # arrow = Arrow(d.position[:2],d.goal[:2]).create_arrow()
                 # self.drone_patches[d] = (marker_start, marker_end, arrow)
-                self.drone_patches[self.current_drone] = current_drone_patches
+                self.drone_patches[self.current_drone] = current_drone_path
                 self.current_drone = None
                 self.update()
             return None
@@ -327,17 +328,19 @@ class InteractivePlot:
                 self.selected_drone.move_whole_drone(ds)
 
             self.initial_click_position = point
-            marker_start, marker_end, arrow = self.drone_patches[self.selected_drone]
-            d = self.selected_drone
-            marker_start.set_xdata([d.position[0]])
-            marker_start.set_ydata([d.position[1]]) 
-            marker_end.set_xdata([d.goal[0]])
-            marker_end.set_ydata([d.goal[1]]) 
-            self.update_arrow_position(arrow,d.position[:2],d.goal[:2])
+            self.drone_patches[self.selected_drone].update() #update the graphics of the drone
+            # marker_start, marker_end, arrow = self.drone_patches[self.selected_drone]
+            # print(self.drone_patches[self.selected_drone])
+            # d = self.selected_drone
+            # marker_start.set_xdata([d.position[0]])
+            # marker_start.set_ydata([d.position[1]]) 
+            # marker_end.set_xdata([d.goal[0]])
+            # marker_end.set_ydata([d.goal[1]]) 
+            # self.update_arrow_position(arrow,d.position[:2],d.goal[:2])
 
             
-            marker_start, marker_end, arrow = self.drone_patches[self.selected_drone]
-            self.drone_patches[d] = (marker_start, marker_end, arrow)
+            # marker_start, marker_end, arrow = self.drone_patches[self.selected_drone]
+            # self.drone_patches[d] = (marker_start, marker_end, arrow)
             
             self.update()  # This will redraw the drone starting or ending point in its new position
 
@@ -360,7 +363,6 @@ class InteractivePlot:
         self.selected_vertex = None
 
     def on_key_press(self, event):
-
         # switch between building and drone placement modes
         self.toggle_mode(event)
 
@@ -375,19 +377,8 @@ class InteractivePlot:
             self.clear_temp_elements()
 
         elif event.key == 'enter':
+            # run the simulation
             self.run()
-            # my_case = self.generate_case(name = "Test Case")
-            # result = run_simulation(
-            #     my_case,
-            #     t=2000,
-            #     update_every=1,
-            #     stop_at_collision=False,
-            #     max_avoidance_distance=20,
-            # )
-            # # plt.close()
-            # asdf = plt_utils.PlotTrajectories(my_case, update_every=1)
-            # asdf.show()
-        # self.clear_temp_elements()
 
     def generate_case(self,name):
         height = 1.2
@@ -442,7 +433,9 @@ class InteractivePlot:
         elif action == 'drone':
             if obj in self.drones:
                 self.drones.remove(obj)
-                marker_start, marker_end, arrow = self.drone_patches.pop(obj, (None,None,None))
+                # marker_start, marker_end, arrow = self.drone_patches.pop(obj, (None,None,None))
+                marker_start, marker_end, arrow = self.drone_patches.pop(obj).patches()
+
                 marker_start.remove()
                 marker_end.remove()
                 arrow.remove()
