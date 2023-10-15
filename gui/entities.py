@@ -32,7 +32,6 @@ class Drone(Entity, ClickableMixin):
     def move_end(self, new_position):
         self.goal = new_position
 
-
     def move_whole_drone(self, delta):
         self.position[:2] += delta
         self.goal[:2] += delta
@@ -64,5 +63,45 @@ class Drone(Entity, ClickableMixin):
 
         return False
     
+
+
+class Obstacle:
+    '''Class containing all necessary information about a Building Entity, not including its graphics'''
+    def __init__(self, vertices: ArrayLike):
+        self.vertices = vertices
+
+    def move_vertex(self, vertex_index, new_position):
+        # last_vertex_index = len(self.vertices) - 1
+        # if vertex_index == 0 or vertex_index == last_vertex_index:
+        #     self.vertices[0] = new_position
+        #     self.vertices[-1] = new_position
+        # else:
+        #     self.vertices[vertex_index] = new_position
+        self.vertices[vertex_index] = new_position
+
+    def move_building(self, delta):
+        """Move the entire building by a 2D array delta
+
+        Args:
+            delta (ArrayLike): 2D array
+        """
+        for vertex in self.vertices:
+            vertex += delta
+
+    def closest_vertex(self, point):
+        """Find the closest vertex to a given point."""
+        closest_vertex_index, closest_vertex = min(
+            enumerate(self.vertices),
+            key=lambda x: np.linalg.norm(np.array(point) - x[1][:2])
+        )
+        return closest_vertex_index, closest_vertex
+
+    def is_vertex_close(self, vertex, point, threshold=0.2):
+        """Check if a vertex is close to a given point."""
+        return np.linalg.norm(np.array(point) - vertex[:2]) < threshold
+
+    # ... Other domain-specific logic ...
+
+
 
 

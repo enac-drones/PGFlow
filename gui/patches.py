@@ -6,7 +6,7 @@ from matplotlib.lines import Line2D
 import matplotlib.pyplot as plt
 
 from gui.mixins import ClickableMixin
-from gui.entities import Drone
+from gui.entities import Drone, Obstacle
 
 class Arrow:
     '''Class to create a FancyArrow object'''
@@ -79,32 +79,54 @@ class DronePath:
         self.arrow.update_arrow_position(self.drone.position[:2],self.drone.goal[:2])
     
 
-class ObstaclePatch(Polygon, ClickableMixin):
-    # ... other methods ...
-    def __init__(self, xy: ArrayLike, *, closed: bool = ..., **kwargs) -> None:
-        super().__init__(xy, closed=closed, **kwargs)
+class ObstaclePatch(Polygon):
+    '''
+    Example usage: 
+    patch = BuildingPatch(building_instance, facecolor='blue', edgecolor='red', linewidth=2.0)
+    '''
+    def __init__(self, building:Obstacle, **kwargs) -> None:
+        super().__init__(building.vertices, **kwargs)
         self.vertices = self.get_xy()
+        # Storing original colors
+        self.original_facecolor = self.get_facecolor()
+        self.original_edgecolor = self.get_edgecolor()
+        self.building = building
 
-    def closest_vertex(self, point):
-        """Find the closest vertex to a given point."""
-        closest_vertex_index, closest_vertex = min(
-            enumerate(self.vertices),
-            key=lambda x: np.linalg.norm(np.array(point) - x[1][:2])
-        )
-        return closest_vertex_index, closest_vertex
+    def select(self):
+        """Change appearance to represent selection."""
+        # Change to a transparent red (or whatever visual cue you want for selection)
+        self.set_facecolor((1, 0.4, 1, 0.7))
+        self.set_edgecolor("black")
 
-    def is_vertex_close(self, vertex, point, threshold=0.2):
-        """Check if a vertex is close to a given point."""
-        return np.linalg.norm(np.array(point) - vertex[:2]) < threshold
+    def deselect(self):
+        """Revert appearance to the original state."""
+        self.set_facecolor(self.original_facecolor)
+        self.set_edgecolor(self.original_edgecolor)
 
-    def move_vertex(self, vertex_index, new_position):
-        last_vertex_index = len(self.vertices) - 1
-        if vertex_index == 0 or vertex_index == last_vertex_index:
-            self.vertices[0] = new_position
-            self.vertices[-1] = new_position
-        else:
-            self.vertices[vertex_index] = new_position
+    def update_visual(self):
+        """Update the visual representation based on the building state."""
+        self.set_xy(self.building.vertices)
 
-    def move_building(self, delta):
-        for vertex in self.vertices:
-            vertex += delta
+    # def closest_vertex(self, point):
+    #     """Find the closest vertex to a given point."""
+    #     closest_vertex_index, closest_vertex = min(
+    #         enumerate(self.vertices),
+    #         key=lambda x: np.linalg.norm(np.array(point) - x[1][:2])
+    #     )
+    #     return closest_vertex_index, closest_vertex
+
+    # def is_vertex_close(self, vertex, point, threshold=0.2):
+    #     """Check if a vertex is close to a given point."""
+    #     return np.linalg.norm(np.array(point) - vertex[:2]) < threshold
+
+    # def move_vertex(self, vertex_index, new_position):
+    #     last_vertex_index = len(self.vertices) - 1
+    #     if vertex_index == 0 or vertex_index == last_vertex_index:
+    #         self.vertices[0] = new_position
+    #         self.vertices[-1] = new_position
+    #     else:
+    #         self.vertices[vertex_index] = new_position
+
+    # def move_building(self, delta):
+    #     for vertex in self.vertices:
+    #         vertex += delta
