@@ -18,6 +18,7 @@ from src.building import Building
 from src.arena import ArenaMap
 from src.building import Building
 import time
+
 # from numba import jit
 
 
@@ -44,6 +45,7 @@ def create_other_vehicles_list(vehicles, current_index: int):
 
 def calculate_vortex_strengths(vehicles, arenamap: ArenaMap, method):
     for f, vehicle in enumerate(vehicles):
+        print(arenamap)
         # Remove current vehicle from vehicle list.
         othervehicleslist = create_other_vehicles_list(vehicles, current_index=f)
         # Remove buildings with heights below cruise altitue:

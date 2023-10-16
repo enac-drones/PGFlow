@@ -19,7 +19,6 @@ def optional_plot(case: Case, plot_title="No title"):
     plot.show()
 
 
-
 def new_random_cases(n_cases, n_drones):
     """
     Generate a specified number of new random cases with a certain number of drones.

@@ -5,6 +5,7 @@ import pyclipper
 import time
 from typing import List
 from matplotlib.patches import Polygon
+
 # from numpy import linalg
 
 """##Building Code"""
@@ -75,7 +76,7 @@ class Building:
 
     def contains_point(self, point):
         # Checks if a point lies within the building.
-        p = Polygon(self.vertices[:,:2])
+        p = Polygon(self.vertices[:, :2])
         print(p.get_xy())
         return p.contains_point(point)
 
@@ -120,9 +121,9 @@ class Building:
                         )
                     )
             # Inverse of coefficient matrix: (Needed for solution of panel method eqn.)
-            
+
             self.K_inv = np.linalg.inv(self.K)
-            t1 = time.time()-t
+            t1 = time.time() - t
             print(f"time taken to inverse is {t1}")
         elif method == "Source":
             pass

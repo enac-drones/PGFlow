@@ -1,5 +1,6 @@
 import numpy as np
 
+
 class SelectableMixin:
     def select(self):
         print("in selectable mixin select")
@@ -15,4 +16,3 @@ class SelectableMixin:
 class ClickableMixin:
     def is_near(self, point, threshold=0.2):
         return np.linalg.norm(np.array(point) - self.position) < threshold
-    

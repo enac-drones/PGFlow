@@ -41,7 +41,9 @@ case.name = "bug1"
 
 generator.add_case(case)
 
-simulation_success = run_simulation(case,t=500,update_every=1,stop_at_collision=False)
+simulation_success = run_simulation(
+    case, t=500, update_every=1, stop_at_collision=False
+)
 
 
 asdf = ut.plot_trajectories2(case.arena, case.arena, case.vehicle_list)

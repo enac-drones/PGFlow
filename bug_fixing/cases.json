@@ -1,94 +1,50 @@
 {
-    "default": {
-        "buildings": [
-            {
-                "ID": "Building 0",
-                "vertices": [
-                    [
-                        0.293892,
-                        -0.404508,
-                        1.2
-                    ],
-                    [
-                        -0.293892,
-                        -0.404508,
-                        1.2
-                    ],
-                    [
-                        -0.475528,
-                        0.154508,
-                        1.2
-                    ],
-                    [
-                        0.0,
-                        0.5,
-                        1.2
-                    ],
-                    [
-                        0.475528,
-                        0.154508,
-                        1.2
-                    ]
-                ]
-            }
-        ],
-        "vehicles": [
-            {
-                "ID": "V1",
-                "position": [
-                    -3.0,
-                    0.0001,
-                    0.5
-                ],
-                "goal": [
-                    3.0,
-                    0.0,
-                    0.5
-                ],
-                "source_strength": 0.5,
-                "imag_source_strength": 0.5,
-                "sink_strength": 5,
-                "safety": 0.0001
-            }
+  "default": {
+    "buildings": [
+      {
+        "ID": "Building 0",
+        "vertices": [
+          [0.293892, -0.404508, 1.2],
+          [-0.293892, -0.404508, 1.2],
+          [-0.475528, 0.154508, 1.2],
+          [0.0, 0.5, 1.2],
+          [0.475528, 0.154508, 1.2]
         ]
-    },
-    "bug1": {
-        "buildings": [],
-        "vehicles": [
-            {
-                "ID": "V1",
-                "position": [
-                    -3.0,
-                    0.0,
-                    0.5
-                ],
-                "goal": [
-                    3.0,
-                    0.0,
-                    0.5
-                ],
-                "source_strength": 0.5,
-                "imag_source_strength": 0.5,
-                "sink_strength": 5,
-                "safety": 0.0001
-            },
-            {
-                "ID": "V2",
-                "position": [
-                    -3.0,
-                    3.0,
-                    0.5
-                ],
-                "goal": [
-                    -3.0,
-                    -3.0,
-                    0.5
-                ],
-                "source_strength": 0.5,
-                "imag_source_strength": 0.5,
-                "sink_strength": 5,
-                "safety": 0.0001
-            }
-        ]
-    }
+      }
+    ],
+    "vehicles": [
+      {
+        "ID": "V1",
+        "position": [-3.0, 0.0001, 0.5],
+        "goal": [3.0, 0.0, 0.5],
+        "source_strength": 0.5,
+        "imag_source_strength": 0.5,
+        "sink_strength": 5,
+        "safety": 0.0001
+      }
+    ]
+  },
+  "bug1": {
+    "buildings": [],
+    "vehicles": [
+      {
+        "ID": "V1",
+        "position": [-3.0, 0.0, 0.5],
+        "goal": [3.0, 0.0, 0.5],
+        "source_strength": 0.5,
+        "imag_source_strength": 0.5,
+        "sink_strength": 5,
+        "safety": 0.0001
+      },
+      {
+        "ID": "V2",
+        "position": [-3.0, 3.0, 0.5],
+        "goal": [-3.0, -3.0, 0.5],
+        "source_strength": 0.5,
+        "imag_source_strength": 0.5,
+        "sink_strength": 5,
+        "safety": 0.0001
+      }
+    ]
+  }
 }

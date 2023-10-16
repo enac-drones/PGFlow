@@ -655,11 +655,9 @@ def plot_trajectories1(Arena, ArenaR, Vehicle_list):
 #         return None
 
 
-
-
-
 class PlotTrajectories:
     """Same as above but trying to use the FuncAnimation for the play button implementation which supposedly uses less CPU"""
+
     # UPDATE_INTERVAL = 5
     SLIDER_ANIMATION_INTERVAL = 0.01
     FIG_SIZE = (8, 8)
@@ -840,7 +838,7 @@ class PlotTrajectories:
         # these few lines obtain the maximum length of any path for all the drones, aka the time taken for the last drone to reach its destination
         # maybe there's a neater way of doing this but it isn't computationally expensive so for now it's fine
         # max_timesteps stores the maximum amount of timesteps for any drone to reach its destination. time_steps_max*dt = t_max
-        max_timesteps = max(len(vehicle.path[:,0]) for vehicle in vehicle_list)
+        max_timesteps = max(len(vehicle.path[:, 0]) for vehicle in vehicle_list)
         return max_timesteps
 
     def initial_plot(self, vehicle_list, ax):
@@ -886,10 +884,8 @@ class PlotTrajectories:
             ax.plot(vehicle_list[v_idx].goal[0], vehicle_list[v_idx].goal[1], "*")
         return None
 
-
-
-    def update(self,val):
-        #val self.slider.val is the same as val
+    def update(self, val):
+        # val self.slider.val is the same as val
         plot_until = int(np.floor(val * self.time_steps_max))
         self.update_plot(plot_until)
         self.update_drone_positions(plot_until)
@@ -902,7 +898,10 @@ class PlotTrajectories:
                 self.vehicle_list[i].path[:plot_until, 0],
                 self.vehicle_list[i].path[:plot_until, 1],
             )
-            self.plot_list[i].set_data(self.vehicle_list[i].path[:plot_until, 0], self.vehicle_list[i].path[:plot_until, 1])
+            self.plot_list[i].set_data(
+                self.vehicle_list[i].path[:plot_until, 0],
+                self.vehicle_list[i].path[:plot_until, 1],
+            )
 
     def update_drone_positions(self, plot_until):
         for i in range(len(self.drone_list)):
@@ -921,7 +920,7 @@ class PlotTrajectories:
                 self.warning_circles[i].set_edgecolor("b")
             elif plot_until < len(self.vehicle_list[i].path[:, 0]):
                 self.warning_circles[i].set_fill(False)
-                show_communication = plot_until%self.update_every in range(5)
+                show_communication = plot_until % self.update_every in range(5)
                 if show_communication:
                     self.warning_circles[i].set_edgecolor("g")
                     self.warning_circles[i].set_fill(True)
@@ -934,7 +933,6 @@ class PlotTrajectories:
                 self.warning_circles[i].set_facecolor("skyblue")
                 self.warning_circles[i].set_edgecolor("b")
             self.warning_circles[i].center = self.positions[i][:2]
-
 
     def collision_handling(self):
         """Handle collisions and update display accordingly."""
@@ -957,11 +955,18 @@ class PlotTrajectories:
 
     def calculate_distance_matrix(self):
         """Calculate the Euclidean distance matrix between drones."""
-        return np.sqrt(np.sum((self.positions[:, np.newaxis] - self.positions) ** 2, axis=-1))
+        return np.sqrt(
+            np.sum((self.positions[:, np.newaxis] - self.positions) ** 2, axis=-1)
+        )
 
     def has_reached_goal(self, drone_index):
         """Check if a drone has reached its goal."""
-        return np.linalg.norm(self.vehicle_list[drone_index].goal - self.positions[drone_index]) < self.GOAL_THRESHOLD
+        return (
+            np.linalg.norm(
+                self.vehicle_list[drone_index].goal - self.positions[drone_index]
+            )
+            < self.GOAL_THRESHOLD
+        )
 
     def is_collision(self, drone_index1, drone_index2, distance_matrix):
         """Check if there is a collision between two drones."""
@@ -994,7 +999,9 @@ class PlotTrajectories:
     def handle_conflict_info_box(self):
         """Update the info box for a conflict."""
         # Handle conflicts
-        bounding_box = dict(boxstyle="round", facecolor="skyblue", edgecolor="r", alpha=1)
+        bounding_box = dict(
+            boxstyle="round", facecolor="skyblue", edgecolor="r", alpha=1
+        )
         textstr = f"Conflict detected!\nDrones {[drones for drones in self.conflicts[self.conflict_iterator]]}"
         self.info_box.set_text(textstr)
         self.info_box.set_c("k")
@@ -1015,10 +1022,6 @@ class PlotTrajectories:
         self.info_box.set_text(textstr)
         self.info_box.set_bbox(bounding_box)
         self.info_box.set_c("k")
-
-
-
-
 
     # anim.event_source.stop()
     def play(self, event):
@@ -1063,12 +1066,15 @@ class PlotTrajectories:
         current_slider_value = round(self.slider.val, 2)
         # set i to the slider value so that the simulation stops when the slider reaches the end
         # it is 100x the slider value because the slider goes from 0 to 1 and the i from 0 to 100
-        i = int((self.FRAMES-1) * current_slider_value)
+        i = int((self.FRAMES - 1) * current_slider_value)
         # print(f"i={i}")
         # increment the slider by 0.01 for every frame
-        self.slider.set_val((current_slider_value + self.SLIDER_ANIMATION_INTERVAL) % (self.slider.valmax + self.SLIDER_ANIMATION_INTERVAL))
+        self.slider.set_val(
+            (current_slider_value + self.SLIDER_ANIMATION_INTERVAL)
+            % (self.slider.valmax + self.SLIDER_ANIMATION_INTERVAL)
+        )
         # stop the animation when the slider reaches the end
-        if i == self.FRAMES-2:
+        if i == self.FRAMES - 2:
             # calling the play function while the animation is running stops the animation
             self.play(event=None)
         # nothing to return I'm pretty sure :)
@@ -1078,22 +1084,6 @@ class PlotTrajectories:
         # show the plot
         plt.show()
         return None
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 class plot_trajectories3:

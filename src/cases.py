@@ -260,7 +260,7 @@ class Cases:
         buildings = []
         for building in self.cases[self.case_name]["buildings"]:
             coords = building["vertices"]
-            print(f'{coords = }',type(coords))
+            print(f"{coords = }", type(coords))
             buildings.append(Building(coords))
         return buildings
 

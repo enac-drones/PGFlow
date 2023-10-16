@@ -55,7 +55,7 @@ if __name__ == "__main__":
     # set_new_attribute(case, "transmitting", new_attribute_value=True)
 
     # print(case.name, [vehicle.transmitting for vehicle in case.vehicle_list])
-  
+
     t0 = 0
 
     # delta_t = case.vehicle_list[0].delta_t
