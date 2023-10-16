@@ -16,13 +16,12 @@ from typing import List, Dict
 from gui.entities import Drone, Obstacle
 from gui.patches import Marker, DronePath, ObstaclePatch
 from gui.utils import distance_between_points, generate_case, run_case
-from gui.construction import BuildingCreator
+from gui.construction import Creator, PatchManager
 from gui.actions_stack import ActionsStack
+from gui.ui_components import UIComponents
+from gui.observer_utils import Observer
 
-# from gui.ui_components import UIComponents
-
-
-class InteractivePlot:
+class InteractivePlot(Observer):
 
     CLICK_THRESHOLD = 0.14
     FIG_SIZE = (8, 8)
@@ -38,7 +37,7 @@ class InteractivePlot:
         # Connect event handlers
         self.connect_event_handlers()
 
-        self.building_creator = BuildingCreator(self.ax)
+        self.building_creator = Creator(self.ax)
 
         plt.show()
 
@@ -63,7 +62,15 @@ class InteractivePlot:
         self.update()
 
     def setup_data(self) -> None:
-        # self.ui_components:UIComponents = None
+        # self.ui_components:UIComponents = UIComponents(self.ax)
+        self.ui_components = UIComponents(self.ax)
+        self.ui_components.add_observer(self)
+        #this line makes sure the current axes are the main ones
+        plt.sca(self.ax)
+
+        self.patch_manager = PatchManager(self.ax)
+
+
         self.drones: list[Drone] = []
         self.buildings: list[Obstacle] = []
         self.current_drone = None
@@ -240,7 +247,9 @@ class InteractivePlot:
         #TODO ORDER MATTERS, events will be handled in the order they are listed in this method"""
 
         # If clicked outside of the plot, do nothing
-        if not event.xdata or not event.ydata:
+        # if not event.xdata or not event.ydata:
+        #     return
+        if event.inaxes != self.ax:
             return
 
         # handle moving building vertices
@@ -359,7 +368,7 @@ class InteractivePlot:
 
     def on_key_press(self, event):
         # switch between building and drone placement modes
-        self.toggle_mode(event)
+        self.switch_mode(event)
 
         if (
             event.key == "tab"
@@ -425,13 +434,19 @@ class InteractivePlot:
         # self.fig.canvas.draw()  # Redraw the figure to reflect changes
         self.update()
 
-    def toggle_mode(self, event):
+    def switch_mode(self, event):
         """
         Switch between building and drone placement modes
         """
         if event.key == "d":
             self.mode = "drone"
         elif event.key == "b":
+            self.mode = "building"
+    
+    def toggle_mode(self):
+        if self.mode == "building":
+            self.mode = "drone"
+        elif self.mode == "drone":
             self.mode = "building"
 
     def finalize_building(self):
@@ -455,30 +470,7 @@ class InteractivePlot:
         self.current_building_points = []
         self.update()
 
-    def reset(self):
-        pass
-        # self.clear_temp_elements()
-        # self.building_patches = {}
-        # self.buildings = []
-        # self.drones = []
-        # self.drone_patches = {}
-        # self.actions_stack = []
-        # self.selected_building = None
-        # self.initial_click_position = None
-        # self.selected_drone = None
-        # self.dragging_drone_point = None
-        # self.selected_vertex = None
-        # self.ax.clear()
-        # self.plot_setup()
-        # self.update()
-        # self.fig.canvas.draw()
-        # self.fig.canvas.flush_events()
-        # self.fig.canvas.start_event_loop(0.01)
-        # self.fig.canvas.stop_event_loop()
-        # self.fig.canvas.flush_events()
-        # self.fig.canvas.start_event_loop(0.01)
-        # self.fig.canvas.stop_event_loop()
-        # self.fig.canvas.flush_events()
+  
 
     def plot_setup(self):
         fig = plt.figure(figsize=self.FIG_SIZE)
@@ -514,6 +506,37 @@ class InteractivePlot:
 
         self.fig, self.ax = fig, ax
         return None
+    
+    def call(self, event: str, *args, **kwargs):
+        if event == "build_mode":
+            self.toggle_mode()
+        # elif event == "drone_mode":
+        #     self.switch_to_drone_mode()
+        elif event == "reset":
+            self.reset()
+            # print("reset")
+
+    def reset(self):
+        self.clear_temp_elements()
+        # Remove all building patches
+        for patch in self.building_patches.values():
+            patch.remove()
+        self.building_patches.clear()
+
+        # Remove all drone patches
+        for patch in self.drone_patches.values():
+            patch.remove()
+        self.drone_patches.clear()
+
+        # Empty the buildings and drones lists
+        self.buildings.clear()
+        self.drones.clear()
+
+        # Empty the actions stack
+        self.actions_stack.clear()
+
+        # Redraw the plot
+        self.ax.figure.canvas.draw()
 
 
 if __name__ == "__main__":

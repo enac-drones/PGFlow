@@ -15,7 +15,7 @@ class Arrow:
     def __init__(self, start: ArrayLike, end: ArrayLike, ax: plt.Axes) -> None:
         self.start = np.array(start)
         self.end = np.array(end)
-        self.arrow = None
+        self.arrow:FancyArrow = None
         self.ax = ax
 
     def create_arrow(self) -> FancyArrow:
@@ -89,11 +89,18 @@ class DronePath:
             self.marker_end.create_marker(),
             self.arrow.create_arrow(),
         )
+    
+    def remove(self)->None:
+        """Remove the three patches
+        """
+        self.marker_start.marker.remove()
+        self.marker_end.marker.remove()
+        self.arrow.arrow.remove()
 
     def patches(self):
         return self.marker_start.marker, self.marker_end.marker, self.arrow.arrow
 
-    def update(self):
+    def update(self)->None:
         self.marker_start.update_position(self.drone.position[:2])
         self.marker_end.update_position(self.drone.goal[:2])
         self.arrow.update_arrow_position(self.drone.position[:2], self.drone.goal[:2])

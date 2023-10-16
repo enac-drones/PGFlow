@@ -76,12 +76,6 @@ class Obstacle:
         self.vertices = vertices
 
     def move_vertex(self, vertex_index, new_position):
-        # last_vertex_index = len(self.vertices) - 1
-        # if vertex_index == 0 or vertex_index == last_vertex_index:
-        #     self.vertices[0] = new_position
-        #     self.vertices[-1] = new_position
-        # else:
-        #     self.vertices[vertex_index] = new_position
         self.vertices[vertex_index] = new_position
 
     def move_building(self, delta):

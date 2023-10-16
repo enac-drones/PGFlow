@@ -1,5 +1,5 @@
 import pytest
-from gui.construction import BuildingCreator
+from gui.construction import Creator
 from gui.entities import Obstacle
 from gui.patches import ObstaclePatch
 import matplotlib.pyplot as plt
@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 
 def test_create_building_returns_obstacle_patch():
     ax = plt.subplot()
-    building_creator = BuildingCreator(ax)
+    building_creator = Creator(ax)
 
     obstacle = Obstacle([(0, 0), (1, 0), (1, 1)])
     patch = building_creator.create_building(obstacle)
@@ -19,7 +19,7 @@ def test_create_building_returns_obstacle_patch():
 
 def test_create_building_sets_expected_properties():
     ax = plt.subplot()
-    building_creator = BuildingCreator(ax)
+    building_creator = Creator(ax)
 
     obstacle = Obstacle([(0, 0), (1, 0), (1, 1)])
     patch = building_creator.create_building(obstacle)
