@@ -4,23 +4,29 @@ import numpy as np
 # code shows two different ways to test, with and without pytest fixtures
 # tests are deprected as the functions have been vectorised for performance
 
+
 class MockVehicle:
-    '''initialising a barebones version of the vehicle class'''
+    """initialising a barebones version of the vehicle class"""
+
     def __init__(self, position, source_strength):
         self.position = position
         self.source_strength = source_strength
 
+
 @pytest.fixture
 def vehicle_at_origin():
-    return MockVehicle(np.array([0., 0., 0.]), 1.)
+    return MockVehicle(np.array([0.0, 0.0, 0.0]), 1.0)
+
 
 @pytest.fixture
 def vehicle_at_coords_1_1_1():
-    return MockVehicle(np.array([1., 1., 1.]), 1.)
+    return MockVehicle(np.array([1.0, 1.0, 1.0]), 1.0)
+
 
 @pytest.fixture
 def vehicle_at_coords_2_2_2():
-    return MockVehicle(np.array([2., 2., 2.]), 1.)
+    return MockVehicle(np.array([2.0, 2.0, 2.0]), 1.0)
+
 
 # def test_induced_source_velocity2D(vehicle_at_origin,vehicle_at_coords_1_1_1, vehicle_at_coords_2_2_2):
 #     from src.panel_flow import induced_source_velocity2D

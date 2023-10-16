@@ -1,6 +1,7 @@
 import numpy as np
 from gui.utils import distance_between_points
 
+
 def test_distance_between_points():
     # Test with integers
     p1, p2 = [0, 0], [3, 4]

@@ -77,8 +77,8 @@ class Building:
     def contains_point(self, point):
         # Checks if a point lies within the building.
         p = Polygon(self.vertices[:, :2])
-        print(p.get_xy())
-        return p.contains_point(point)
+        # print(p.get_xy())
+        return p.contains_point(point, radius=0)
 
     def calculate_coef_matrix(self, method="Vortex"):
         t = time.time()
@@ -124,7 +124,7 @@ class Building:
 
             self.K_inv = np.linalg.inv(self.K)
             t1 = time.time() - t
-            print(f"time taken to inverse is {t1}")
+            # print(f"time taken to inverse is {t1}")
         elif method == "Source":
             pass
 

@@ -59,12 +59,12 @@ class InteractivePlot:
 
     def setup_data(self) -> None:
         self.drones: list[Drone] = []
-        self.buildings: list[Building] = []
+        self.buildings: list[Obstacle] = []
         self.current_drone = None
         self.mode = "building"  # 'building', 'drone', or None
         self.drone_start = None
         self.drone_patches: dict[Drone, DronePath] = {}
-        self.building_patches: dict[Building, ObstaclePatch] = {}
+        self.building_patches: dict[Obstacle, ObstaclePatch] = {}
         self.current_building_points: list[Line2D] = []
         self.actions_stack = []  # New line to track the actions
 
@@ -88,36 +88,40 @@ class InteractivePlot:
         return None
 
     def handle_vertex_movement(self, event):
-
+        """Returns True if a click is near a vertex of an obstacle"""
         if not self.building_patches:
             return False
-        # Flatten list of vertices with their indices (make a generator object)
-        # all_vertices = ((building, j, v) for i, building in enumerate(self.building_patches) for j, v in enumerate(building.get_xy()))
-        all_vertices = (
-            (building, j, v)
-            for building in self.building_patches.keys()
-            for j, v in enumerate(building.vertices)
-        )
 
         # Find the closest vertex
-        closest_building, closest_vertex_index, closest_vertex = min(
-            all_vertices,
-            key=lambda x: distance_between_points(x[2][:2], [event.xdata, event.ydata]),
+        closest_building, closest_vertex_index = self._get_closest_vertex(
+            [event.xdata, event.ydata]
         )
 
         # Check if the closest vertex is close enough to be selected
-        dist = np.linalg.norm(np.array([event.xdata, event.ydata]) - closest_vertex[:2])
-        if (
-            not dist < self.CLICK_THRESHOLD
-        ):  # This threshold determines how close the click should be to consider a match
+        dist = distance_between_points(
+            closest_building.vertices[closest_vertex_index][:2],
+            [event.xdata, event.ydata],
+        )
+        if dist >= self.CLICK_THRESHOLD:
             return False
+
         self.selected_vertex = closest_vertex_index
         self.initial_click_position = None
         self.selected_building = closest_building
-
         return True
 
+    def _get_closest_vertex(self, point):
+        """Find the closest vertex to the given point."""
+        all_vertices = (
+            (building, j)
+            for building in self.building_patches.keys()
+            for j in range(len(building.vertices))
+        )
 
+        return min(
+            all_vertices,
+            key=lambda x: distance_between_points(x[0].vertices[x[1]][:2], point),
+        )
 
     def handle_drone_movement(self, event) -> bool:
         # Check if a drone starting or ending point was clicked
@@ -208,6 +212,15 @@ class InteractivePlot:
             self.update()
         return None
 
+    def add_new_vertex(self, event) -> bool:
+        for building in self.buildings:
+            if building.insert_vertex((event.xdata, event.ydata)):
+                # Redraw the building if a vertex was added
+                self.building_patches[building].update_visual()
+                self.update()
+                return True
+        return False
+
     def on_click(self, event):
         # ORDER MATTERS
 
@@ -217,6 +230,12 @@ class InteractivePlot:
 
         # handle moving building vertices
         if self.handle_vertex_movement(event):
+            return
+
+        # add a new vertex if near a building edge and allow moving it around with the mouse...
+        # by calling the vertex movement handler again
+        if self.add_new_vertex(event):
+            self.handle_vertex_movement(event)
             return
 
         if self.selected_building:
@@ -248,12 +267,13 @@ class InteractivePlot:
         polygon = event.artist
         for building, building_patch in self.building_patches.items():
             if building_patch == polygon:
+                # call the selected building setter to highlight the building
                 self.selected_building = building
                 break
 
         self.initial_click_position = [event.mouseevent.xdata, event.mouseevent.ydata]
         # Your code to handle the picked building here
-        # ...
+        # this is handled by the on_mouse_move method
 
     def on_mouse_move(self, event):
 

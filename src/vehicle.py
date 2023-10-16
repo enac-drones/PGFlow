@@ -7,6 +7,7 @@ from src.panel_flow import Flow_Velocity_Calculation
 
 """##Vehicles"""
 
+
 class PersonalVehicle:
     """Vehicle with the minimal required information: position, velocity, altitude, state etc"""
 
@@ -22,13 +23,14 @@ class PersonalVehicle:
         # self.max_speed = 1.0
         # self.delta_t = 1 / 50
 
+
 # from dataclasses import dataclass
 
 # @dataclass
 # class VehicleSerializer:
 #     ID:str
 #     position:tuple
-    
+
 #     def __init__(self,instance:Vehicle) -> None:
 #         self.serialize(instance)
 #         self.instance=instance
@@ -42,7 +44,7 @@ class PersonalVehicle:
 #         }
 
 # v= VehicleSerializer(instance=vehicle,**vehicle.basic_attrs)
-    
+
 
 class Vehicle:
     def __init__(
@@ -117,8 +119,6 @@ class Vehicle:
     def Set_Velocity(self, vel):
         self.velocity = vel
 
-    
-
     def Set_Goal(self, goal, goal_strength, safety):
         self.goal = np.array(goal)  # or just goal...FIXME
         self.sink_strength = goal_strength
@@ -149,8 +149,6 @@ class Vehicle:
         )  # Freestream velocity. AoA is measured from horizontal axis, cw (+)tive
         self.t = t_start
 
-
-
     def run_simple_sim(self):
         # these are the flow velocities induced on every vehicle (based off the personal vehicle list), stored as a list
         # print("before", [np.linalg.norm(v.position) for v in self.personal_vehicle_list])
@@ -171,7 +169,6 @@ class Vehicle:
         self.Update_Velocity(flow_vels[index], self.arena)
 
         # print("after ", [np.linalg.norm(v.position) for v in self.personal_vehicle_list])
-
 
     def update_position(self, flow_vel, arenamap):
         """Updates my position within the global vehicle_list given the induced flow from other vehicles onto me, self.velocity is used, so that the movement is less brutal"""
@@ -205,7 +202,6 @@ class Vehicle:
         self.position = self.position + np.array(delta_s)
         # print(f"new position is {self.position}")
 
-        
         self.path = np.vstack((self.path, self.position))
         # print(f"path = {self.path.shape}")
         # print(f"Drone {self.ID}, distance left = {np.linalg.norm(self.goal - self.position)}")
@@ -258,5 +254,3 @@ class Vehicle:
         arrived = np.linalg.norm(self.goal - self.position) < 0.2
         return arrived  # 0.1 for 2d
         # self.state = 1
-
-    

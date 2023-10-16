@@ -18,12 +18,14 @@ from src.utils.json_utils import dump_to_json, load_from_json
 class Case:
     """Class to store a particular case, takes a name string as an input"""
 
+    _name: str
+
     def __init__(self, name):
-        self._name = None
+        # self._name = None
         # this line ensures the setter is called even when the class instance is created
         self.name = name
-        self._vehicle_list: List["Vehicle"] = []
-        self.buildings = []
+        self._vehicle_list: List[Vehicle] = []
+        self.buildings: List[Building] = []
         self._arena = None
         self.collision_threshold = 0.5
 
@@ -42,17 +44,11 @@ class Case:
         self._name = new_name
 
     @property
-    def vehicle_list(self):
+    def vehicle_list(self) -> List[Vehicle]:
         return self._vehicle_list
 
     @vehicle_list.setter
-    def vehicle_list(self, new_vehicle_list):
-        # print("vehicle_list setter is called")
-        if not isinstance(new_vehicle_list, list):
-            raise TypeError("new_vehicle_list must be a list")
-        for item in new_vehicle_list:
-            if not isinstance(item, Vehicle):
-                raise TypeError("new_vehicle_list must contain only Vehicle objects")
+    def vehicle_list(self, new_vehicle_list: List[Vehicle]):
         self._vehicle_list = deepcopy(new_vehicle_list)
         for vehicle in self._vehicle_list:
             # vehicle.personal_vehicle_list = deepcopy(new_vehicle_list)
@@ -260,7 +256,7 @@ class Cases:
         buildings = []
         for building in self.cases[self.case_name]["buildings"]:
             coords = building["vertices"]
-            print(f"{coords = }", type(coords))
+            # print(f'{coords = }',type(coords))
             buildings.append(Building(coords))
         return buildings
 

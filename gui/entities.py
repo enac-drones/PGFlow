@@ -93,16 +93,29 @@ class Obstacle:
         for vertex in self.vertices:
             vertex += delta
 
-    def closest_vertex(self, point):
-        """Find the closest vertex to a given point."""
-        closest_vertex_index, closest_vertex = min(
-            enumerate(self.vertices),
-            key=lambda x: np.linalg.norm(np.array(point) - x[1][:2]),
-        )
-        return closest_vertex_index, closest_vertex
+    def insert_vertex(self, position, tolerance=0.1):
+        """Insert a vertex at a given position if near an edge"""
+        for i in range(len(self.vertices)):
+            start_point = self.vertices[i]
+            end_point = self.vertices[(i + 1) % len(self.vertices)]
 
-    def is_vertex_close(self, vertex, point, threshold=0.2):
-        """Check if a vertex is close to a given point."""
-        return np.linalg.norm(np.array(point) - vertex[:2]) < threshold
+            if self._point_near_edge(position, start_point, end_point, tolerance):
+                self.vertices = np.insert(self.vertices, i + 1, position, axis=0)
+                return True
+        return False
 
-    # ... Other domain-specific logic ...
+    def _point_near_edge(self, point, start, end, tolerance):
+        """Check if the point is near the edge defined by start and end points"""
+        # Compute the distance of the point from the line segment
+        line_vector = np.array(end) - np.array(start)
+        point_vector = np.array(point) - np.array(start)
+
+        # Compute the projection of point_vector onto line_vector
+        proj_length = np.dot(point_vector, line_vector) / np.linalg.norm(line_vector)
+
+        if 0 <= proj_length <= np.linalg.norm(line_vector):
+            # The projection is on the line segment
+            proj_vector = proj_length * line_vector / np.linalg.norm(line_vector)
+            distance = np.linalg.norm(point_vector - proj_vector)
+            return distance < tolerance
+        return False

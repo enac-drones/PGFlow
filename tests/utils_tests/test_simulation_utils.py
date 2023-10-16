@@ -6,19 +6,20 @@ from src.arena import ArenaMap
 import numpy as np
 
 
-
 # Sample Fixtures
 @pytest.fixture
 def sample_vehicle():
     # Add your initialization parameters if any
     test_vehicle = Vehicle(ID="test_vehicle")
-    test_vehicle.goal = np.array([1,1,0])
+    test_vehicle.goal = np.array([1, 1, 0])
     return Vehicle(ID="test_vehicle")
+
 
 @pytest.fixture
 def sample_case():
     case = Cases.get_case(filename="bug_fixing/cases.json", case_name="default")
     return case
+
 
 # Actual Tests
 def test_set_new_attribute(sample_case):
@@ -28,7 +29,9 @@ def test_set_new_attribute(sample_case):
     su.set_new_attribute(sample_case, "sink_strength", 5)
     assert sample_case.vehicle_list[0].sink_strength == 5
 
-#... [other tests for valid_vehicle_list, step_simulation, etc.]
+
+# ... [other tests for valid_vehicle_list, step_simulation, etc.]
+
 
 def test_run_simulation(sample_case):
     result = su.run_simulation(sample_case, t=100)
