@@ -4,6 +4,7 @@ from matplotlib.patches import Polygon
 from matplotlib.lines import Line2D
 from typing import List
 from gui.entities import Obstacle
+import numpy as np
 
 
 class BuildingCreator:

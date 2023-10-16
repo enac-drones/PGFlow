@@ -119,3 +119,7 @@ class Obstacle:
             distance = np.linalg.norm(point_vector - proj_vector)
             return distance < tolerance
         return False
+
+    def contains_point(self, point):
+        polygon = Polygon(self.vertices)
+        return polygon.contains_point(point)
