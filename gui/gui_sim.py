@@ -3,18 +3,13 @@ from __future__ import annotations
 import matplotlib.pyplot as plt
 import numpy as np
 from numpy.typing import ArrayLike
-from src.building import Building
-from src.vehicle import Vehicle
-from src.cases import Case, Cases
-from src.arena import ArenaMap
-from src.utils.simulation_utils import run_simulation, set_new_attribute
-import src.utils.plot_utils as plt_utils
-from matplotlib.patches import Polygon, FancyArrow
+
+# from src.utils.simulation_utils import run_simulation, set_new_attribute
 from matplotlib.lines import Line2D
 from typing import List, Dict
 
 from gui.entities import Drone, Obstacle
-from gui.patches import Marker, DronePath, ObstaclePatch
+from gui.patches import Marker, DronePatch, ObstaclePatch
 from gui.utils import distance_between_points, generate_case, run_case
 from gui.construction import Creator, PatchManager
 from gui.actions_stack import ActionsStack
@@ -76,7 +71,7 @@ class InteractivePlot(Observer):
         self.current_drone = None
         self.mode = "building"  # 'building', 'drone', or None
         self.drone_start = None
-        self.drone_patches: dict[Drone, DronePath] = {}
+        self.drone_patches: dict[Drone, DronePatch] = {}
         self.building_patches: dict[Obstacle, ObstaclePatch] = {}
         self.current_building_points: list[Line2D] = []
         self.actions_stack = ActionsStack()  # New line to track the actions
@@ -214,9 +209,8 @@ class InteractivePlot(Observer):
             self.drone_start.remove()
             self.drone_start = None
 
-            # d = self.current_drone
 
-            current_drone_path = DronePath(self.current_drone, self.ax)
+            current_drone_path = DronePatch(self.current_drone, self.ax)
             current_drone_path.create_patches()
 
             self.drone_patches[self.current_drone] = current_drone_path
@@ -517,6 +511,7 @@ class InteractivePlot(Observer):
             # print("reset")
 
     def reset(self):
+        self.selected_building = None
         self.clear_temp_elements()
         # Remove all building patches
         for patch in self.building_patches.values():

@@ -84,20 +84,7 @@ def step_simulation(case_vehicle_list: List[Vehicle], max_avoidance_distance=2):
     return None
 
 
-# def step_simulation1(case_vehicle_list: List[Vehicle], max_avoidance_distance=2):
-#     # print([v.state for v in case_vehicle_list])
-#     reduced_vehicle_list = [v for v in case_vehicle_list if v.state == 0]
-#     if len(reduced_vehicle_list) == 0:
-#         # all drones have arrived
-#         return None
-#     flow_vels = Flow_Velocity_Calculation(
-#         reduced_vehicle_list, case_vehicle_list[0].arena, method="Vortex"
-#     )
-#     for vehicle in case_vehicle_list:
-#         if vehicle in reduced_vehicle_list:
-#             corresponding_flow_vel = flow_vels[reduced_vehicle_list.index(vehicle)]
-#             vehicle.Update_Velocity(corresponding_flow_vel, vehicle.arena)
-#     return None
+
 
 
 def update_positions(case_vehicle_list: List[Vehicle]):
@@ -163,13 +150,7 @@ def run_simulation(
             else:
                 vehicle.transmitting = False
 
-        # print([v.transmitting for v in case.vehicle_list])
-        # update_positions(case.vehicle_list)
 
-        # case.vehicle_list = case_vehicle_list
-        # if vehicle.state == 1:
-        #     # print('Vehicle ', str(index), 'has reached the goal', i)
-        #     pass
     if collisions:
         return False
     return True

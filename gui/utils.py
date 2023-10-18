@@ -53,7 +53,7 @@ def generate_case(name: str, buildings: list[Obstacle], drones: list[Drone]) -> 
 
 
 def run_case(case: Case):
-    update_every = 500
+    update_every = 1
     result = run_simulation(
         case,
         t=2000,

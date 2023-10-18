@@ -1,4 +1,4 @@
-from gui.patches import ObstaclePatch
+from gui.patches import ObstaclePatch, DronePatch
 import matplotlib.pyplot as plt
 from matplotlib.patches import Polygon
 from matplotlib.lines import Line2D
@@ -28,6 +28,7 @@ class PatchManager:
         self.ax = ax
         self.building_patches = {}
         self.drone_patches = {}
+        self.temp_elements = []
 
     def add_building_patch(self, building: Obstacle, **kwargs):
         patch = ObstaclePatch(
@@ -43,7 +44,15 @@ class PatchManager:
 
     def add_drone_patch(self, drone: Drone, **kwargs):
         # Similar logic for adding drone patches
-        pass
+        drone_patch = DronePatch(drone)
+        patches = drone_patch.create_patches()
+        self.drone_patches[drone] = drone_patch
+
+    def add_temp_element(self, element):
+        self.temp_elements.append(element)
+        # self.ax.add_patch(element)
+        return element
+        
 
     def remove_building_patch(self, building: Obstacle):
         if building in self.building_patches:

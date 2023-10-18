@@ -61,7 +61,7 @@ class Marker:
         self.marker.set_ydata([self.position[1]])
 
 
-class DronePath:
+class DronePatch:
     """Graphical representation of the Drone including start and end markers and an arrow connecting the two"""
 
     def __init__(self, drone: Drone, ax: plt.Axes) -> None:
@@ -135,26 +135,3 @@ class ObstaclePatch(Polygon):
         """Update the visual representation based on the building state."""
         self.set_xy(self.building.vertices)
 
-    # def closest_vertex(self, point):
-    #     """Find the closest vertex to a given point."""
-    #     closest_vertex_index, closest_vertex = min(
-    #         enumerate(self.vertices),
-    #         key=lambda x: np.linalg.norm(np.array(point) - x[1][:2])
-    #     )
-    #     return closest_vertex_index, closest_vertex
-
-    # def is_vertex_close(self, vertex, point, threshold=0.2):
-    #     """Check if a vertex is close to a given point."""
-    #     return np.linalg.norm(np.array(point) - vertex[:2]) < threshold
-
-    # def move_vertex(self, vertex_index, new_position):
-    #     last_vertex_index = len(self.vertices) - 1
-    #     if vertex_index == 0 or vertex_index == last_vertex_index:
-    #         self.vertices[0] = new_position
-    #         self.vertices[-1] = new_position
-    #     else:
-    #         self.vertices[vertex_index] = new_position
-
-    # def move_building(self, delta):
-    #     for vertex in self.vertices:
-    #         vertex += delta
