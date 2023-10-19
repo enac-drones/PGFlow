@@ -44,11 +44,11 @@ def generate_case(name: str, buildings: list[Obstacle], drones: list[Drone]) -> 
         c.vehicle_list[idx].Go_to_Goal(
             altitude=0.5, AoAsgn=0, t_start=0, Vinfmag=0
         )  # FIXME add these to the json
-    generator = Cases(filename="examples/gui_testing.json")
+    generator = Cases(filename="gui/gui_testing.json")
     generator.add_case(c)
     generator.update_json()
 
-    complete_case = generator.get_case("examples/gui_testing.json", "Test Case")
+    complete_case = generator.get_case("gui/gui_testing.json", "Test Case")
     return complete_case
 
 
