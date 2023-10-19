@@ -383,10 +383,16 @@ class InteractivePlot(Observer):
 
         elif event.key == "enter":
             # run the simulation
-            case = generate_case(
+            # case = generate_case(
+            #     name="Test Case", buildings=self.buildings, drones=self.drones
+            # )
+            self.run()
+
+    def run(self):
+        case = generate_case(
                 name="Test Case", buildings=self.buildings, drones=self.drones
             )
-            run_case(case)
+        run_case(case)
 
     def update(self):
         # draw the canvas again
@@ -492,7 +498,7 @@ class InteractivePlot(Observer):
 
         fig.text(
             0.2,
-            0.93,
+            0.91,
             instructions,
             fontsize=10,
             bbox=dict(boxstyle="round", facecolor="wheat", alpha=0.5),
@@ -504,11 +510,10 @@ class InteractivePlot(Observer):
     def call(self, event: str, *args, **kwargs):
         if event == "build_mode":
             self.toggle_mode()
-        # elif event == "drone_mode":
-        #     self.switch_to_drone_mode()
         elif event == "reset":
             self.reset()
-            # print("reset")
+        elif event == "run":
+            self.run()
 
     def reset(self):
         self.selected_building = None
