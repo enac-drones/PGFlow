@@ -19,6 +19,7 @@ def distance_between_points(p1: ArrayLike, p2: ArrayLike) -> float:
 def generate_case(name: str, buildings: list[Obstacle], drones: list[Drone]) -> Case:
     height = 1.2
     # this line adds a third dimension to the x,y coordinates of the building patches and creates a building object from each patch
+
     buildings = [
         Building(
             np.hstack(
@@ -31,10 +32,11 @@ def generate_case(name: str, buildings: list[Obstacle], drones: list[Drone]) -> 
         for building in buildings
     ]
 
+
     # buildings = [Building(patch.get_xy()) for patch in self.building_patches]
     c = Case(name=name)
     c.buildings = buildings
-    c.vehicle_list = []
+    # c.vehicle_list = []
     c.vehicle_list = [
         Vehicle(ID=v.ID, source_strength=1, imag_source_strength=0.5) for v in drones
     ]

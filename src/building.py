@@ -13,14 +13,12 @@ from matplotlib.patches import Polygon
 
 class Building:
     def __init__(
-        self, vertices, position=None
+        self, vertices
     ):  # Buildings(obstacles) are defined by coordinates of their vertices.
         self.vertices = np.array(vertices)
-        # print(f"the vertices are {self.vertices} shape of the vertices is {self.vertices.shape}")
-        # print('\n These are the vertices...')
+
         self.inflate(rad=0.0)
-        # print(f"points after inflation are {self.vertices}")
-        self.position = np.array(position)
+        # self.position = np.array(position)
         self.panels = np.array([])
         self.nop = None  # Number of Panels
         self.K = None  # Coefficient Matrix
@@ -41,23 +39,24 @@ class Building:
         inflated = np.array(pco.Execute(rad * scale)[0]) / scale
         height = self.vertices[0, 2]
         points = np.hstack((inflated, np.ones((inflated.shape[0], 1)) * height))
-        Xavg = np.mean(points[:, 0:1])
-        Yavg = np.mean(points[:, 1:2])
-        angles = np.arctan2(
-            (Yavg * np.ones(len(points[:, 1])) - points[:, 1]),
-            (Xavg * np.ones(len(points[:, 0])) - points[:, 0]),
-        )
-        sorted_angles = sorted(zip(angles, points), reverse=True)
-        points_sorted = np.vstack([x for y, x in sorted_angles])
-        self.vertices = points_sorted
+        # Xavg = np.mean(points[:, 0:1])
+        # Yavg = np.mean(points[:, 1:2])
+        # angles = np.arctan2(
+        #     (Yavg * np.ones(len(points[:, 1])) - points[:, 1]),
+        #     (Xavg * np.ones(len(points[:, 0])) - points[:, 0]),
+        # )
+        # sorted_angles = sorted(zip(angles, points), reverse=True)
+        # points_sorted = np.vstack([x for y, x in sorted_angles])
+        # self.vertices = points_sorted  
+        self.vertices = points
 
     def panelize(self, size):
         # Divides obstacle edges into smaller line segments, called panels.
-        for index, vertice in enumerate(self.vertices):
-            xyz1 = self.vertices[index]  # Coordinates of the first vertice
+        for index, vertex in enumerate(self.vertices):
+            xyz1 = self.vertices[index]  # Coordinates of the first vertex
             xyz2 = self.vertices[
                 (index + 1) % self.vertices.shape[0]
-            ]  # Coordinates of the next vertice
+            ]  # Coordinates of the next vertex
             s = (
                 (xyz1[0] - xyz2[0]) ** 2 + (xyz1[1] - xyz2[1]) ** 2
             ) ** 0.5  # Edge Length
@@ -77,7 +76,6 @@ class Building:
     def contains_point(self, point):
         # Checks if a point lies within the building.
         p = Polygon(self.vertices[:, :2])
-        # print(p.get_xy())
         return p.contains_point(point, radius=0)
 
     def calculate_coef_matrix(self, method="Vortex"):

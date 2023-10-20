@@ -1,5 +1,9 @@
 from __future__ import annotations
 
+#FIXME these two lines are necessary because sometimes the imports don't work
+import sys
+sys.path.append(".")
+
 import matplotlib.pyplot as plt
 import numpy as np
 from numpy.typing import ArrayLike
@@ -11,7 +15,7 @@ from typing import List, Dict
 from gui.entities import Drone, Obstacle
 from gui.patches import Marker, DronePatch, ObstaclePatch
 from gui.utils import distance_between_points, generate_case, run_case
-from gui.construction import Creator, PatchManager
+from gui.construction import PatchManager
 from gui.actions_stack import ActionsStack
 from gui.ui_components import UIComponents
 from gui.observer_utils import Observer
@@ -32,7 +36,6 @@ class InteractivePlot(Observer):
         # Connect event handlers
         self.connect_event_handlers()
 
-        self.building_creator = Creator(self.ax)
 
         plt.show()
 
@@ -48,10 +51,10 @@ class InteractivePlot(Observer):
         Return: None
         """
         if self._selected_building:
-            current_patch = self.building_patches[self._selected_building]
+            current_patch = self.patch_manager.get_building_patch(self._selected_building)
             current_patch.deselect()
         if new_building:
-            new_building_patch = self.building_patches[new_building]
+            new_building_patch = self.patch_manager.get_building_patch(new_building)
             new_building_patch.select()
         self._selected_building = new_building
         self.update()
@@ -71,12 +74,8 @@ class InteractivePlot(Observer):
         self.current_drone = None
         self.mode = "building"  # 'building', 'drone', or None
         self.drone_start = None
-        self.drone_patches: dict[Drone, DronePatch] = {}
-        self.building_patches: dict[Obstacle, ObstaclePatch] = {}
-        self.current_building_points: list[Line2D] = []
         self.actions_stack = ActionsStack()  # New line to track the actions
 
-        self.temp_elements = []  # List to store temporary graphical elements.
 
         self.selected_drone: Drone = None
         self.initial_click_position = None
@@ -96,7 +95,8 @@ class InteractivePlot(Observer):
 
     def handle_vertex_movement(self, event):
         """Returns True if a click is near a vertex of an obstacle"""
-        if not self.building_patches:
+        print(self.buildings)
+        if not self.buildings:
             return False
 
         # Find the closest vertex
@@ -121,7 +121,7 @@ class InteractivePlot(Observer):
         """Find the closest vertex to the given point."""
         all_vertices = (
             (building, j)
-            for building in self.building_patches.keys()
+            for building in self.buildings
             for j in range(len(building.vertices))
         )
 
@@ -166,14 +166,14 @@ class InteractivePlot(Observer):
     def handle_building_placement(self, event) -> None:
         self.selected_building = None
         if self.current_drone:
-            self.temp_elements.remove(self.drone_start)
-            self.drone_start.remove()
+            self.patch_manager.remove_temp_drone_start(self.drone_start)
             self.current_drone = None
         # Add a corner to the current building at the click location
 
         point = Marker((event.xdata, event.ydata), "go").create_marker()
 
-        self.current_building_points.append(point)
+        # self.current_building_points.append(point)
+        self.patch_manager.add_building_vertex(point)
         self.update()
         return None
 
@@ -185,18 +185,17 @@ class InteractivePlot(Observer):
             # initialise the drone
             # what to do when we draw the initial position of the drone
             # This is the initial position of the drone
-
+            # clear all other temporary elements
+            self.patch_manager.clear_building_vertices()
             self.current_drone = Drone(
                 ID=f"V{len(self.drones)}", position=None, goal=None
             )
             self.current_drone.position = [event.xdata, event.ydata, 0.5]
 
-            # self.drone_start, = self.ax.plot(*self.current_drone.position[:2],'ko')
             self.drone_start = Marker(
                 self.current_drone.position[:2], style="ko"
             ).create_marker()
-            # self.ax.add_artist(self.drone_start)
-            self.temp_elements.append(self.drone_start)
+            self.patch_manager.add_temp_drone_start(self.drone_start)
             self.update()
         else:
             # drone initial position is already defined, now add the destination (goal)
@@ -205,15 +204,12 @@ class InteractivePlot(Observer):
 
             self.drones.append(self.current_drone)
             self.actions_stack.add_action("drone", self.current_drone)
-            self.temp_elements.remove(self.drone_start)
-            self.drone_start.remove()
+            self.patch_manager.remove_temp_drone_start(self.drone_start)
             self.drone_start = None
 
 
-            current_drone_path = DronePatch(self.current_drone, self.ax)
-            current_drone_path.create_patches()
-
-            self.drone_patches[self.current_drone] = current_drone_path
+            # add drone patch to patch_manager
+            self.patch_manager.add_drone_patch(self.current_drone)
             self.current_drone = None
             self.update()
         return None
@@ -222,7 +218,7 @@ class InteractivePlot(Observer):
         for building in self.buildings:
             if building.insert_vertex((event.xdata, event.ydata)):
                 # Redraw the building if a vertex was added
-                self.building_patches[building].update_visual()
+                self.patch_manager.redraw_building(building)
                 self.update()
                 return True
         return False
@@ -279,33 +275,35 @@ class InteractivePlot(Observer):
         self.update()
 
     def on_pick(self, event):
+        print("picked")
         # Check if the picked artist is a Polygon (optional but can be useful)
         if not isinstance(event.artist, plt.Polygon):
+            print("early return")
             return
-        polygon = event.artist
-        for building, building_patch in self.building_patches.items():
-            if building_patch == polygon:
-                # call the selected building setter to highlight the building
-                self.selected_building = building
-                break
+        # polygon = event.artist
+        building = self.patch_manager.get_building_from_patch(event.artist)
+        self.selected_building = building
+
 
         self.initial_click_position = [event.mouseevent.xdata, event.mouseevent.ydata]
-        # Your code to handle the picked building here
-        # this is handled by the on_mouse_move method
+
 
     def on_mouse_move(self, event):
 
+        # check to make sure the mouse is still in the main axes 
+        # and not over a button or other axes object
+        # or outside the axes altogether
+        if event.inaxes != self.ax:
+            return
+
         point = [event.xdata, event.ydata]
 
-        # If the point is out of the map area, skip the rest of this method
-        if any(not isinstance(item, (int, float)) for item in point):
-            return
         ##########################################################################################
         # move the vertex if one is selected
         if self.selected_building is not None and self.selected_vertex is not None:
             # # move the relevent vertex
             self.selected_building.move_vertex(self.selected_vertex, point)
-            self.building_patches[self.selected_building].update_visual()
+            self.patch_manager.redraw_building(self.selected_building)
 
             self.update()  # Redraw to show the moved vertex
 
@@ -316,7 +314,8 @@ class InteractivePlot(Observer):
             # Move the building
             # set the vertices of the src.Building object, then copy them into the building patch
             self.selected_building.move_building(ds)
-            self.building_patches[self.selected_building].update_visual()
+            self.patch_manager.redraw_building(self.selected_building)
+            # self.building_patches[self.selected_building].update_visual()
             # Update the initial click position for next movement calculation
             self.initial_click_position = point
 
@@ -337,11 +336,10 @@ class InteractivePlot(Observer):
                 self.selected_drone.move_whole_drone(ds)
 
             self.initial_click_position = point
-            self.drone_patches[
-                self.selected_drone
-            ].update()  # update the graphics of the drone
+            # This will redraw the drone starting or ending point in its new position
+            self.patch_manager.redraw_drone(self.selected_drone)
 
-            self.update()  # This will redraw the drone starting or ending point in its new position
+            self.update()  
 
     def on_button_release(self, event):
         self.initial_click_position = None
@@ -354,10 +352,8 @@ class InteractivePlot(Observer):
             self.actions_stack.remove_action("building", self.selected_building)
             building = self.selected_building
             self.selected_building = None
-            patch = self.building_patches[building]
-            patch.remove()
+            self.patch_manager.remove_building_patch(building)
             self.buildings.remove(building)
-            del self.building_patches[building]
             self.update()
 
     def on_key_press(self, event):
@@ -367,7 +363,6 @@ class InteractivePlot(Observer):
         if (
             event.key == "tab"
             and self.mode == "building"
-            and len(self.current_building_points) >= 3
         ):
             # plot the building
             self.finalize_building()
@@ -382,10 +377,7 @@ class InteractivePlot(Observer):
             self.clear_temp_elements()
 
         elif event.key == "enter":
-            # run the simulation
-            # case = generate_case(
-            #     name="Test Case", buildings=self.buildings, drones=self.drones
-            # )
+
             self.run()
 
     def run(self):
@@ -399,14 +391,10 @@ class InteractivePlot(Observer):
         self.fig.canvas.draw()
 
     def clear_temp_elements(self):
-        for elem in self.temp_elements:
-            elem.remove()
-        for point in self.current_building_points:
-            point.remove()
-        self.temp_elements = (
-            []
-        )  # Clear the list after removing all elements from the plot.
-        self.current_building_points = []
+
+        self.patch_manager.clear_temp_drone_starts()
+        self.patch_manager.clear_building_vertices()
+
         self.current_drone = None
         self.update()
 
@@ -417,21 +405,15 @@ class InteractivePlot(Observer):
         action, obj = self.actions_stack.retrieve_last_action()
         if action == "building":
             self.selected_building = None
-            patch = self.building_patches[obj]
-            patch.remove()
+            self.patch_manager.remove_building_patch(obj)
+
             self.buildings.remove(obj)
-            del self.building_patches[obj]
 
         elif action == "drone":
             if obj in self.drones:
                 self.drones.remove(obj)
-                marker_start, marker_end, arrow = self.drone_patches.pop(obj).patches()
+                self.patch_manager.remove_drone_patch(obj)
 
-                marker_start.remove()
-                marker_end.remove()
-                arrow.remove()
-
-        # self.fig.canvas.draw()  # Redraw the figure to reflect changes
         self.update()
 
     def switch_mode(self, event):
@@ -450,27 +432,14 @@ class InteractivePlot(Observer):
             self.mode = "building"
 
     def finalize_building(self):
-        if not len(self.current_building_points) >= 3:
-            return
-        vertices = np.array(
-            [point.get_xydata() for point in self.current_building_points]
-        )
-        vertices = vertices.squeeze(axis=1)
-        building = Obstacle(vertices)
-        patch = self.building_creator.create_building(building)
-        # self.building_patches.append(patch)
-        self.building_patches[building] = patch
-        self.buildings.append(building)
-        self.actions_stack.add_action("building", building)
-        self.ax.add_patch(patch)
+        building = self.patch_manager.make_building()
+        if building:
+            # this if statement checks to see if a building was created
+            # ie if the vertex number was >=3
+            self.buildings.append(building)
+            self.actions_stack.add_action("building", building)
+            self.update()
 
-        # Handle the removal of temporary points here
-        for point in self.current_building_points:
-            point.remove()
-        self.current_building_points = []
-        self.update()
-
-  
 
     def plot_setup(self):
         fig = plt.figure(figsize=self.FIG_SIZE)
@@ -518,16 +487,9 @@ class InteractivePlot(Observer):
     def reset(self):
         self.selected_building = None
         self.clear_temp_elements()
-        # Remove all building patches
-        for patch in self.building_patches.values():
-            patch.remove()
-        self.building_patches.clear()
-
-        # Remove all drone patches
-        for patch in self.drone_patches.values():
-            patch.remove()
-        self.drone_patches.clear()
-
+        # Remove all building and drone patches
+        self.patch_manager.clear_all()
+       
         # Empty the buildings and drones lists
         self.buildings.clear()
         self.drones.clear()

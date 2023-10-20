@@ -73,7 +73,20 @@ class Obstacle:
     """Class containing all necessary information about a Building Entity, not including its graphics"""
 
     def __init__(self, vertices: ArrayLike):
-        self.vertices = vertices
+        # self.vertices = vertices
+        self.vertices = self.sort_vertices(vertices)
+
+    def sort_vertices(self, vertices):
+        '''Sorts the vertices by angle around the centre of mass of the polygon'''
+        Xavg = np.mean(vertices[:, 0:1])
+        Yavg = np.mean(vertices[:, 1:2])
+        angles = np.arctan2(
+            (Yavg * np.ones(len(vertices[:, 1])) - vertices[:, 1]),
+            (Xavg * np.ones(len(vertices[:, 0])) - vertices[:, 0]),
+        )
+        sorted_angles = sorted(zip(angles, vertices), reverse=True)
+        points_sorted = np.vstack([x for y, x in sorted_angles])
+        return points_sorted
 
     def move_vertex(self, vertex_index, new_position):
         self.vertices[vertex_index] = new_position

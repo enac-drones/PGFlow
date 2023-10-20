@@ -26,7 +26,7 @@ class Case:
         self.name = name
         self._vehicle_list: List[Vehicle] = []
         self.buildings: List[Building] = []
-        self._arena = None
+        self._arena:ArenaMap = None
         self.collision_threshold = 0.5
 
     @property
