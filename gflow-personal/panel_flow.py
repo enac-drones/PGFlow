@@ -12,11 +12,11 @@ from shapely.prepared import prep
 from itertools import compress
 from typing import List
 
-from src.building import Building
+# from .building import Building
 
 # from src.vehicle import Vehicle
-from src.arena import ArenaMap
-from src.building import Building
+from .arena import ArenaMap
+# from .building import Building
 import time
 
 # from numba import jit

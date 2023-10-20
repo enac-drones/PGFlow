@@ -1,9 +1,9 @@
 from __future__ import annotations
 import numpy as np
-import scipy
-from numpy import linalg
+# import scipy
+# from numpy import linalg
 from typing import List
-from src.panel_flow import Flow_Velocity_Calculation
+from .panel_flow import Flow_Velocity_Calculation
 
 """##Vehicles"""
 

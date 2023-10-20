@@ -1,3 +1,6 @@
+import sys
+sys.path.append('../')
+
 from src.vehicle import Vehicle, PersonalVehicle
 from typing import List
 from src.cases import Case
