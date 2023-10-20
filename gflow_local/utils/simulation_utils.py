@@ -1,12 +1,10 @@
-import sys
-sys.path.append('../')
-
-from src.vehicle import Vehicle, PersonalVehicle
+# from .. import vehicle, cases, panel_flow
+from gflow_local.vehicle import Vehicle, PersonalVehicle
+from gflow_local.cases import Case
 from typing import List
-from src.cases import Case
 import numpy as np
 
-from src.panel_flow import Flow_Velocity_Calculation
+# from gflow_local.panel_flow import Flow_Velocity_Calculation
 
 
 def set_new_attribute(case: Case, attribute_name: str, new_attribute_value):
