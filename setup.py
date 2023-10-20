@@ -1,8 +1,11 @@
 # -*- coding: utf-8 -*-
+import os
+print("Current Directory:", os.getcwd())
+
 from setuptools import setup
 
 packages = \
-['gflow-personal', 'gflow-personal.utils']
+['gflow_local', 'gflow_local.utils']
 
 package_data = \
 {'': ['*']}
@@ -19,7 +22,7 @@ install_requires = \
  'shapely>=2.0.1,<3.0.0']
 
 setup_kwargs = {
-    'name': 'gflow-personal',
+    'name': 'gflow_local',
     'version': '0.1.0',
     'description': '',
     'long_description': '# gflow\n\nFlow field guidance\n\nTo run with gui, run gui/gui_sim.py\nTo run simple example, run examples/simple_sim.py and select desired case within a json case file\n',

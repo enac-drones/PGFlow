@@ -1,11 +1,11 @@
 [tool.poetry]
-name = "gflow-personal"
+name = "gflow_local"
 version = "0.1.0"
 description = ""
 authors = ["adriandelser <adrian.delser@gmail.com>"]
 readme = "README.md"
 packages= [
-    {include = "gflow-personal"},
+    {include = "gflow_local"},
     ]
 [tool.poetry.dependencies]
 python = ">=3.10,<3.12"
