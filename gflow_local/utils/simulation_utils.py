@@ -3,6 +3,7 @@ from gflow_local.vehicle import Vehicle, PersonalVehicle
 from gflow_local.cases import Case
 from typing import List
 import numpy as np
+import time
 
 # from gflow_local.panel_flow import Flow_Velocity_Calculation
 
@@ -130,6 +131,7 @@ def run_simulation(
     collisions = False
     # arrived = set()
     # case_vehicle_list = case.vehicle_list
+    start_time = time.time()
     for i in range(t):
         # Step the simulation
         # step_simulation(case.vehicle_list,max_avoidance_distance)
@@ -151,7 +153,11 @@ def run_simulation(
             else:
                 vehicle.transmitting = False
 
-
+    end_time = time.time()
+    print(f"Simulation took {end_time - start_time} seconds")
     if collisions:
         return False
     return True
+
+
+
