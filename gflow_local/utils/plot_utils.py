@@ -1,4 +1,5 @@
 import sys
+sys.path.append('../')
 
 import matplotlib.pyplot as plt
 from matplotlib.patches import FancyArrowPatch
@@ -10,8 +11,8 @@ from matplotlib.animation import FuncAnimation
 # Import slider package
 from matplotlib.widgets import Slider, Button
 from typing import List
-from src.vehicle import Vehicle
-from src.cases import Case
+from gflow_local.vehicle import Vehicle
+from gflow_local.cases import Case
 
 
 def plot_trajectories(case: Case):

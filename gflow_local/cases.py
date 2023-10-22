@@ -4,15 +4,15 @@ import shutil
 import sys
 from copy import deepcopy
 
-from src.arena import ArenaMap
-from src.building import Building, RegularPolygon
-from src.vehicle import Vehicle, PersonalVehicle
 from random import random
 import numpy as np
 from scipy.spatial import distance
 import warnings
 from typing import List
-from src.utils.json_utils import dump_to_json, load_from_json
+from .arena import ArenaMap
+from .building import Building, RegularPolygon
+from .vehicle import Vehicle, PersonalVehicle
+from .utils.json_utils import dump_to_json, load_from_json
 
 
 class Case:

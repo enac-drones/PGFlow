@@ -19,7 +19,8 @@ def load_from_json(file_path: str) -> dict:
 def dump_to_json(file_path: str, data: dict) -> dict:
     # ensure the directory exists
     directory = os.path.dirname(file_path)
-    os.makedirs(directory, exist_ok=True)
+    if directory:
+        os.makedirs(directory, exist_ok=True)
     with open(file_path, "w") as f:
         json.dump(data, f, indent=4)
         return None
