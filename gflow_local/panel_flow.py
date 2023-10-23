@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import numpy as np
 
 # from numpy import linalg
@@ -14,8 +16,8 @@ from typing import List
 
 # from .building import Building
 
-# from src.vehicle import Vehicle
-from .arena import ArenaMap
+# from gflow_local.vehicle import Vehicle
+from gflow_local.arena import ArenaMap
 # from .building import Building
 import time
 
@@ -211,7 +213,7 @@ def calculate_all_induced_vortex_velocities(vehicles):
     perpendicular_array[..., 0] = -position_diff_2D[..., 1]  # replace x with y
     perpendicular_array[..., 1] = position_diff_2D[..., 0]  # replace y with -x
 
-    squared_distances = np.sum(position_diff_2D**2, axis=-1)
+    squared_distances = np.sum(position_diff_2D**4, axis=-1)
 
     # Replace zero self-distances with ones to avoid division by zero
     np.fill_diagonal(squared_distances, 1)
@@ -254,9 +256,10 @@ def Flow_Velocity_Calculation(
     # when simple_sim is called, vehicles is self.vehicle_list, ie the current vehicle's own list of vehicles
 
     # Calculating unknown vortex strengths using panel method:
+    t = time.time()
     calculate_vortex_strengths(vehicles, arenamap, method)
-
-
+    t1 = time.time()
+    # print(f"Time to calculate vortex strengths: {t1-t}")
     # --------------------------------------------------------------------
     # Flow velocity calculation given vortex strengths:
     flow_vels = np.zeros([len(vehicles), 3])
@@ -313,6 +316,7 @@ def Flow_Velocity_Calculation(
                 point = Point(vehicle.position[0], vehicle.position[1])
 
                 if not polygon.contains(point):
+                    # if vehicle is outside the building
                     if vehicle.ID in building.gammas.keys():
                         # Velocity induced by vortices on each panel:
                         # Velocity induced by vortices on each panel:
@@ -337,6 +341,7 @@ def Flow_Velocity_Calculation(
 
                 # V_gamma = calculate_V_gamma(vehicles,arenamap)
                 elif polygon.contains(point):
+                    # if vehicle is inside the building
                     # this code does nothing, what is it?
                     V_gamma[f] += 0
 
