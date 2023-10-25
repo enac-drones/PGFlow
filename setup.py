@@ -5,7 +5,7 @@ print("Current Directory:", os.getcwd())
 from setuptools import setup
 
 packages = \
-['gflow_local', 'gflow_local.utils']
+['gflow', 'gflow.utils']
 
 package_data = \
 {'': ['*']}

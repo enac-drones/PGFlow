@@ -14,17 +14,17 @@ from typing import List
 class ArenaMap:
     def __init__(
         self,
-        buildings=None,
+        buildings:list[Building]=None,
         building_hulls=None,
         generate="manual",
         number_of_vehicles=1,
     ):
         self.panels = None
         self.inflation_radius = 0.0
-        self.size = 0.05
+        self.size = 0.01 #max size of a panel?
         self.wind = [0, 0]
         self.windT = 0
-        self.buildings = []
+        self.buildings:list[Building] = []
         if building_hulls is not None:
             generate = "auto"
             for key in building_hulls.keys():
@@ -89,7 +89,7 @@ class ArenaMap:
     def Calculate_Coef_Matrix(self, method="Vortex"):
         # !!Assumption: Seperate building interractions are neglected. Each building has its own coef_matrix
         for building in self.buildings:
-            building.calculate_coef_matrix(method=method)
+            building.calculate_coef_matrix()
 
     def Visualize2D(self, buildingno="All", points="buildings", show=True):
         plt.grid(color="k", linestyle="-.", linewidth=0.5)

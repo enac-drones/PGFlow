@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import numpy as np
+from numpy.typing import ArrayLike
 
 # from numpy import linalg
 # import math
@@ -12,7 +13,11 @@ from shapely.prepared import prep
 
 # from datetime import datetime
 from itertools import compress
-from typing import List
+from typing import List, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from vehicle import Vehicle
+    from building import Building
 
 # from .building import Building
 
@@ -234,12 +239,34 @@ def calculate_all_induced_vortex_velocities(vehicles):
     # swap the x and y coordinates (whoops bug)
     return V_vortex  # [:,::-1]
 
+def calculate_uv_gamma(vehicle:Vehicle,building:Building)->ArrayLike:
+    if not vehicle.ID in building.gammas.keys():
+        return
+    # Velocity induced by vortices on each panel:
+    # print(building.pcp.shape,building.pcp[0,:])
+    squared_distances = (
+        vehicle.position[0] - building.pcp[:, 0]
+    ) ** 2 + (vehicle.position[1] - building.pcp[:, 1]) ** 2
+    # vortex strengths normalised by 2pi
+    gammas = building.gammas[vehicle.ID][:].T / (2 * np.pi)
+
+    # numerators of u and v, shape (2, nop)
+    numerators = np.array(
+        [
+            (vehicle.position[1] - building.pcp[:, 1]),
+            -(vehicle.position[0] - building.pcp[:, 0]),
+        ]
+    )
+
+    # array of u and v
+    uv = gammas * numerators / squared_distances
+
+    return uv
 
 
 def Flow_Velocity_Calculation(
-    vehicles, arenamap: ArenaMap, method="Vortex", update_velocities=True
+    vehicles:list[Vehicle], arenamap: ArenaMap, method="Vortex"
 ):
-    
     n_vehicles = len(vehicles)
     two_dim_shape = (n_vehicles, 2)
     one_dim_shape = (n_vehicles, 1)
@@ -250,6 +277,67 @@ def Flow_Velocity_Calculation(
     V_norm, W_sink, W_source, W_flow, W_sum, W_norm, W_normal = [
         np.zeros(one_dim_shape) for _ in range(7)
     ]
+    #######################################################################################################################################
+    # Determine the number of buildings and the maximum number of panels in any building
+    num_buildings = len(arenamap.buildings)
+    max_num_panels = max(building.nop for building in arenamap.buildings)
+
+    # Initialize the all_pcp array with zeros
+    all_pcp = np.zeros((num_buildings, max_num_panels, 2))
+
+    # Populate the all_pcp array
+    for i, building in enumerate(arenamap.buildings):
+        num_panels = building.nop  # Number of panels in the current building
+        all_pcp[i, :num_panels, :] = building.pcp[:num_panels, :2]  # Take only the first two dimensions
+
+    #  all_pcp is now a 3D array of shape (num_buildings, max_num_panels, 2)
+    #######################################################################################################################################
+
+    # Initialize the vehicle_positions array with zeros
+    vehicle_positions = np.zeros((n_vehicles, 2))
+
+    # Populate the vehicle_positions array
+    for i, vehicle in enumerate(vehicles):
+        vehicle_positions[i, :] = vehicle.position[:2]
+        # vehicle_positions = vehicle_positions[:,:2]
+
+    # vehicle_positions is now a 2D array of shape (num_vehicles, 2)
+    #######################################################################################################################################
+    # Initialize the all_gammas array with zeros or NaNs
+    # NaNs might make it easier to identify if something goes wrong
+    all_gammas = np.zeros((n_vehicles, num_buildings, max_num_panels))
+
+    # Populate the all_gammas array
+    for i, building in enumerate(arenamap.buildings):
+        num_panels = building.nop  # Number of panels in the current building
+        for j, vehicle in enumerate(vehicles):
+            if vehicle.ID in building.gammas:
+                # all_gammas[j, i, :num_panels] = building.gammas[vehicle.ID][:num_panels]
+                all_gammas[j, i, :num_panels] = building.gammas[vehicle.ID][:num_panels].ravel()
+
+
+    # all_gammas is now a 3D array of shape (num_vehicles, num_buildings, max_num_panels)
+    #######################################################################################################################################
+    # Assuming vehicle_positions is of shape (num_vehicles, 2)  
+    # and all_pcp is of shape (num_buildings, num_panels, 2)
+    diff = vehicle_positions[:, np.newaxis, np.newaxis, :] - all_pcp[np.newaxis, :, :, :]
+    squared_distances = np.sum(diff**2, axis=-1)  # shape: (num_vehicles, num_buildings, num_panels)
+
+    # Create the numerators for all vehicles and all buildings
+    numerators = np.zeros((n_vehicles, num_buildings, max_num_panels, 2))
+    numerators[:, :, :, 0] = vehicle_positions[:, np.newaxis, np.newaxis, 1] - all_pcp[np.newaxis, :, :, 1]
+    numerators[:, :, :, 1] = -(vehicle_positions[:, np.newaxis, np.newaxis, 0] - all_pcp[np.newaxis, :, :, 0])
+
+    # Assuming all_gammas is of shape (num_vehicles, num_buildings, num_panels)
+    all_gammas_normalized = all_gammas / (2 * np.pi)
+
+    # uv calculations, exploiting broadcasting
+    uv = all_gammas_normalized[:, :, :, np.newaxis] * numerators / squared_distances[:, :, :, np.newaxis]
+
+    V_gamma_all = np.sum(uv, axis=(1, 2))  # Summing across num_buildings and num_panels axes
+    # print(V_gamma_all.shape)
+    #######################################################################################################################################
+
 
     # Filter vehicles based on the state
     
@@ -264,27 +352,7 @@ def Flow_Velocity_Calculation(
     # Flow velocity calculation given vortex strengths:
     flow_vels = np.zeros([len(vehicles), 3])
 
-    # V_gamma = np.zeros([len(vehicles), 2])  # Velocity induced by vortices
-    # V_sink = np.zeros([len(vehicles), 2])  # Velocity induced by sink element
-    # V_source = np.zeros([len(vehicles), 2])  # Velocity induced by source elements
-    # V_vortex = np.zeros(
-    #     [len(vehicles), 2]
-    # )  # Velocity induced by votex elements of the vehicles
-    # V_sum = np.zeros([len(vehicles), 2])  # V_gamma + V_sink + V_source +V_vortex
-    # V_normal = np.zeros([len(vehicles), 2])  # Normalized velocity
-    # V_flow = np.zeros(
-    #     [len(vehicles), 2]
-    # )  # Normalized velocity inversly proportional to magnitude
-    # V_norm = np.zeros([len(vehicles), 1])  # L2 norm of velocity vector
 
-    # W_sink = np.zeros([len(vehicles), 1])  # Velocity induced by 3-D sink element
-    # W_source = np.zeros([len(vehicles), 1])  # Velocity induced by 3-D source element
-    # W_flow = np.zeros(
-    #     [len(vehicles), 1]
-    # )  # Vertical velocity component (to be used in 3-D scenarios)
-    # W_sum = np.zeros([len(vehicles), 1])
-    # W_norm = np.zeros([len(vehicles), 1])
-    # W_normal = np.zeros([len(vehicles), 1])
 
     source_gain = 0
 
@@ -303,89 +371,27 @@ def Flow_Velocity_Calculation(
     t = time.time()
     # Pre-calculate the arrays
    
-    for f, vehicle in enumerate(vehicles):
-        # Make sure the vehicle.ID is in all building.gammas keys
-        # valid_indices = np.array([vehicle.ID in gammas for gammas in gammas_all_buildings])
+    
+    #########################################################################################################################
+    # FIXME remove the for loop later and replace with this when it works
+    # # Summing the effects for all vehicles at once
+    V_gamma = V_gamma_all
+    V_sum = V_gamma + V_sink + V_source + V_vortex
 
-        if method == "Vortex":
-            for building in arenamap.buildings:
-                # nop is number of panels (not vertices)
-                u = np.zeros((building.nop, 1))
-                v = np.zeros((building.nop, 1))
-                polygon = Polygon(building.vertices)
-                point = Point(vehicle.position[0], vehicle.position[1])
+    # Normalization and flow calculation for all vehicles
+    V_norm = np.linalg.norm(V_sum, axis=1, keepdims=True)
+    V_normal = V_sum / (V_norm + 1e-10)  # Added a small constant to avoid division by zero
+    V_flow = V_normal / (V_norm + 1e-10)
 
-                if not polygon.contains(point):
-                    # if vehicle is outside the building
-                    if vehicle.ID in building.gammas.keys():
-                        # Velocity induced by vortices on each panel:
-                        # Velocity induced by vortices on each panel:
-                        squared_distances = (
-                            vehicle.position[0] - building.pcp[:, 0]
-                        ) ** 2 + (vehicle.position[1] - building.pcp[:, 1]) ** 2
-                        # vortex strengths normalised by 2pi
-                        gammas = building.gammas[vehicle.ID][:].T / (2 * np.pi)
+    # For W components
+    W_sum = W_sink + W_source
+    W_norm = np.abs(W_sum)
+    W_normal = W_sum / (W_norm + 1e-10)  # Added a small constant to avoid division by zero
+    W_flow = np.clip(W_normal / (W_norm + 1e-10), -0.07, 0.07)
 
-                        # numerators of u and v, shape (2, nop)
-                        numerators = np.array(
-                            [
-                                (vehicle.position[1] - building.pcp[:, 1]),
-                                -(vehicle.position[0] - building.pcp[:, 0]),
-                            ]
-                        )
-
-                        # array of u and v
-                        uv = gammas * numerators / squared_distances
-
-                        V_gamma[f] += np.sum(uv, axis=1)
-
-                # V_gamma = calculate_V_gamma(vehicles,arenamap)
-                elif polygon.contains(point):
-                    # if vehicle is inside the building
-                    # this code does nothing, what is it?
-                    V_gamma[f] += 0
-
-        # Total velocity induced by all elements on map:
-        V_sum[f, 0] = (
-            V_gamma[f, 0]
-            + V_sink[f, 0]
-            + 0 * vehicle.V_inf[0]
-            + V_source[f, 0]
-            + V_vortex[f, 0]
-        )
-        V_sum[f, 1] = (
-            V_gamma[f, 1]
-            + V_sink[f, 1]
-            + 0 * vehicle.V_inf[1]
-            + V_source[f, 1]
-            + V_vortex[f, 1]
-        )
-
-        # L2 norm of flow velocity:
-        V_norm[f] = (V_sum[f, 0] ** 2 + V_sum[f, 1] ** 2) ** 0.5
-        # Normalized flow velocity:
-        V_normal[f, 0] = V_sum[f, 0] / V_norm[f]
-        V_normal[f, 1] = V_sum[f, 1] / V_norm[f]
-
-        # Flow velocity inversely proportional to velocity magnitude:
-        V_flow[f, 0] = V_normal[f, 0] / V_norm[f]
-        V_flow[f, 1] = V_normal[f, 1] / V_norm[f]
-
-        # Add wind disturbance
-        # V_flow[f,0] = V_flow[f,0] + U_wind
-        # V_flow[f,1] = V_flow[f,0] + V_wind
-
-        W_sum[f] = W_sink[f] + W_source[f]
-        if W_sum[f] != 0.0:
-            W_norm[f] = (W_sum[f] ** 2) ** 0.5
-            W_normal[f] = W_sum[f] / W_norm[f]
-            W_flow[f] = W_normal[f] / W_norm[f]
-            W_flow[f] = np.clip(W_flow[f], -0.07, 0.07)
-        else:
-            W_flow[f] = W_sum[f]
-
-        flow_vels[f, :] = [V_flow[f, 0], V_flow[f, 1], W_flow[f, 0]]
-
+    # Finally, populate flow_vels for all vehicles at once
+    flow_vels = np.hstack([V_flow, W_flow.reshape(-1, 1)])
+    #########################################################################################################################
 
     return flow_vels
 

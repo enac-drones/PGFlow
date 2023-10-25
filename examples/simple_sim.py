@@ -1,7 +1,7 @@
-import gflow_local.utils.plot_utils as ut
-from gflow_local.cases import Cases
+import gflow.utils.plot_utils as ut
+from gflow.cases import Cases
 from time import time
-from gflow_local.utils.simulation_utils import run_simulation, set_new_attribute
+from gflow.utils.simulation_utils import run_simulation, set_new_attribute
 
 if __name__ == "__main__":
     file_name = "examples/gui_testing_1.json"
@@ -20,7 +20,7 @@ if __name__ == "__main__":
 
 
     delta_t = case.vehicle_list[0].delta_t
-    update_frequency = 5  # Hz
+    update_frequency = 50  # Hz
     update_time_period = max(int(1 / (update_frequency * delta_t)), 1)
 
     ######################################

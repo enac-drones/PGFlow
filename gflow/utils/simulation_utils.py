@@ -4,6 +4,7 @@ from gflow_local.cases import Case
 from typing import List
 import numpy as np
 import time
+from gflow.panel_flow import Flow_Velocity_Calculation
 
 # from gflow_local.panel_flow import Flow_Velocity_Calculation
 
@@ -78,44 +79,62 @@ def step_simulation(case_vehicle_list: List[Vehicle], max_avoidance_distance=2):
         vehicle.personal_vehicle_list = valid_vehicle_list(
             vehicle, case_vehicle_list, max_avoidance_distance
         )
-        # print(vehicle.ID, len(vehicle.personal_vehicle_list))
 
         # update my position in the case_vehicle_list
         vehicle.run_simple_sim()
 
     return None
 
+# def step_simulation1(case_vehicle_list: List[Vehicle], max_avoidance_distance=2):
+#     """'Step the simulation by one timstep, list_of_vehicles is case.vehicle_list"""
+#     flow_vels = Flow_Velocity_Calculation(case_vehicle_list,case_vehicle_list[0].arena,"Vortex")
+#     for index, vehicle in enumerate(case_vehicle_list):
+#         # if the current vehicle has arrived, do nothing, continue looking at the other vehicles
+#         if vehicle.state == 1:
+#             continue
+
+#         # # update the vehicle's personal knowledge of other drones by only keeping those that meet specific conditions:
+#         # # not too far, have not arrived yet, and are transmitting.
+#         # vehicle.personal_vehicle_list = valid_vehicle_list(
+#         #     vehicle, case_vehicle_list, max_avoidance_distance
+#         # )
+
+#         # update my position in the case_vehicle_list
+#         vehicle.Update_Velocity(flow_vels[index],vehicle.arena)
+
+#     return None
 
 
 
 
-def update_positions(case_vehicle_list: List[Vehicle]):
-    """Go through case.vehicle_list and update each drone's personal vehicle list with
-    its own current position and the positions of any other drones that are transmitting"""
-    for _, vehicle in enumerate(case_vehicle_list):
-        # the following updates my own position within my own vehicle list (I am the current vehicle)
-        current_vehicle = next(
-            (p_v for p_v in vehicle.personal_vehicle_list if p_v.ID == vehicle.ID), None
-        )
-        if current_vehicle is not None:
-            current_vehicle.position = vehicle.position
 
-        # now update the rest of the current vehicle's personal vehicle list with the drones that are transmitting
-        for _, personal_vehicle in enumerate(vehicle.personal_vehicle_list):
+# def update_positions(case_vehicle_list: List[Vehicle]):
+#     """Go through case.vehicle_list and update each drone's personal vehicle list with
+#     its own current position and the positions of any other drones that are transmitting"""
+#     for _, vehicle in enumerate(case_vehicle_list):
+#         # the following updates my own position within my own vehicle list (I am the current vehicle)
+#         current_vehicle = next(
+#             (p_v for p_v in vehicle.personal_vehicle_list if p_v.ID == vehicle.ID), None
+#         )
+#         if current_vehicle is not None:
+#             current_vehicle.position = vehicle.position
 
-            other_vehicle = next(
-                (
-                    v
-                    for v in case_vehicle_list
-                    if v.ID == personal_vehicle.ID and v.ID != vehicle.ID
-                ),
-                None,
-            )
-            # other_vehicle = case_vehicle_list[idx]
-            if other_vehicle is not None and other_vehicle.transmitting:
-                # print("currently transmitting")
-                personal_vehicle.position = other_vehicle.position
-    return None
+#         # now update the rest of the current vehicle's personal vehicle list with the drones that are transmitting
+#         for _, personal_vehicle in enumerate(vehicle.personal_vehicle_list):
+
+#             other_vehicle = next(
+#                 (
+#                     v
+#                     for v in case_vehicle_list
+#                     if v.ID == personal_vehicle.ID and v.ID != vehicle.ID
+#                 ),
+#                 None,
+#             )
+#             # other_vehicle = case_vehicle_list[idx]
+#             if other_vehicle is not None and other_vehicle.transmitting:
+#                 # print("currently transmitting")
+#                 personal_vehicle.position = other_vehicle.position
+#     return None
 
 
 def run_simulation(

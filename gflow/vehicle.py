@@ -4,6 +4,7 @@ import numpy as np
 # from numpy import linalg
 from typing import List
 from .panel_flow import Flow_Velocity_Calculation
+from gflow.panel_flow_class import PanelFlow
 
 """##Vehicles"""
 
@@ -20,6 +21,7 @@ class PersonalVehicle:
         self.goal = goal
         self.state = 0
         self.V_inf = [0, 0]
+        
         # self.max_speed = 1.0
         # self.delta_t = 1 / 50
 
@@ -76,6 +78,7 @@ class Vehicle:
         self._personal_vehicle_list: List["Vehicle"] = []
         self.transmitting = True
         self.max_speed = 0.5
+        self.panel_flow = PanelFlow(self.personal_vehicle_list, self.arena,"Vortex")
 
     @property
     def arena(self):
@@ -84,6 +87,7 @@ class Vehicle:
     @arena.setter
     def arena(self, arena):
         self._arena = arena
+
 
     @property
     def personal_vehicle_list(self):
@@ -152,7 +156,7 @@ class Vehicle:
     def run_simple_sim(self):
         # these are the flow velocities induced on every vehicle (based off the personal vehicle list), stored as a list
         # print("before", [np.linalg.norm(v.position) for v in self.personal_vehicle_list])
-        flow_vels = Flow_Velocity_Calculation(
+        flow_vels = self.panel_flow.Flow_Velocity_Calculation(
             self.personal_vehicle_list, self.arena, method="Vortex"
         )
         # now update my own velocity
@@ -218,14 +222,20 @@ class Vehicle:
 
         # K is vehicle speed coefficient, a design parameter
         # flow_vels = flow_vels * self.delta_t
-        V_des = flow_vel
+        #########################################
+        #TODO currently array is 2D, so add a third dimension for compatibility
+        # V_des = flow_vel
+        V_des = np.append(flow_vel, 0)
+        #########################################
         # magnitude of the induced velocity vector
         mag = np.linalg.norm(V_des)
         # print(f"magnitude = {mag}")
         # induced velocity unit vector
         V_des_unit = V_des / mag
-        # set z component to 0
-        V_des_unit[2] = 0
+        # set z component to 0 TODO removed for now because focusing on 2d
+        #########################################
+        # V_des_unit[2] = 0
+        #########################################
         # force mag to lie between 0 and 1
         mag_clipped = np.clip(mag, 0.0, self.max_speed)  # 0.3 tello 0.5 pprz
         # define new mag (rename for some reason)

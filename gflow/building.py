@@ -73,149 +73,114 @@ class Building:
                 # Divide the edge into "n" equal segments:
                 self.panels = np.vstack((self.panels, np.linspace(xyz1, xyz2, n)[1:]))
 
+    def panelize_optimized(self, size):
+        n_vertices = self.vertices.shape[0]
+        # Calculate the edge lengths
+        edge_lengths = np.linalg.norm(self.vertices - np.roll(self.vertices, -1, axis=0), axis=1)
+        
+        # Calculate the number of panels for each edge
+        n_panels = np.ceil(edge_lengths / size).astype(int)
+        
+        # Initialize an empty array to store the panels
+        total_panels = np.sum(n_panels)
+        self.panels = np.zeros((total_panels, self.vertices.shape[1]))
+        
+        idx = 0
+        for i in range(n_vertices):
+            xyz1 = self.vertices[i]
+            xyz2 = self.vertices[(i + 1) % n_vertices]
+            panels_for_this_edge = np.linspace(xyz1, xyz2, n_panels[i]+1)[1:]
+            
+            self.panels[idx:idx + n_panels[i]] = panels_for_this_edge
+            idx += n_panels[i]
+
+
     def contains_point(self, point):
         # Checks if a point lies within the building.
         p = Polygon(self.vertices[:, :2])
         return p.contains_point(point, radius=0)
 
-    def calculate_coef_matrix(self, method="Vortex"):
+
+    def calculate_coef_matrix(self):
+        '''Calculate the Matrix inverse of the building'''
         t = time.time()
         # Calculates coefficient matrix.
-        if method == "Vortex":
-            self.nop = self.panels.shape[0]  # Number of Panels
-            self.pcp = np.zeros((self.nop, 2))  # Controlpoints: at 3/4 of panel
-            self.vp = np.zeros((self.nop, 2))  # Vortex point: at 1/4 of panel
-            self.pl = np.zeros((self.nop, 1))  # Panel Length
-            self.pb = np.zeros(
-                (self.nop, 1)
-            )  # Panel Orientation; measured from horizontal axis, ccw (+)tive, in radians
+        self.nop = self.panels.shape[0]  # Number of Panels
+        XYZ2 = self.panels  # Coordinates of end point of panel
+        XYZ1 = np.roll(self.panels, 1, axis=0)  # Coordinates of the next end point of panel
+        
+        diff = XYZ1 - XYZ2
+        
+        # Controlpoints point at 3/4 of panel. #self.pcp  = 0.5*( XYZ1 + XYZ2 )[:,:2]
+        self.pcp = XYZ2 + diff * 0.75
+        # Vortex point at 1/4 of panel.
+        self.vp = XYZ2 + diff * 0.25
+        
+        self.pb = np.arctan2(diff[:, 1], diff[:, 0]) + np.pi / 2
 
-            XYZ2 = self.panels  # Coordinates of end point of panel
-            XYZ1 = np.roll(
-                self.panels, 1, axis=0
-            )  # Coordinates of the next end point of panel
+        # Calculate K matrix
+        pcp_diff = self.pcp[:, np.newaxis, :] - self.vp[np.newaxis, :, :]
+        pcp_sq_dist = np.sum(pcp_diff ** 2, axis=-1)
+        
+        cos_pb = np.cos(self.pb)
+        sin_pb = np.sin(self.pb)
+        
+        self.K = (1 / (2 * np.pi)) * (
+            pcp_diff[..., 1] * cos_pb[:, np.newaxis]
+            - pcp_diff[..., 0] * sin_pb[:, np.newaxis]
+        ) / pcp_sq_dist
 
-            self.pcp = (
-                XYZ2 + (XYZ1 - XYZ2) * 0.75
-            )  # Controlpoints point at 3/4 of panel. #self.pcp  = 0.5*( XYZ1 + XYZ2 )[:,:2]
-            self.vp = XYZ2 + (XYZ1 - XYZ2) * 0.25  # Vortex point at 1/4 of panel.
-            self.pb = (
-                np.arctan2((XYZ2[:, 1] - XYZ1[:, 1]), (XYZ2[:, 0] - XYZ1[:, 0]))
-                + np.pi / 2
-            )
-            self.K = np.zeros((self.nop, self.nop))
-            for m in range(self.nop):
-                for n in range(self.nop):
-                    self.K[m, n] = (
-                        1
-                        / (2 * np.pi)
-                        * (
-                            (self.pcp[m][1] - self.vp[n][1]) * np.cos(self.pb[m])
-                            - (self.pcp[m][0] - self.vp[n][0]) * np.sin(self.pb[m])
-                        )
-                        / (
-                            (self.pcp[m][0] - self.vp[n][0]) ** 2
-                            + (self.pcp[m][1] - self.vp[n][1]) ** 2
-                        )
-                    )
-            # Inverse of coefficient matrix: (Needed for solution of panel method eqn.)
+        # Inverse of coefficient matrix: (Needed for solution of panel method eqn.)
+        self.K_inv = np.linalg.inv(self.K)
+        t1 = time.time() - t 
+        print(f"time taken to inverse is {t1}")
 
-            self.K_inv = np.linalg.inv(self.K)
-            t1 = time.time() - t
-            # print(f"time taken to inverse is {t1}")
-        elif method == "Source":
-            pass
 
-    def gamma_calc(self, vehicle, othervehicles, arenamap, method="Vortex"):
-        # Calculates unknown vortex strengths by solving panel method eq.
+    
 
+    def gamma_calc(self, vehicle, othervehicles):
+        """Calculate the unknown vortex strengths of the building panels
+
+        Args:
+            vehicle (Vehicle): _description_
+            othervehicles (list[Vehicle]): _description_
+        """
+        # Initialize arrays
         vel_sink = np.zeros((self.nop, 2))
         vel_source = np.zeros((self.nop, 2))
         vel_source_imag = np.zeros((self.nop, 2))
-        # vel_source_imag1 = np.zeros((self.nop, 2))
-        # vel_source_imag2 = np.zeros((self.nop, 2))
-        # vel_source_imag3 = np.zeros((self.nop, 2))
         RHS = np.zeros((self.nop, 1))
 
-        if method == "Vortex":
-            vel_sink[:, 0] = (
-                -vehicle.sink_strength * (self.pcp[:, 0] - vehicle.goal[0])
-            ) / (
-                2
-                * np.pi
-                * (
-                    (self.pcp[:, 0] - vehicle.goal[0]) ** 2
-                    + (self.pcp[:, 1] - vehicle.goal[1]) ** 2
-                )
-            )
-            vel_sink[:, 1] = (
-                -vehicle.sink_strength * (self.pcp[:, 1] - vehicle.goal[1])
-            ) / (
-                2
-                * np.pi
-                * (
-                    (self.pcp[:, 0] - vehicle.goal[0]) ** 2
-                    + (self.pcp[:, 1] - vehicle.goal[1]) ** 2
-                )
-            )
+        # Pre-calculate repeated terms
+        sink_diff = self.pcp[:,:2] - vehicle.goal[:2]
+        sink_sq_dist = np.sum(sink_diff ** 2, axis=-1)
+        imag_diff = self.pcp[:,:2] - vehicle.position[:2]
+        imag_sq_dist = np.sum(imag_diff ** 2, axis=-1)
 
-            vel_source_imag[:, 0] = (
-                vehicle.imag_source_strength * (self.pcp[:, 0] - vehicle.position[0])
-            ) / (
-                2
-                * np.pi
-                * (
-                    (self.pcp[:, 0] - vehicle.position[0]) ** 2
-                    + (self.pcp[:, 1] - vehicle.position[1]) ** 2
-                )
-            )
-            vel_source_imag[:, 1] = (
-                vehicle.imag_source_strength * (self.pcp[:, 1] - vehicle.position[1])
-            ) / (
-                2
-                * np.pi
-                * (
-                    (self.pcp[:, 0] - vehicle.position[0]) ** 2
-                    + (self.pcp[:, 1] - vehicle.position[1]) ** 2
-                )
-            )
+        # Velocity calculations for sink and imag_source
+        vel_sink = -vehicle.sink_strength * sink_diff / (2 * np.pi * sink_sq_dist)[:, np.newaxis]
+        vel_source_imag = vehicle.imag_source_strength * imag_diff / (2 * np.pi * imag_sq_dist)[:, np.newaxis]
+        # Velocity calculations for source
+        for othervehicle in othervehicles:
+            source_diff = self.pcp[:,:2] - othervehicle.position[:2]
+            source_sq_dist = np.sum(source_diff ** 2, axis=-1)
+            vel_source += othervehicle.source_strength * source_diff / (2 * np.pi * source_sq_dist)[:, np.newaxis]
 
-            for i, othervehicle in enumerate(othervehicles):
-                vel_source[:, 0] += (
-                    othervehicle.source_strength
-                    * (self.pcp[:, 0] - othervehicle.position[0])
-                ) / (
-                    2
-                    * np.pi
-                    * (
-                        (self.pcp[:, 0] - othervehicle.position[0]) ** 2
-                        + (self.pcp[:, 1] - othervehicle.position[1]) ** 2
-                    )
-                )
-                vel_source[:, 1] += (
-                    othervehicle.source_strength
-                    * (self.pcp[:, 1] - othervehicle.position[1])
-                ) / (
-                    2
-                    * np.pi
-                    * (
-                        (self.pcp[:, 0] - othervehicle.position[0]) ** 2
-                        + (self.pcp[:, 1] - othervehicle.position[1]) ** 2
-                    )
-                )
+        # RHS calculation
+        cos_pb = np.cos(self.pb)
+        sin_pb = np.sin(self.pb)
+        RHS[:, 0] = (
+            - vehicle.V_inf[0] * cos_pb
+            - vehicle.V_inf[1] * sin_pb
+            - np.sum(vel_sink * np.array([cos_pb, sin_pb]).T, axis=1)
+            - np.sum(vel_source * np.array([cos_pb, sin_pb]).T, axis=1)
+            - np.sum(vel_source_imag * np.array([cos_pb, sin_pb]).T, axis=1)
+        )
 
-            RHS[:, 0] = (
-                -vehicle.V_inf[0] * np.cos(self.pb[:])
-                - vehicle.V_inf[1] * np.sin(self.pb[:])
-                - vel_sink[:, 0] * np.cos(self.pb[:])
-                - vel_sink[:, 1] * np.sin(self.pb[:])
-                - vel_source[:, 0] * np.cos(self.pb[:])
-                - vel_source[:, 1] * np.sin(self.pb[:])
-                - vel_source_imag[:, 0] * np.cos(self.pb[:])
-                - vel_source_imag[:, 1] * np.sin(self.pb[:])
-            )
 
-            self.gammas[vehicle.ID] = np.matmul(self.K_inv, RHS)
+        # Solve for gammas
+        self.gammas[vehicle.ID] = np.matmul(self.K_inv, RHS)
+
 
 
 class RegularPolygon:
