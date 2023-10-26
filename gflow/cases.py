@@ -49,12 +49,12 @@ class Case:
 
     @vehicle_list.setter
     def vehicle_list(self, new_vehicle_list: List[Vehicle]):
+        #TODO is this deepcopy necessary given the changing logic, for now safer to keep it
         self._vehicle_list = deepcopy(new_vehicle_list)
         for vehicle in self._vehicle_list:
-            # vehicle.personal_vehicle_list = deepcopy(new_vehicle_list)
-            vehicle.personal_vehicle_list = [
-                PersonalVehicle(*v.basic_properties()) for v in new_vehicle_list
-            ]
+            vehicle.personal_vehicle_dict = {
+                v.ID:PersonalVehicle(*v.basic_properties()) for v in new_vehicle_list
+            }
 
     @property
     def arena(self):

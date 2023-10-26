@@ -3,67 +3,51 @@ import numpy as np
 # import scipy
 # from numpy import linalg
 from typing import List
-from .panel_flow import Flow_Velocity_Calculation
-from gflow.panel_flow_class import PanelFlow
+from numpy.typing import ArrayLike
+# from .panel_flow import Flow_Velocity_Calculation
+from gflow.panel_flow_individual import PanelFlow
+# from gflow.panel_flow_class import PanelFlow
+
 
 """##Vehicles"""
 
+from dataclasses import dataclass, field
 
+@dataclass
 class PersonalVehicle:
     """Vehicle with the minimal required information: position, velocity, altitude, state etc"""
-
-    def __init__(self, ID, position, source_strength, sink_strength, goal) -> None:
-        self.ID = ID
-        self.position = position
-        self.source_strength = source_strength
-        self.imag_source_strength = 0.75
-        self.sink_strength = sink_strength
-        self.goal = goal
-        self.state = 0
-        self.V_inf = [0, 0]
-        
-        # self.max_speed = 1.0
-        # self.delta_t = 1 / 50
+    ID:str
+    position:ArrayLike
+    goal:ArrayLike
+    source_strength:float
+    sink_strength:float
+    imag_source_strength:float = 0.75
+    #state is unnused in PersonalVehicle
+    state:int = 0
+    # not sure what V_inf is for
+    V_inf: List[float] = field(default_factory=lambda: [0, 0]) 
 
 
-# from dataclasses import dataclass
-
-# @dataclass
-# class VehicleSerializer:
-#     ID:str
-#     position:tuple
-
-#     def __init__(self,instance:Vehicle) -> None:
-#         self.serialize(instance)
-#         self.instance=instance
-
-#     def serialize(instance:Vehicle):
-#         ...
-
-#     def data()->Dict:
-#         return {
-
-#         }
-
-# v= VehicleSerializer(instance=vehicle,**vehicle.basic_attrs)
-
-
-class Vehicle:
+class Vehicle(PanelFlow):
+    
     def __init__(
         self, ID, source_strength=0, imag_source_strength=0.75, correction_type="none"
     ):
+        super().__init__(
+            position=np.zeros(3), 
+            goal = np.zeros(3),
+            source_strength=source_strength,
+            sink_strength=0,
+            imag_source_strength = imag_source_strength
+                        )
         self.t = 0
         self._arena = None
-        self.position = np.zeros(3)
+        
         self.desiredpos = np.zeros(3)
         self.correction = np.zeros(3)
         self.velocity = np.zeros(3)
-        self.goal = np.zeros(3)
-        self.source_strength = source_strength
-        self.sink_strength = 0
-        self.imag_source_strength = imag_source_strength
-        self.gamma = 0
-        self.altitude_mask = None
+        # self.gamma = 0
+        # self.altitude_mask = None
         self.ID = ID
         self.path = []
         # FIXME there is a magic number of 0.2 for the destination, fix this
@@ -75,10 +59,10 @@ class Vehicle:
         self.velocity_corrected = np.zeros(3)
         self.vel_err = np.zeros(3)
         self.correction_type = correction_type
-        self._personal_vehicle_list: List["Vehicle"] = []
+        self.personal_vehicle_dict: dict[str,Vehicle] = []
         self.transmitting = True
         self.max_speed = 0.5
-        self.panel_flow = PanelFlow(self.personal_vehicle_list, self.arena,"Vortex")
+        self.ARRIVAL_DISTANCE = 0.2
 
     @property
     def arena(self):
@@ -89,23 +73,58 @@ class Vehicle:
         self._arena = arena
 
 
-    @property
-    def personal_vehicle_list(self):
-        return self._personal_vehicle_list
+    # @property
+    # def personal_vehicle_dict(self):
+    #     return self._personal_vehicle_dict
 
-    @personal_vehicle_list.setter
-    def personal_vehicle_list(self, vehicle_list):
-        # print("personal setter is called")
-        self._personal_vehicle_list = vehicle_list
+    # @personal_vehicle_dict.setter
+    # def personal_vehicle_dict(self, vehicle_list:list[Vehicle]):
+    #     print("personal setter is called")
+    #     self._personal_vehicle_dict = vehicle_list
+
+    def update_personal_vehicle_dict(self,case_vehicle_list:list[Vehicle], max_avoidance_distance:float=100.)->None:
+        for v in case_vehicle_list:
+            # overall options are: keep my previous knowledge, update it, or remove the drone entirely
+            if v.ID == self.ID:
+                # This is my own information, update my knowledge of myself with my own info
+                # This behaviour might be different when dealing with real drones
+
+                self.personal_vehicle_dict[self.ID] = PersonalVehicle(**v.basic_properties())
+                continue
+            if v.transmitting == True:
+                # other vehicle is transmitting so either take the newer vehicle info or remove it entirely if too far or arrived
+                if v.state == 1:
+                    # arrived, so remove from list, we don't care about it
+                    # pass
+                    self.personal_vehicle_dict.pop(v.ID, None)
+
+                else:
+                    # not arrived, check if close enough
+                    if (
+                        np.linalg.norm(v.position - self.position)
+                        > max_avoidance_distance
+                    ):
+                        # too far, remove
+                        self.personal_vehicle_dict.pop(v.ID, None)
+                    else:
+                        # not too far, update or add
+                        self.personal_vehicle_dict[v.ID] = PersonalVehicle(**v.basic_properties())
+            else:
+                # not transmitting, keep the old, aka do nothing
+                pass
+
+        # Convert back to a list if necessary #FIXME should really have it as a dictionary the whole time let's be honest
+        # valid_personal_vehicle_list = list(personal_vehicle_dict.values())
+        return None
 
     def basic_properties(self):
-        return (
-            self.ID,
-            self.position,
-            self.source_strength,
-            self.sink_strength,
-            self.goal,
-        )
+        return {
+            'ID': self.ID,
+            'position': self.position,
+            'goal': self.goal,
+            'source_strength': self.source_strength,
+            'sink_strength': self.sink_strength,
+        }
 
     def Set_Position(self, pos):
         self.position = np.array(pos)
@@ -155,24 +174,22 @@ class Vehicle:
 
     def run_simple_sim(self):
         # these are the flow velocities induced on every vehicle (based off the personal vehicle list), stored as a list
-        # print("before", [np.linalg.norm(v.position) for v in self.personal_vehicle_list])
-        flow_vels = self.panel_flow.Flow_Velocity_Calculation(
-            self.personal_vehicle_list, self.arena, method="Vortex"
+        flow_vels = self.Flow_Velocity_Calculation(
+            self.personal_vehicle_dict, self.arena, method="Vortex"
         )
         # now update my own velocity
         index = next(
             (
                 index
-                for index, p_v in enumerate(self.personal_vehicle_list)
+                for index, p_v in enumerate(self.personal_vehicle_dict.values())
                 if p_v.ID == self.ID
             ),
             None,
         )
 
         # self.update_position(flow_vels[index], self.arena)
-        self.Update_Velocity(flow_vels[index], self.arena)
+        self.update_position_clipped(flow_vels[index], self.arena)
 
-        # print("after ", [np.linalg.norm(v.position) for v in self.personal_vehicle_list])
 
     def update_position(self, flow_vel, arenamap):
         """Updates my position within the global vehicle_list given the induced flow from other vehicles onto me, self.velocity is used, so that the movement is less brutal"""
@@ -209,15 +226,14 @@ class Vehicle:
         self.path = np.vstack((self.path, self.position))
         # print(f"path = {self.path.shape}")
         # print(f"Drone {self.ID}, distance left = {np.linalg.norm(self.goal - self.position)}")
-        if np.linalg.norm(self.goal - self.position) < 0.2:  # 0.1 for 2d
+        if self.arrived(arrival_distance=self.ARRIVAL_DISTANCE):  # 0.1 for 2d
             self.state = 1
-            # print(idx)
-            # self.personal_vehicle_list[idx].state = 1
-            # print([v.state for v in self.personal_vehicle_list])
+
+
             # print("Goal reached")
         return self.position
 
-    def Update_Velocity(self, flow_vel, arenamap):
+    def update_position_clipped(self, flow_vel, arenamap):
         """Updates my position within the global vehicle_list given the induced flow from other vehicles onto me"""
 
         # K is vehicle speed coefficient, a design parameter
@@ -254,13 +270,14 @@ class Vehicle:
 
         self.path = np.vstack((self.path, self.position))
 
-        if np.linalg.norm(self.goal - self.position) < 0.2:  # 0.1 for 2d
+        if self.arrived(arrival_distance = self.ARRIVAL_DISTANCE):
+            print("goal is reached")
             # goal has been reached
             self.state = 1
         return self.position
 
-    def arrived(self):
+    def arrived(self, arrival_distance):
         """Similar to state but using the current live position"""
-        arrived = np.linalg.norm(self.goal - self.position) < 0.2
+        arrived = np.linalg.norm(self.goal - self.position) < arrival_distance
         return arrived  # 0.1 for 2d
         # self.state = 1

@@ -23,19 +23,23 @@ import time
 """# Velocity Calculation"""
 
 class PanelFlow:
-    def __init__(self, vehicles:list[PersonalVehicle], arenamap: ArenaMap, method="Vortex") -> None:
-        self.vehicles = vehicles
-        self.arenamap = arenamap
-        self.method = method
+    def __init__(self, position:ArrayLike, goal:ArrayLike, source_strength:float, sink_strength:float,imag_source_strength:float) -> None:
+        self.position = position
+        self.goal = goal
+        self.source_strength = source_strength
+        self.sink_strength = sink_strength
+        self.imag_source_strength = imag_source_strength
 
-    def create_other_vehicles_list(self, vehicles, current_index: int):
-        return vehicles[:current_index] + vehicles[current_index + 1 :]
+
+    def create_other_vehicles_list(self, vehicles:dict[str,PersonalVehicle], v_id: str):
+        # return vehicles[:current_index] + vehicles[current_index + 1 :]
+        return [vehicle for vehicle in vehicles.values() if vehicle.ID != v_id]
 
 
-    def calculate_vortex_strengths(self,vehicles:list[Vehicle], arenamap: ArenaMap, method:str):
-        for f, vehicle in enumerate(vehicles):
+    def calculate_vortex_strengths(self,vehicles:dict[str,PersonalVehicle], arenamap: ArenaMap, method:str):
+        for v_id, vehicle in vehicles.items():
             # Remove current vehicle from vehicle list.
-            othervehicleslist = self.create_other_vehicles_list(vehicles, current_index=f)
+            othervehicleslist = self.create_other_vehicles_list(vehicles, v_id)
             # Remove buildings with heights below cruise altitue:
             vehicle.altitude_mask = self.altitude_mask(vehicle, arenamap)
             # related_buildings keeps only the buildings for which the altitude_mask is 1, ie buildings that are higher than the altitude
@@ -46,7 +50,7 @@ class PanelFlow:
                 building.gamma_calc(vehicle, othervehicleslist)
 
 
-    def altitude_mask(self,vehicle:Vehicle, arenamap: ArenaMap):
+    def altitude_mask(self,vehicle:PersonalVehicle, arenamap: ArenaMap):
         mask = np.zeros((len(arenamap.buildings)))
         for index, panelledbuilding in enumerate(arenamap.buildings):
             if (panelledbuilding.vertices[:, 2] > vehicle.position[2]).any():
@@ -86,12 +90,12 @@ class PanelFlow:
         # # Replace zero self-distances with ones to avoid division by zero
         # np.fill_diagonal(power4_distances_extended, 1)
 
-    def calculate_all_induced_sink_velocities(self,vehicles:list[Vehicle]):
+    def calculate_all_induced_sink_velocities(self,vehicles:dict[str,PersonalVehicle]):
 
-        vehicle_positions = np.array([v.position for v in vehicles])
-        sink_strengths = np.array([v.sink_strength for v in vehicles])
+        vehicle_positions = np.array([v.position for v in vehicles.values()])
+        sink_strengths = np.array([v.sink_strength for v in vehicles.values()])
         sink_positions = np.array(
-            [v.goal for v in vehicles]
+            [v.goal for v in vehicles.values()]
         )  # Assuming the sink position is stored in 'goal' attribute
 
         # Calculate position differences and distances
@@ -112,7 +116,7 @@ class PanelFlow:
         return induced_v
 
 
-    def calculate_all_induced_source_velocities(self, vehicles:list[Vehicle]):
+    def calculate_all_induced_source_velocities(self, vehicles:dict[str,PersonalVehicle]):
         """_summary_
 
         Args:
@@ -121,8 +125,8 @@ class PanelFlow:
         Returns:
             _type_: _description_
         """
-        vehicle_positions = np.array([v.position for v in vehicles])
-        vehicle_source_strengths = np.array([v.source_strength for v in vehicles])
+        vehicle_positions = np.array([v.position for v in vehicles.values()])
+        vehicle_source_strengths = np.array([v.source_strength for v in vehicles.values()])
 
         # Extend dimensions for broadcasting
         vehicle_positions_extended = vehicle_positions[:, np.newaxis, :]
@@ -153,9 +157,9 @@ class PanelFlow:
         return V_source
 
 
-    def calculate_all_induced_vortex_velocities(self, vehicles:list[Vehicle])->ArrayLike:
-        vehicle_positions = np.array([v.position for v in vehicles])
-        vehicle_source_strengths = np.array([v.source_strength for v in vehicles])
+    def calculate_all_induced_vortex_velocities(self, vehicles:dict[str,PersonalVehicle])->ArrayLike:
+        vehicle_positions = np.array([v.position for v in vehicles.values()])
+        vehicle_source_strengths = np.array([v.source_strength for v in vehicles.values()])
         vehicle_vortex_strengths = vehicle_source_strengths / 4
 
         # Extend dimensions for broadcasting
@@ -215,7 +219,7 @@ class PanelFlow:
     #     return uv
 
     
-    def gamma_calculation(self,vehicles:list[PersonalVehicle],arena:ArenaMap):
+    def gamma_calculation(self,vehicles:dict[str,PersonalVehicle],arena:ArenaMap):
         n_vehicles:int = len(vehicles)
         #######################################################################################################################################
         # Determine the number of buildings and the maximum number of panels in any building
@@ -237,7 +241,7 @@ class PanelFlow:
         vehicle_positions = np.zeros((n_vehicles, 2))
 
         # Populate the vehicle_positions array
-        for i, vehicle in enumerate(vehicles):
+        for i, vehicle in enumerate(vehicles.values()):
             vehicle_positions[i, :] = vehicle.position[:2]
             # vehicle_positions = vehicle_positions[:,:2]
 
@@ -250,7 +254,7 @@ class PanelFlow:
         # Populate the all_gammas array
         for i, building in enumerate(arena.buildings):
             num_panels = building.nop  # Number of panels in the current building
-            for j, vehicle in enumerate(vehicles):
+            for j, vehicle in enumerate(vehicles.values()):
                 if vehicle.ID in building.gammas:
                     # all_gammas[j, i, :num_panels] = building.gammas[vehicle.ID][:num_panels]
                     all_gammas[j, i, :num_panels] = building.gammas[vehicle.ID][:num_panels].ravel()
@@ -280,7 +284,7 @@ class PanelFlow:
         return V_gamma_all
     
     def Flow_Velocity_Calculation(self,
-        vehicles:list[Vehicle], arenamap: ArenaMap, method="Vortex"
+        vehicles:dict[str,PersonalVehicle], arenamap: ArenaMap, method="Vortex"
     )->ArrayLike:
         n_vehicles = len(vehicles)
         two_dim_shape = (n_vehicles, 2)

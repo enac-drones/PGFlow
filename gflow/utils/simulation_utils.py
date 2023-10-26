@@ -1,10 +1,10 @@
 # from .. import vehicle, cases, panel_flow
-from gflow_local.vehicle import Vehicle, PersonalVehicle
-from gflow_local.cases import Case
+from gflow.vehicle import Vehicle, PersonalVehicle
+from gflow.cases import Case
 from typing import List
 import numpy as np
 import time
-from gflow.panel_flow import Flow_Velocity_Calculation
+# from gflow.panel_flow import Flow_Velocity_Calculation
 
 # from gflow_local.panel_flow import Flow_Velocity_Calculation
 
@@ -24,47 +24,47 @@ def set_new_attribute(case: Case, attribute_name: str, new_attribute_value):
     return True
 
 
-def valid_vehicle_list(
-    vehicle: Vehicle, case_vehicle_list: List[Vehicle], max_avoidance_distance
-):
-    # First, convert personal_vehicle_list to a dictionary
-    # i.e. store my current knowledge of other drones
-    personal_vehicle_dict = {v.ID: v for v in vehicle.personal_vehicle_list}
+# def valid_vehicle_dict(
+#     vehicle: Vehicle, case_vehicle_list: List[Vehicle], max_avoidance_distance
+# ):
+#     # First, convert personal_vehicle_list to a dictionary
+#     # i.e. store my current knowledge of other drones
+#     # personal_vehicle_dict = {v.ID: v for v in vehicle.personal_vehicle_list}
 
-    # case_vehicle_list is emulating the information that is available to me via radio etc
-    for v in case_vehicle_list:
-        # overall options are: keep my previous knowledge, update it, or remove the drone entirely
-        if v.ID == vehicle.ID:
-            # This is my own information, update my knowledge of myself with my own info
-            # This behaviour might be different when dealing with real drones
-            personal_vehicle_dict[v.ID] = PersonalVehicle(*v.basic_properties())
-            continue
+#     # case_vehicle_list is emulating the information that is available to me via radio etc
+#     for v in case_vehicle_list:
+#         # overall options are: keep my previous knowledge, update it, or remove the drone entirely
+#         if v.ID in vehicle.personal_vehicle_dict:
+#             # This is my own information, update my knowledge of myself with my own info
+#             # This behaviour might be different when dealing with real drones
+#             vehicle.personal_vehicle_dict[v.ID] = PersonalVehicle(*v.basic_properties())
+#             continue
 
-        if v.transmitting == True:
-            # other vehicle is transmitting so either take the newer vehicle info or remove it entirely if too far or arrived
-            if v.state == 1:
-                # arrived, so remove from list, we don't care about it
-                # pass
-                personal_vehicle_dict.pop(v.ID, None)
+#         if v.transmitting == True:
+#             # other vehicle is transmitting so either take the newer vehicle info or remove it entirely if too far or arrived
+#             if v.state == 1:
+#                 # arrived, so remove from list, we don't care about it
+#                 # pass
+#                 vehicle.personal_vehicle_dict.pop(v.ID, None)
 
-            else:
-                # not arrived, check if close enough
-                if (
-                    np.linalg.norm(v.position - vehicle.position)
-                    > max_avoidance_distance
-                ):
-                    # too far, remove
-                    personal_vehicle_dict.pop(v.ID, None)
-                else:
-                    # not too far, update or add
-                    personal_vehicle_dict[v.ID] = PersonalVehicle(*v.basic_properties())
-        else:
-            # not transmitting, keep the old, aka do nothing
-            pass
+#             else:
+#                 # not arrived, check if close enough
+#                 if (
+#                     np.linalg.norm(v.position - vehicle.position)
+#                     > max_avoidance_distance
+#                 ):
+#                     # too far, remove
+#                     vehicle.personal_vehicle_dict.pop(v.ID, None)
+#                 else:
+#                     # not too far, update or add
+#                     vehicle.personal_vehicle_dict[v.ID] = PersonalVehicle(*v.basic_properties())
+#         else:
+#             # not transmitting, keep the old, aka do nothing
+#             pass
 
-    # Convert back to a list if necessary #FIXME should really have it as a dictionary the whole time let's be honest
-    valid_personal_vehicle_list = list(personal_vehicle_dict.values())
-    return valid_personal_vehicle_list
+#     # Convert back to a list if necessary #FIXME should really have it as a dictionary the whole time let's be honest
+#     # valid_personal_vehicle_list = list(personal_vehicle_dict.values())
+#     return vehicle.personal_vehicle_dict
 
 
 def step_simulation(case_vehicle_list: List[Vehicle], max_avoidance_distance=2):
@@ -76,9 +76,11 @@ def step_simulation(case_vehicle_list: List[Vehicle], max_avoidance_distance=2):
 
         # update the vehicle's personal knowledge of other drones by only keeping those that meet specific conditions:
         # not too far, have not arrived yet, and are transmitting.
-        vehicle.personal_vehicle_list = valid_vehicle_list(
-            vehicle, case_vehicle_list, max_avoidance_distance
-        )
+        # vehicle.personal_vehicle_dict = valid_vehicle_dict(
+        #     vehicle, case_vehicle_list, max_avoidance_distance
+        # )
+        vehicle.update_personal_vehicle_dict(case_vehicle_list,max_avoidance_distance)
+        # print([v.state for v in case_vehicle_list if v.ID == case_vehicle_list[0].ID])
 
         # update my position in the case_vehicle_list
         vehicle.run_simple_sim()
@@ -152,6 +154,7 @@ def run_simulation(
     # case_vehicle_list = case.vehicle_list
     start_time = time.time()
     for i in range(t):
+
         # Step the simulation
         # step_simulation(case.vehicle_list,max_avoidance_distance)
 

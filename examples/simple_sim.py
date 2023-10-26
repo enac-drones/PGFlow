@@ -30,14 +30,14 @@ if __name__ == "__main__":
 
     print(f"update every = {update_time_period}")
 
-
+    # case.arena.Visualize2D()
     start_time = time()
     result = run_simulation(
         case,
         t=2000,
         update_every=update_time_period,
         stop_at_collision=False,
-        max_avoidance_distance=20,
+        max_avoidance_distance=1,
     )
 
     time_taken = time() - start_time
