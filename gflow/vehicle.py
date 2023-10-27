@@ -86,10 +86,10 @@ class Vehicle(PanelFlow):
         for v in case_vehicle_list:
             # overall options are: keep my previous knowledge, update it, or remove the drone entirely
             if v.ID == self.ID:
-                # This is my own information, update my knowledge of myself with my own info
-                # This behaviour might be different when dealing with real drones
-
-                self.personal_vehicle_dict[self.ID] = PersonalVehicle(**v.basic_properties())
+                # we should not be in our own list, so remove us if we are
+                # TODO in future we should never be added in the first place so FIXME
+                self.personal_vehicle_dict.pop(self.ID, None)
+                # self.personal_vehicle_dict[self.ID] = PersonalVehicle(**v.basic_properties())
                 continue
             if v.transmitting == True:
                 # other vehicle is transmitting so either take the newer vehicle info or remove it entirely if too far or arrived

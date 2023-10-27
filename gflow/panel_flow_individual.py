@@ -31,23 +31,22 @@ class PanelFlow:
         self.imag_source_strength = imag_source_strength
 
 
-    def create_other_vehicles_list(self, vehicles:dict[str,PersonalVehicle], v_id: str):
-        # return vehicles[:current_index] + vehicles[current_index + 1 :]
-        return [vehicle for vehicle in vehicles.values() if vehicle.ID != v_id]
+    # def create_other_vehicles_list(self, vehicles:dict[str,PersonalVehicle], v_id: str):
+    #     # return vehicles[:current_index] + vehicles[current_index + 1 :]
+    #     return [vehicle for vehicle in vehicles.values() if vehicle.ID != v_id]
 
 
     def calculate_vortex_strengths(self,vehicles:dict[str,PersonalVehicle], arenamap: ArenaMap, method:str):
-        for v_id, vehicle in vehicles.items():
-            # Remove current vehicle from vehicle list.
-            othervehicleslist = self.create_other_vehicles_list(vehicles, v_id)
-            # Remove buildings with heights below cruise altitue:
-            vehicle.altitude_mask = self.altitude_mask(vehicle, arenamap)
-            # related_buildings keeps only the buildings for which the altitude_mask is 1, ie buildings that are higher than the altitude
-            # of the vehicle in question
-            related_buildings:list[Building] = list(compress(arenamap.buildings, vehicle.altitude_mask))
-            # Vortex strength calculation (related to panels of each building):
-            for building in related_buildings:
-                building.gamma_calc(vehicle, othervehicleslist)
+        # Remove current vehicle from vehicle list.
+        # othervehicleslist = self.create_other_vehicles_list(vehicles, v_id)
+        # Remove buildings with heights below cruise altitue:
+        vehicle.altitude_mask = self.altitude_mask(vehicle, arenamap)
+        # related_buildings keeps only the buildings for which the altitude_mask is 1, ie buildings that are higher than the altitude
+        # of the vehicle in question
+        related_buildings:list[Building] = list(compress(arenamap.buildings, vehicle.altitude_mask))
+        # Vortex strength calculation (related to panels of each building):
+        for building in related_buildings:
+            building.gamma_calc(vehicle, othervehicleslist)
 
 
     def altitude_mask(self,vehicle:PersonalVehicle, arenamap: ArenaMap):
@@ -198,7 +197,6 @@ class PanelFlow:
     #     if not vehicle.ID in building.gammas.keys():
     #         return
     #     # Velocity induced by vortices on each panel:
-    #     # print(building.pcp.shape,building.pcp[0,:])
     #     squared_distances = (
     #         vehicle.position[0] - building.pcp[:, 0]
     #     ) ** 2 + (vehicle.position[1] - building.pcp[:, 1]) ** 2
@@ -241,7 +239,6 @@ class PanelFlow:
         vehicle_positions = np.zeros((n_vehicles, 2))
 
         # Populate the vehicle_positions array
-        # print(vehicles.values())
         for i, vehicle in enumerate(vehicles.values()):
             vehicle_positions[i, :] = vehicle.position[:2]
             # vehicle_positions = vehicle_positions[:,:2]
@@ -280,7 +277,6 @@ class PanelFlow:
         uv = all_gammas_normalized[:, :, :, np.newaxis] * numerators / squared_distances[:, :, :, np.newaxis]
 
         V_gamma_all = np.sum(uv, axis=(1, 2))  # Summing across num_buildings and num_panels axes
-        # print(V_gamma_all.shape)
         #######################################################################################################################################
         return V_gamma_all
     
@@ -308,7 +304,6 @@ class PanelFlow:
         t = time.time()
         self.calculate_vortex_strengths(vehicles, arenamap, method)
         t1 = time.time()
-        # print(f"Time to calculate vortex strengths: {t1-t}")
         # --------------------------------------------------------------------
         # Flow velocity calculation given vortex strengths:
         flow_vels = np.zeros([len(vehicles), 3])
