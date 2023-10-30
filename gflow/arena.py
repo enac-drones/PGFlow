@@ -14,7 +14,7 @@ from typing import List
 class ArenaMap:
     def __init__(
         self,
-        buildings:list[Building]=None,
+        buildings:list[Building]= None,
         building_hulls=None,
         generate="manual",
         number_of_vehicles=1,

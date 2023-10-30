@@ -99,7 +99,6 @@ class Cases:
         """initiate the class with the json filename and the case within that file"""
         self._filename: str = filename
         self.cases: dict = self._load_file(self._filename)
-        # print(f"cases are {self.cases}")
         self._case_name: str = "default"
         self.case = None
 
@@ -110,7 +109,6 @@ class Cases:
     @case_name.setter
     def case_name(self, new_name):
         """Ensure the user sets a correct case"""
-        # print(self.cases.keys())
         if new_name in self.cases.keys():
             self._case_name = new_name
         else:
@@ -241,7 +239,6 @@ class Cases:
         buildings, vehicles = [], []
         buildings.append(building)
         vehicles.append(Vehicle1)
-        # print(f"the vehicle list should be {vehicles[0],len(vehicles)}")
         case = Case(name="default")
         case.vehicle_list = vehicles
         case.buildings = buildings
@@ -256,7 +253,6 @@ class Cases:
         buildings = []
         for building in self.cases[self.case_name]["buildings"]:
             coords = building["vertices"]
-            # print(f'{coords = }',type(coords))
             buildings.append(Building(coords))
         return buildings
 
@@ -264,7 +260,6 @@ class Cases:
         """return a list of vehicle objects"""
         vehicles = []
         for vehicle in self.cases[self.case_name]["vehicles"]:
-            # print(f"vehicle is {vehicle}")
             position = vehicle["position"]
             goal = vehicle["goal"]
             ID = vehicle["ID"]

@@ -6,6 +6,7 @@ from typing import List
 from numpy.typing import ArrayLike
 # from .panel_flow import Flow_Velocity_Calculation
 from gflow.panel_flow_individual import PanelFlow
+from gflow.arena import ArenaMap
 # from gflow.panel_flow_class import PanelFlow
 
 
@@ -28,20 +29,22 @@ class PersonalVehicle:
     V_inf: List[float] = field(default_factory=lambda: [0, 0]) 
 
 
-class Vehicle(PanelFlow):
+class Vehicle:
     
     def __init__(
         self, ID, source_strength=0, imag_source_strength=0.75, correction_type="none"
     ):
-        super().__init__(
-            position=np.zeros(3), 
-            goal = np.zeros(3),
-            source_strength=source_strength,
-            sink_strength=0,
-            imag_source_strength = imag_source_strength
-                        )
+        
+        self.position=np.zeros(3), 
+        self.goal = np.zeros(3),
+        self.source_strength=source_strength,
+        self.sink_strength=0,
+        self.imag_source_strength = imag_source_strength
+                        
+        self.panel_flow = PanelFlow(self)
+        
         self.t = 0
-        self._arena = None
+        self._arena:ArenaMap = None
         
         self.desiredpos = np.zeros(3)
         self.correction = np.zeros(3)
@@ -79,7 +82,6 @@ class Vehicle(PanelFlow):
 
     # @personal_vehicle_dict.setter
     # def personal_vehicle_dict(self, vehicle_list:list[Vehicle]):
-    #     print("personal setter is called")
     #     self._personal_vehicle_dict = vehicle_list
 
     def update_personal_vehicle_dict(self,case_vehicle_list:list[Vehicle], max_avoidance_distance:float=100.)->None:
@@ -130,8 +132,6 @@ class Vehicle(PanelFlow):
         self.position = np.array(pos)
         self.path = np.array(pos)
         self.path = self.path.reshape(1, 3)
-        # print(f"path = {self.path.shape}")
-        # print('GOOOAAALLL : ', self.goal)
         if np.all(self.goal) is not None:
             self.distance_to_destination = np.linalg.norm(
                 np.array(self.goal) - np.array(self.position)
@@ -174,24 +174,25 @@ class Vehicle(PanelFlow):
 
     def run_simple_sim(self):
         # these are the flow velocities induced on every vehicle (based off the personal vehicle list), stored as a list
-        flow_vels = self.Flow_Velocity_Calculation(
-            self.personal_vehicle_dict, self.arena, method="Vortex"
+        flow_vels = self.panel_flow.Flow_Velocity_Calculation(self,
+            self.personal_vehicle_dict, method="Vortex"
         )
         # now update my own velocity
-        index = next(
-            (
-                index
-                for index, p_v in enumerate(self.personal_vehicle_dict.values())
-                if p_v.ID == self.ID
-            ),
-            None,
-        )
+        # index = next(
+        #     (
+        #         index
+        #         for index, p_v in enumerate(self.personal_vehicle_dict.values())
+        #         if p_v.ID == self.ID
+        #     ),
+        #     None,
+        # )
 
         # self.update_position(flow_vels[index], self.arena)
-        self.update_position_clipped(flow_vels[index], self.arena)
+        
+        self.update_position_clipped(flow_vels)
 
 
-    def update_position(self, flow_vel, arenamap):
+    def update_position(self, flow_vel):
         """Updates my position within the global vehicle_list given the induced flow from other vehicles onto me, self.velocity is used, so that the movement is less brutal"""
 
         # K is vehicle speed coefficient, a design parameter
@@ -199,8 +200,9 @@ class Vehicle(PanelFlow):
         V_des = flow_vel
         # magnitude of the induced velocity vector
         mag = np.linalg.norm(V_des)
-        # print(f"magnitude = {mag}")
         # induced velocity unit vector
+        
+        
         V_des_unit = V_des / mag
         # set z component to 0
         V_des_unit[2] = 0
@@ -218,24 +220,22 @@ class Vehicle(PanelFlow):
         delta_s = self.velocity * self.delta_t
         # prevpos = self.position
         # self.desiredpos = self.position + np.array(delta_s)
-        # print(f"{self.ID} was at {self.position}, ds = {delta_s}")
-        # print(self.velocity)
+
         self.position = self.position + np.array(delta_s)
-        # print(f"new position is {self.position}")
 
         self.path = np.vstack((self.path, self.position))
-        # print(f"path = {self.path.shape}")
-        # print(f"Drone {self.ID}, distance left = {np.linalg.norm(self.goal - self.position)}")
         if self.arrived(arrival_distance=self.ARRIVAL_DISTANCE):  # 0.1 for 2d
             self.state = 1
 
 
-            # print("Goal reached")
         return self.position
 
-    def update_position_clipped(self, flow_vel, arenamap):
+    def update_position_clipped(self, flow_vel):
         """Updates my position within the global vehicle_list given the induced flow from other vehicles onto me"""
 
+        
+            # import sys
+            # sys.exit()
         # K is vehicle speed coefficient, a design parameter
         # flow_vels = flow_vels * self.delta_t
         #########################################
@@ -245,9 +245,10 @@ class Vehicle(PanelFlow):
         #########################################
         # magnitude of the induced velocity vector
         mag = np.linalg.norm(V_des)
-        # print(f"magnitude = {mag}")
         # induced velocity unit vector
+        # if mag == 0 or np.isnan(mag):
         V_des_unit = V_des / mag
+
         # set z component to 0 TODO removed for now because focusing on 2d
         #########################################
         # V_des_unit[2] = 0
@@ -262,11 +263,9 @@ class Vehicle(PanelFlow):
         # change in position = ds = v dt so velocitygain is actually dt here
         # delta_s = clipped_velocity * self.delta_t
         delta_s = V_des_unit * self.delta_t * self.max_speed  # use unit velocity
-
-        # print(f"{self.ID} was at {self.position}, ds = {delta_s}")
-        # print(self.velocity)
+        
+       
         self.position = self.position + np.array(delta_s)
-        # print(f"new position is {self.position}")
 
         self.path = np.vstack((self.path, self.position))
 

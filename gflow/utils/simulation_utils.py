@@ -80,7 +80,6 @@ def step_simulation(case_vehicle_list: List[Vehicle], max_avoidance_distance=2):
         #     vehicle, case_vehicle_list, max_avoidance_distance
         # )
         vehicle.update_personal_vehicle_dict(case_vehicle_list,max_avoidance_distance)
-        # print([v.state for v in case_vehicle_list if v.ID == case_vehicle_list[0].ID])
 
         # update my position in the case_vehicle_list
         vehicle.run_simple_sim()
@@ -134,7 +133,6 @@ def step_simulation(case_vehicle_list: List[Vehicle], max_avoidance_distance=2):
 #             )
 #             # other_vehicle = case_vehicle_list[idx]
 #             if other_vehicle is not None and other_vehicle.transmitting:
-#                 # print("currently transmitting")
 #                 personal_vehicle.position = other_vehicle.position
 #     return None
 
@@ -154,14 +152,12 @@ def run_simulation(
     # case_vehicle_list = case.vehicle_list
     start_time = time.time()
     for i in range(t):
-
         # Step the simulation
         # step_simulation(case.vehicle_list,max_avoidance_distance)
 
         # this is faster than step_simulation, it avoids personal vehicle lists
         step_simulation(case.vehicle_list, max_avoidance_distance)
 
-        # print("After step simulation",[v.state for v in case.vehicle_list[0].personal_vehicle_list])
         if case.colliding():
             # a collision has been detected, do whatever you want
             collisions = True
