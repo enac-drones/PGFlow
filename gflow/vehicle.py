@@ -35,10 +35,10 @@ class Vehicle:
         self, ID, source_strength=0, imag_source_strength=0.75, correction_type="none"
     ):
         
-        self.position=np.zeros(3), 
-        self.goal = np.zeros(3),
-        self.source_strength=source_strength,
-        self.sink_strength=0,
+        self.position=np.zeros(3)
+        self.goal = np.zeros(3)
+        self.source_strength=source_strength
+        self.sink_strength=0
         self.imag_source_strength = imag_source_strength
                         
         self.panel_flow = PanelFlow(self)
@@ -264,7 +264,7 @@ class Vehicle:
         # delta_s = clipped_velocity * self.delta_t
         delta_s = V_des_unit * self.delta_t * self.max_speed  # use unit velocity
         
-       
+        print(f"{delta_s=}")
         self.position = self.position + np.array(delta_s)
 
         self.path = np.vstack((self.path, self.position))
@@ -280,3 +280,13 @@ class Vehicle:
         arrived = np.linalg.norm(self.goal - self.position) < arrival_distance
         return arrived  # 0.1 for 2d
         # self.state = 1
+
+
+if __name__ == "__main__":
+    v = Vehicle(ID="v1")
+    v.position = [0,0,0]
+    v.goal = [1,1,1]
+    v.Go_to_Goal(altitude=1.5, AoAsgn=0, t_start=0, Vinfmag=0)
+    print(v.basic_properties())
+    v.personal_vehicle_dict = {"v1":PersonalVehicle(**v.basic_properties())}    
+    print("done")

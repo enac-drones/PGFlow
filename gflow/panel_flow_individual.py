@@ -93,14 +93,14 @@ class PanelFlow:
         # Get positions and source strengths of other vehicles
         other_vehicles = main_vehicle.personal_vehicle_dict
         other_positions = np.array([v.position[:2] for v in other_vehicles.values()])
+
         other_source_strengths = np.array([v.source_strength for v in other_vehicles.values()])
         # Calculate position differences and distances
+
         position_diff_2D = main_vehicle.position[:2] - other_positions 
         cubed_distances = np.sum(np.abs(position_diff_2D)**4, axis=1)
-        
         # Calculate induced velocity
         induced_v = other_source_strengths[:, np.newaxis] * position_diff_2D /(2 * np.pi * cubed_distances[:, np.newaxis])
-        
         # Sum over all interactions to get total induced velocity on the main vehicle
         V_source = np.sum(induced_v, axis=0)
         
@@ -179,69 +179,7 @@ class PanelFlow:
         return V_gamma_main
 
     
-    # def gamma_calculation(self,vehicles:dict[str,PersonalVehicle],arena:ArenaMap):
-    #     '''k'''
-    #     n_vehicles:int = len(vehicles)
-    #     #######################################################################################################################################
-    #     # Determine the number of buildings and the maximum number of panels in any building
-    #     num_buildings:int = len(arena.buildings)
-    #     max_num_panels:int = max(building.nop for building in arena.buildings)
-
-    #     # Initialize the all_pcp array with zeros
-    #     all_pcp = np.zeros((num_buildings, max_num_panels, 2))
-
-    #     # Populate the all_pcp array
-    #     for i, building in enumerate(arena.buildings):
-    #         num_panels = building.nop  # Number of panels in the current building
-    #         all_pcp[i, :num_panels, :] = building.pcp[:num_panels, :2]  # Take only the first two dimensions
-
-    #     #  all_pcp is now a 3D array of shape (num_buildings, max_num_panels, 2)
-    #     #######################################################################################################################################
-
-    #     # Initialize the vehicle_positions array with zeros
-    #     vehicle_positions = np.zeros((n_vehicles, 2))
-
-    #     # Populate the vehicle_positions array
-    #     for i, vehicle in enumerate(vehicles.values()):
-    #         vehicle_positions[i, :] = vehicle.position[:2]
-    #         # vehicle_positions = vehicle_positions[:,:2]
-
-    #     # vehicle_positions is now a 2D array of shape (num_vehicles, 2)
-    #     #######################################################################################################################################
-    #     # Initialize the all_gammas array with zeros or NaNs
-    #     # NaNs might make it easier to identify if something goes wrong
-    #     all_gammas = np.zeros((n_vehicles, num_buildings, max_num_panels))
-
-    #     # Populate the all_gammas array
-    #     for i, building in enumerate(arena.buildings):
-    #         num_panels = building.nop  # Number of panels in the current building
-    #         for j, vehicle in enumerate(vehicles.values()):
-    #             if vehicle.ID in building.gammas:
-    #                 # all_gammas[j, i, :num_panels] = building.gammas[vehicle.ID][:num_panels]
-    #                 all_gammas[j, i, :num_panels] = building.gammas[vehicle.ID][:num_panels].ravel()
-
-
-    #     # all_gammas is now a 3D array of shape (num_vehicles, num_buildings, max_num_panels)
-    #     #######################################################################################################################################
-    #     # Assuming vehicle_positions is of shape (num_vehicles, 2)  
-    #     # and all_pcp is of shape (num_buildings, num_panels, 2)
-    #     diff = vehicle_positions[:, np.newaxis, np.newaxis, :] - all_pcp[np.newaxis, :, :, :]
-    #     squared_distances = np.sum(diff**2, axis=-1)  # shape: (num_vehicles, num_buildings, num_panels)
-
-    #     # Create the numerators for all vehicles and all buildings
-    #     numerators = np.zeros((n_vehicles, num_buildings, max_num_panels, 2))
-    #     numerators[:, :, :, 0] = vehicle_positions[:, np.newaxis, np.newaxis, 1] - all_pcp[np.newaxis, :, :, 1]
-    #     numerators[:, :, :, 1] = -(vehicle_positions[:, np.newaxis, np.newaxis, 0] - all_pcp[np.newaxis, :, :, 0])
-
-    #     # Assuming all_gammas is of shape (num_vehicles, num_buildings, num_panels)
-    #     all_gammas_normalized = all_gammas / (2 * np.pi)
-
-    #     # uv calculations, exploiting broadcasting
-    #     uv = all_gammas_normalized[:, :, :, np.newaxis] * numerators / squared_distances[:, :, :, np.newaxis]
-
-    #     V_gamma_all = np.sum(uv, axis=(1, 2))  # Summing across num_buildings and num_panels axes
-    #     #######################################################################################################################################
-    #     return V_gamma_all
+    
     
     def gamma_calc(self, building:Building, vehicle:Vehicle):
         """Calculate the unknown vortex strengths of the building panels
@@ -301,7 +239,7 @@ class PanelFlow:
             np.zeros(1) for _ in range(7)
         ]
 
-
+        print(f"{V_source = }")
         flow_vels = np.zeros([len(vehicles), 3])
         
 
@@ -311,7 +249,6 @@ class PanelFlow:
             self.calculate_unknown_vortex_strengths(vehicle)
         # --------------------------------------------------------------------
             V_gamma = self.calculate_induced_building_velocity(vehicle)
-        # Flow velocity calculation given vortex strengths:
 
 
         # source_gain = 0
@@ -338,6 +275,7 @@ class PanelFlow:
         #########################################################################################################################
         # FIXME remove the for loop later and replace with this when it works
         # # Summing the effects for all vehicles at once
+        print(f"{V_gamma=},{V_sink=}, {V_source=}, {V_vortex=}")
         V_sum = V_gamma + V_sink + V_source + V_vortex
 
         # Normalization and flow calculation for all vehicles
@@ -359,6 +297,7 @@ class PanelFlow:
 
         flow_vels:np.ndarray = V_sum   # no need to normalise if this is done in vehicle, TODO could normalise here instead, need to decide
         #########################################################################################################################
+        print(f"{flow_vels=}")
         return flow_vels
 
 

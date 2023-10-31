@@ -53,7 +53,7 @@ class Case:
         self._vehicle_list = deepcopy(new_vehicle_list)
         for vehicle in self._vehicle_list:
             vehicle.personal_vehicle_dict = {
-                v.ID:PersonalVehicle(*v.basic_properties()) for v in new_vehicle_list
+                v.ID:PersonalVehicle(**v.basic_properties()) for v in new_vehicle_list
             }
 
     @property

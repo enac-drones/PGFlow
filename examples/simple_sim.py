@@ -5,7 +5,7 @@ from gflow.utils.simulation_utils import run_simulation, set_new_attribute
 
 if __name__ == "__main__":
     file_name = "examples/gui_testing_1.json"
-    case_name="voliere"
+    case_name="bug1"
     # case = Cases.get_case(filename="bug_fixing/performance_enhancement.json", case_name="8_drones_2_buildings")
     # case = Cases.get_case(filename="bug_fixing/cases.json", case_name="ignore_arrived")
     case = Cases.get_case(filename=file_name, case_name=case_name)

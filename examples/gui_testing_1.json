@@ -347,5 +347,129 @@
                 "safety": null
             }
         ]
+    },
+    "bug0": {
+        "buildings": [],
+        "vehicles": [
+            {
+                "ID": "V0",
+                "position": [
+                    -2.10483870967742,
+                    0.04032258064516192,
+                    0.5
+                ],
+                "goal": [
+                    0.379032258064516,
+                    1.92741935483871,
+                    0.5
+                ],
+                "source_strength": [
+                    1
+                ],
+                "imag_source_strength": 0.5,
+                "sink_strength": 5,
+                "safety": null
+            },
+            {
+                "ID": "V1",
+                "position": [
+                    0.411290322580645,
+                    -0.48387096774193505,
+                    0.5
+                ],
+                "goal": [
+                    -1.2177419354838719,
+                    -2.298387096774193,
+                    0.5
+                ],
+                "source_strength": [
+                    1
+                ],
+                "imag_source_strength": 0.5,
+                "sink_strength": 5,
+                "safety": null
+            },
+            {
+                "ID": "V2",
+                "position": [
+                    -1.411290322580646,
+                    -1.282258064516129,
+                    0.5
+                ],
+                "goal": [
+                    0.5322580645161281,
+                    0.75,
+                    0.5
+                ],
+                "source_strength": [
+                    1
+                ],
+                "imag_source_strength": 0.5,
+                "sink_strength": 5,
+                "safety": null
+            }
+        ]
+    },
+    "bug1": {
+        "buildings": [],
+        "vehicles": [
+            {
+                "ID": "V0",
+                "position": [
+                    -0.806451612903226,
+                    1.209677419354839,
+                    0.5
+                ],
+                "goal": [
+                    -1.35483870967742,
+                    -1.209677419354838,
+                    0.5
+                ],
+                "source_strength": [
+                    1
+                ],
+                "imag_source_strength": 0.5,
+                "sink_strength": 5,
+                "safety": null
+            },
+            {
+                "ID": "V1",
+                "position": [
+                    1.201612903225806,
+                    -0.4919354838709671,
+                    0.5
+                ],
+                "goal": [
+                    1.137096774193548,
+                    -1.387096774193548,
+                    0.5
+                ],
+                "source_strength": [
+                    1
+                ],
+                "imag_source_strength": 0.5,
+                "sink_strength": 5,
+                "safety": null
+            },
+            {
+                "ID": "V2",
+                "position": [
+                    0.4032258064516121,
+                    -1.298387096774193,
+                    0.5
+                ],
+                "goal": [
+                    1.508064516129032,
+                    1.314516129032258,
+                    0.5
+                ],
+                "source_strength": [
+                    1
+                ],
+                "imag_source_strength": 0.5,
+                "sink_strength": 5,
+                "safety": null
+            }
+        ]
     }
 }
