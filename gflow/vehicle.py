@@ -264,7 +264,6 @@ class Vehicle:
         # delta_s = clipped_velocity * self.delta_t
         delta_s = V_des_unit * self.delta_t * self.max_speed  # use unit velocity
         
-        print(f"{delta_s=}")
         self.position = self.position + np.array(delta_s)
 
         self.path = np.vstack((self.path, self.position))
@@ -282,11 +281,3 @@ class Vehicle:
         # self.state = 1
 
 
-if __name__ == "__main__":
-    v = Vehicle(ID="v1")
-    v.position = [0,0,0]
-    v.goal = [1,1,1]
-    v.Go_to_Goal(altitude=1.5, AoAsgn=0, t_start=0, Vinfmag=0)
-    print(v.basic_properties())
-    v.personal_vehicle_dict = {"v1":PersonalVehicle(**v.basic_properties())}    
-    print("done")

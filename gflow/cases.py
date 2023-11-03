@@ -20,14 +20,15 @@ class Case:
 
     _name: str
 
-    def __init__(self, name):
+    def __init__(self, name:str):
         # self._name = None
         # this line ensures the setter is called even when the class instance is created
-        self.name = name
+        self.name:str = name
         self._vehicle_list: List[Vehicle] = []
         self.buildings: List[Building] = []
         self._arena:ArenaMap = None
-        self.collision_threshold = 0.5
+        self.collision_threshold:float = 0.5
+        self._max_avoidance_distance:float = 20.
 
     @property
     def name(self):
@@ -50,11 +51,22 @@ class Case:
     @vehicle_list.setter
     def vehicle_list(self, new_vehicle_list: List[Vehicle]):
         #TODO is this deepcopy necessary given the changing logic, for now safer to keep it
-        self._vehicle_list = deepcopy(new_vehicle_list)
+        self._vehicle_list = new_vehicle_list
+
         for vehicle in self._vehicle_list:
             vehicle.personal_vehicle_dict = {
                 v.ID:PersonalVehicle(**v.basic_properties()) for v in new_vehicle_list
             }
+
+    @property
+    def max_avoidance_distance(self)->float:
+        return self._max_avoidance_distance
+    
+    @max_avoidance_distance.setter
+    def max_avoidance_distance(self, new_max:float):
+        self._max_avoidance_distance = new_max
+        for vehicle in self._vehicle_list:
+            vehicle.max_avoidance_distance = new_max
 
     @property
     def arena(self):

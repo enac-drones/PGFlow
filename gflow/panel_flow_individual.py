@@ -88,7 +88,15 @@ class PanelFlow:
 
         return induced_v
 
-
+    def distance_effect_function(self, distance: float, max_distance:float) -> float:
+        """Drop-off effect based on distance."""
+        # max_distance = self.vehicle.max_avoidance_distance
+        ratio = distance/max_distance
+        linear_dropoff = 1-distance/max_distance
+        exponential_dropoff = 1/(1+np.e**(10*(ratio-0.7)))
+        effect = (1/(2 * np.pi * distance**4)) * exponential_dropoff
+        return effect
+    
     def calculate_induced_source_velocities_on_main_vehicle(self, main_vehicle: Vehicle):
         # Get positions and source strengths of other vehicles
         other_vehicles = main_vehicle.personal_vehicle_dict
@@ -98,13 +106,19 @@ class PanelFlow:
         # Calculate position differences and distances
 
         position_diff_2D = main_vehicle.position[:2] - other_positions 
-        cubed_distances = np.sum(np.abs(position_diff_2D)**4, axis=1)
+        distances = np.linalg.norm(position_diff_2D, axis=1)
+        effect = self.distance_effect_function(distances, main_vehicle.max_avoidance_distance)
+        # print(distances.shape, distances,self.distance_effect_function(distances))
+        # effects = strengths * effect_function(distances)[:, np.newaxis]
+        # cubed_distances = np.sum(np.abs(position_diff_2D)**2, axis=1)
+
         # Calculate induced velocity
-        induced_v = other_source_strengths[:, np.newaxis] * position_diff_2D /(2 * np.pi * cubed_distances[:, np.newaxis])
+        induced_v = other_source_strengths[:, np.newaxis] * position_diff_2D * effect[:, np.newaxis]
         # Sum over all interactions to get total induced velocity on the main vehicle
         V_source = np.sum(induced_v, axis=0)
         
         return V_source
+
 
 
 
@@ -121,10 +135,14 @@ class PanelFlow:
         perpendicular_array[:, 0] = -position_diff_2D[:, 1]  # replace x with -y
         perpendicular_array[:, 1] = position_diff_2D[:, 0]   # replace y with x
         
-        squared_distances = np.sum(position_diff_2D ** 4, axis=1)
+        # squared_distances = np.sum(np.abs(position_diff_2D) ** 4, axis=1)
+        distances = np.linalg.norm(position_diff_2D, axis=1)
+        effect = self.distance_effect_function(distances, main_vehicle.max_avoidance_distance)
+
+        # squared_distances = distances**4
         
         # Calculate induced velocity
-        induced_v = other_vortex_strengths[:, np.newaxis] * perpendicular_array / (2 * np.pi * squared_distances[:, np.newaxis])
+        induced_v = other_vortex_strengths[:, np.newaxis] * perpendicular_array * effect[:, np.newaxis]
         
         # Sum over all interactions to get total induced velocity on the main vehicle
         V_vortex = np.sum(induced_v, axis=0)
@@ -193,6 +211,7 @@ class PanelFlow:
         vel_sink = np.zeros((building.nop, 2))
         vel_source = np.zeros((building.nop, 2))
         vel_source_imag = np.zeros((building.nop, 2))
+        vel_vortex = np.zeros((building.nop, 2))
         RHS = np.zeros((building.nop, 1))
 
         # Pre-calculate repeated terms
@@ -205,11 +224,43 @@ class PanelFlow:
         vel_sink = -vehicle.sink_strength * sink_diff / (2 * np.pi * sink_sq_dist)[:, np.newaxis]
         vel_source_imag = vehicle.imag_source_strength * imag_diff / (2 * np.pi * imag_sq_dist)[:, np.newaxis]
         # Velocity calculations for source
-        for othervehicle in othervehicles:
-            source_diff = building.pcp[:,:2] - othervehicle.position[:2]
-            source_sq_dist = np.sum(source_diff ** 2, axis=-1)
-            vel_source += othervehicle.source_strength * source_diff / (2 * np.pi * source_sq_dist)[:, np.newaxis]
+        # for othervehicle in othervehicles:
+        #     source_diff = building.pcp[:,:2] - othervehicle.position[:2]
+        #     vortex_diff = np.zeros_like(source_diff)
+        #     vortex_diff[:, 0] = -source_diff[:, 1]
+        #     vortex_diff[:, 1] = source_diff[:, 0]
+        #     source_sq_dist = np.sum(source_diff ** 2, axis=-1)
+        #     vel_source += othervehicle.source_strength * source_diff / (2 * np.pi * source_sq_dist)[:, np.newaxis]
+        #     vel_vortex += othervehicle.source_strength/4 * vortex_diff / (2 * np.pi * source_sq_dist)[:, np.newaxis]
 
+        ########
+        if othervehicles:
+            # Extract positions of all vehicles
+            all_positions = np.array([other.position[:2] for other in othervehicles])
+
+            # Compute source differences
+            source_diff = building.pcp[:, np.newaxis, :2] - all_positions
+
+            # Compute vortex differences
+            vortex_diff = np.zeros_like(source_diff)
+            vortex_diff[..., 0] = -source_diff[..., 1]
+            vortex_diff[..., 1] = source_diff[..., 0]
+
+            # Compute squared distances
+            source_sq_dist = np.sum(source_diff ** 2, axis=-1)
+
+            # Extract all source strengths
+            all_source_strengths = np.array([other.source_strength for other in othervehicles])
+
+            # Compute velocities due to sources and vortices
+            vel_source_contribs = (all_source_strengths[:, np.newaxis] * source_diff / (2 * np.pi * source_sq_dist[..., np.newaxis]))
+            vel_vortex_contribs = (all_source_strengths[:, np.newaxis] / 4 * vortex_diff / (2 * np.pi * source_sq_dist[..., np.newaxis]))
+
+            # Sum across the contributions of all vehicles
+            vel_source = np.sum(vel_source_contribs, axis=1)
+            vel_vortex = np.sum(vel_vortex_contribs, axis=1)
+
+        ########
         # RHS calculation
         cos_pb = np.cos(building.pb)
         sin_pb = np.sin(building.pb)
@@ -218,6 +269,7 @@ class PanelFlow:
             - vehicle.V_inf[1] * sin_pb
             - np.sum(vel_sink * np.array([cos_pb, sin_pb]).T, axis=1)
             - np.sum(vel_source * np.array([cos_pb, sin_pb]).T, axis=1)
+            - np.sum(vel_vortex * np.array([cos_pb, sin_pb]).T, axis=1)
             - np.sum(vel_source_imag * np.array([cos_pb, sin_pb]).T, axis=1)
         )
 
@@ -239,7 +291,6 @@ class PanelFlow:
             np.zeros(1) for _ in range(7)
         ]
 
-        print(f"{V_source = }")
         flow_vels = np.zeros([len(vehicles), 3])
         
 
@@ -263,10 +314,11 @@ class PanelFlow:
         # Velocity induced by 2D point source, eqn. 10.2 & 10.3 in Katz & Plotkin:
         if vehicle.personal_vehicle_dict:
             V_source = self.calculate_induced_source_velocities_on_main_vehicle(vehicle)
+            # V_source = self.experimental_induced_source(vehicle)
+            V_vortex = self.calculate_induced_vortex_velocities_on_main_vehicle(vehicle)
             # TODO everything involving W_source is super dodgy, why are we only using the z component, weird... needs serious testing
             # Velocity induced by 3-D point sink. Katz&Plotkin Eqn. 3.25
             # W_source = source_gain * self.calculate_all_induced_source_velocities3D(vehicles)[:, 2]
-            V_vortex = self.calculate_induced_vortex_velocities_on_main_vehicle(vehicle)
 
         t = time.time()
         # Pre-calculate the arrays
@@ -275,7 +327,6 @@ class PanelFlow:
         #########################################################################################################################
         # FIXME remove the for loop later and replace with this when it works
         # # Summing the effects for all vehicles at once
-        print(f"{V_gamma=},{V_sink=}, {V_source=}, {V_vortex=}")
         V_sum = V_gamma + V_sink + V_source + V_vortex
 
         # Normalization and flow calculation for all vehicles
@@ -297,10 +348,26 @@ class PanelFlow:
 
         flow_vels:np.ndarray = V_sum   # no need to normalise if this is done in vehicle, TODO could normalise here instead, need to decide
         #########################################################################################################################
-        print(f"{flow_vels=}")
         return flow_vels
 
 
+
+if __name__ == "__main__":
+    def add_one(n:float)->float:
+        return n+1
+    
+    def distance_effect_function(distance: float) -> float:
+        """Drop-off effect based on distance."""
+        max_distance = 3
+        linear_dropoff = 1-distance/max_distance
+        effect = (1/(2 * np.pi * distance**4)) * linear_dropoff
+        return effect
+    
+    a = np.ones((3,))
+
+    b = distance_effect_function(a)
+
+    print(b)
 # comments
 # Remove current vehicle from vehicle list
 # othervehicleslist = create_other_vehicles_list(vehicles, f)

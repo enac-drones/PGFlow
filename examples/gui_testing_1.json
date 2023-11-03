@@ -471,5 +471,67 @@
                 "safety": null
             }
         ]
+    },
+    "bug2": {
+        "buildings": [],
+        "vehicles": [
+            {
+                "ID": "V0",
+                "position": [
+                    -1,
+                    0,
+                    0.5
+                ],
+                "goal": [
+                    -1,
+                    2,
+                    0.5
+                ],
+                "source_strength": [
+                    1
+                ],
+                "imag_source_strength": 0.5,
+                "sink_strength": 5,
+                "safety": null
+            },
+            {
+                "ID": "V1",
+                "position": [
+                    0,
+                    0,
+                    0.5
+                ],
+                "goal": [
+                    0,
+                    2,
+                    0.5
+                ],
+                "source_strength": [
+                    1
+                ],
+                "imag_source_strength": 0.5,
+                "sink_strength": 5,
+                "safety": null
+            },
+            {
+                "ID": "V2",
+                "position": [
+                    1,
+                    0,
+                    0.5
+                ],
+                "goal": [
+                    1,
+                    2,
+                    0.5
+                ],
+                "source_strength": [
+                    1
+                ],
+                "imag_source_strength": 0.5,
+                "sink_strength": 5,
+                "safety": null
+            }
+        ]
     }
 }

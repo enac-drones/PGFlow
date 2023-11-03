@@ -10,9 +10,12 @@ from matplotlib.animation import FuncAnimation
 
 # Import slider package
 from matplotlib.widgets import Slider, Button
+from matplotlib.lines import Line2D
+import matplotlib.colors as mcolors
+
 from typing import List
-from gflow_local.vehicle import Vehicle
-from gflow_local.cases import Case
+from gflow.vehicle import Vehicle
+from gflow.cases import Case
 
 
 def plot_trajectories(case: Case):
@@ -244,6 +247,15 @@ def plot_trajectories1(Arena, ArenaR, Vehicle_list):
     plt.show()
 
 
+
+
+
+
+############################################################################################################################################################
+############################################################################################################################################################
+############################################################################################################################################################
+############################################################################################################################################################
+
 class PlotTrajectories:
     """Same as above but trying to use the FuncAnimation for the play button implementation which supposedly uses less CPU"""
 
@@ -281,6 +293,7 @@ class PlotTrajectories:
         self.drone_list = []
         # same as above, but display these only when certain separation minima are not respected
         self.warning_circles = []
+        self.connecting_lines:dict[tuple, Line2D] = {}
         # initialize empty array to store vehicle positions
         self.positions = np.zeros((len(self.vehicle_list), 3))
         self.initial_plot(vehicle_list=self.vehicle_list, ax=self.ax)
@@ -478,10 +491,15 @@ class PlotTrajectories:
     def update(self, val):
         # val self.slider.val is the same as val
         plot_until = int(np.floor(val * self.time_steps_max))
+
         self.update_plot(plot_until)
         self.update_drone_positions(plot_until)
         self.update_warning_circles(plot_until)
+        #limit plot_until to the max timesteps-1 to avoid index errors at the end. 
+        plot_until = min(plot_until, self.time_steps_max - 1)
+        self.handle_connecting_lines(plot_until)
         self.collision_handling()
+
 
     def update_plot(self, plot_until):
         for i in range(len(self.plot_list)):
@@ -543,6 +561,53 @@ class PlotTrajectories:
                     self.handle_collision(i, j)
 
         self.update_info_box()
+
+    def handle_connecting_lines(self, plot_until):
+        """Draw lines connecting drones if close enough and update display accordingly.
+        This method duplicates collision_handling and is just a rapid prototype"""
+        distance_matrix = self.calculate_distance_matrix()
+
+        for id in list(self.connecting_lines.keys()):
+            line = self.connecting_lines[id]
+            line.remove()
+            del self.connecting_lines[id]
+
+        for i in range(distance_matrix.shape[0]):
+            # Skip drones that have reached their goals
+            if self.has_reached_goal(i):
+                continue
+
+            for j in range(i + 1, distance_matrix.shape[1]):
+                # Skip drones that have reached their goals
+
+                if self.has_reached_goal(j):
+                    continue
+
+                if distance_matrix[i, j] < self.case.max_avoidance_distance:
+                    # print(self.vehicle_list[i].path[plot_until,0])
+                    x_values = [self.vehicle_list[i].path[plot_until, 0], self.vehicle_list[j].path[plot_until, 0]]
+                    y_values = [self.vehicle_list[i].path[plot_until, 1], self.vehicle_list[j].path[plot_until, 1]]
+                    distance = distance_matrix[i, j]
+                    max_distance = self.case.max_avoidance_distance
+                    p = 1 - distance/max_distance # 1 at no distance, 0 and max_distance
+
+                    max_linewidth = 4
+                    # print(f"{x_values=} ,{y_values=}")
+                    # Create a colormap that transitions from green to red
+                    # cmap = plt.cm.RdYlGn_r  # 'RdYlGn_r' is the reversed Red-Yellow-Green colormap
+                    # cmap = plt.cm.Reds_r # Red black map
+
+                    # Normalize the distance value to range [0, 1]
+                    # norm = mcolors.Normalize(vmin=0, vmax=max_distance)
+                    # p_adjusted = p**2  # Adjust this power for desired transition. Higher values will make it red sooner.
+                    # color_value = cmap(norm(distance))
+                    # color_value = cmap(p_adjusted)
+                    #not using colour for now, but could be interesting
+                    line = self.ax.plot(x_values, y_values, 'k-', alpha = p, lw = p * max_linewidth )[0]  # 'k-' specifies a black line
+                    # print(f"{line=}")
+                    self.connecting_lines[(i,j)] = line  # 'k-' specifies a black line
+
+
 
     def calculate_distance_matrix(self):
         """Calculate the Euclidean distance matrix between drones."""
