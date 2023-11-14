@@ -502,6 +502,7 @@ class PlotTrajectories:
 
 
     def update_plot(self, plot_until):
+        
         for i in range(len(self.plot_list)):
             self.plot_list[i].set_data(
                 self.vehicle_list[i].path[:plot_until, 0],
@@ -511,6 +512,16 @@ class PlotTrajectories:
                 self.vehicle_list[i].path[:plot_until, 0],
                 self.vehicle_list[i].path[:plot_until, 1],
             )
+
+        # for i in range(len(self.plot_list)):
+        #     self.plot_list[i].set_data(
+        #         self.vehicle_list[i].path[:0, 0],
+        #         self.vehicle_list[i].path[:0, 1],
+        #     )
+        #     self.plot_list[i].set_data(
+        #         self.vehicle_list[i].path[:0, 0],
+        #         self.vehicle_list[i].path[:0, 1],
+        #     )
 
     def update_drone_positions(self, plot_until):
         for i in range(len(self.drone_list)):

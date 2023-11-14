@@ -14,7 +14,7 @@ from gflow.arena import ArenaMap
 
 from dataclasses import dataclass, field
 
-@dataclass
+@dataclass(slots=True)
 class PersonalVehicle:
     """Vehicle with the minimal required information: position, velocity, altitude, state etc"""
     ID:str
@@ -30,17 +30,26 @@ class PersonalVehicle:
 
 
 class Vehicle:
+    # add slots to this class
+    __slots__ = (
+        "position", "goal", "source_strength", "sink_strength", "imag_source_strength",
+        "max_avoidance_distance", "panel_flow", "t", "_arena", "desiredpos", "correction",
+        "velocity", "gamma", "altitude_mask", "ID", "path", "state", "distance_to_destination",
+        "delta_t", "velocity_desired", "velocity_corrected", "vel_err", "correction_type",
+        "personal_vehicle_dict", "transmitting", "max_speed", "ARRIVAL_DISTANCE", "safety", "AoA","altitude","Vinfmag", "V_inf","has_landed")
+
     
     def __init__(
-        self, ID, source_strength=0, imag_source_strength=0.75, correction_type="none"
+        self, ID:str, source_strength:float=0, imag_source_strength:float=0.75, correction_type="none"
     ):
         
         self.position=np.zeros(3)
         self.goal = np.zeros(3)
-        self.source_strength=source_strength
-        self.sink_strength=0
-        self.imag_source_strength = imag_source_strength
-                        
+        self.source_strength:float =source_strength
+        self.sink_strength:float=0
+        self.imag_source_strength:float = imag_source_strength
+        
+        self.max_avoidance_distance:float = 20
         self.panel_flow = PanelFlow(self)
         
         self.t = 0
@@ -66,6 +75,12 @@ class Vehicle:
         self.transmitting = True
         self.max_speed = 0.5
         self.ARRIVAL_DISTANCE = 0.2
+        self.safety = None
+        self.AoA = None
+        self.altitude = None
+        self.Vinfmag = None
+        self.V_inf = None
+        self.has_landed = False
 
     @property
     def arena(self):
@@ -262,7 +277,8 @@ class Vehicle:
         # multiply the flow velocity by some predefined constant, this is sort of like imposing the delaT
         # change in position = ds = v dt so velocitygain is actually dt here
         # delta_s = clipped_velocity * self.delta_t
-        delta_s = V_des_unit * self.delta_t * self.max_speed  # use unit velocity
+        self.velocity = V_des_unit * self.max_speed
+        delta_s = self.velocity * self.delta_t   # use unit velocity
         
         self.position = self.position + np.array(delta_s)
 
@@ -280,4 +296,15 @@ class Vehicle:
         return arrived  # 0.1 for 2d
         # self.state = 1
 
+
+if __name__ == "__main__":
+    import pickle
+
+    vehicle_instance = Vehicle(ID="v1")  # Replace with whatever constructor arguments you use
+
+    try:
+        serialized = pickle.dumps(vehicle_instance)
+        print("Vehicle is pickleable!")
+    except (pickle.PicklingError, AttributeError, TypeError) as e:
+        print(f"Vehicle is not pickleable! Error: {e}")
 

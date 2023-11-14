@@ -367,7 +367,7 @@ if __name__ == "__main__":
 
     b = distance_effect_function(a)
 
-    print(b)
+    
 # comments
 # Remove current vehicle from vehicle list
 # othervehicleslist = create_other_vehicles_list(vehicles, f)
