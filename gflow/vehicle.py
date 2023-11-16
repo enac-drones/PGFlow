@@ -36,7 +36,7 @@ class Vehicle:
         "max_avoidance_distance", "panel_flow", "t", "_arena", "desiredpos", "correction",
         "velocity", "gamma", "altitude_mask", "ID", "path", "state", "distance_to_destination",
         "delta_t", "velocity_desired", "velocity_corrected", "vel_err", "correction_type",
-        "personal_vehicle_dict", "transmitting", "max_speed", "ARRIVAL_DISTANCE", "safety", "AoA","altitude","Vinfmag", "V_inf","has_landed")
+        "personal_vehicle_dict", "transmitting", "max_speed", "ARRIVAL_DISTANCE", "safety", "AoA","altitude","Vinfmag", "V_inf","has_landed","turn_radius")
 
     
     def __init__(
@@ -73,7 +73,7 @@ class Vehicle:
         self.correction_type = correction_type
         self.personal_vehicle_dict: dict[str,Vehicle] = []
         self.transmitting = True
-        self.max_speed = 0.5
+        self.max_speed = 0.8
         self.ARRIVAL_DISTANCE = 0.2
         self.safety = None
         self.AoA = None
@@ -81,6 +81,7 @@ class Vehicle:
         self.Vinfmag = None
         self.V_inf = None
         self.has_landed = False
+        self.turn_radius:float = 0.5 #max turn radius in meters
 
     @property
     def arena(self):
@@ -204,7 +205,8 @@ class Vehicle:
 
         # self.update_position(flow_vels[index], self.arena)
         
-        self.update_position_clipped(flow_vels)
+        # self.update_position_clipped(flow_vels)
+        self.update_position_max_radius(flow_vels)
 
 
     def update_position(self, flow_vel):
@@ -278,6 +280,77 @@ class Vehicle:
         # change in position = ds = v dt so velocitygain is actually dt here
         # delta_s = clipped_velocity * self.delta_t
         self.velocity = V_des_unit * self.max_speed
+        delta_s = self.velocity * self.delta_t   # use unit velocity
+        
+        self.position = self.position + np.array(delta_s)
+
+        self.path = np.vstack((self.path, self.position))
+
+        if self.arrived(arrival_distance = self.ARRIVAL_DISTANCE):
+            print("goal is reached")
+            # goal has been reached
+            self.state = 1
+        return self.position
+    
+    def update_position_max_radius(self, flow_vel):
+        """Updates my position within the global vehicle_list given the induced flow from other vehicles onto me"""
+
+        
+            # import sys
+            # sys.exit()
+        # K is vehicle speed coefficient, a design parameter
+        # flow_vels = flow_vels * self.delta_t
+        #########################################
+        #TODO currently array is 2D, so add a third dimension for compatibility
+        # V_des = flow_vel
+        #########################################
+        # magnitude of the induced velocity vector in 2D
+        mag = np.linalg.norm(flow_vel)
+        # induced velocity unit vector
+        # if mag == 0 or np.isnan(mag):
+        unit_new_velocity = flow_vel / mag
+
+        speed = np.linalg.norm(self.velocity)
+        unit_old_velocity= self.velocity[:2]/np.linalg.norm(speed)
+        # min_cos = (1-(speed*self.delta_t/self.turn_radius)**2)/(1+(speed*self.delta_t/self.turn_radius)**2)
+        
+        min_cos = 1-0.5*(speed*self.delta_t/self.turn_radius)**2
+        # Calculate the angle in radians, and then convert it to degrees
+        # The np.clip is used to handle potential floating-point arithmetic issues that might push the dot product 
+        # slightly outside the range [-1, 1], which would cause np.arccos to return NaN
+        cos_angle = (np.clip(np.dot(unit_new_velocity, unit_old_velocity), -1.0, 1.0))
+
+        if cos_angle < min_cos:
+            max_theta = np.arccos(np.clip(min_cos, -1.0, 1.0))
+            #in numpy cross product of two 2d vectors returns the z component of the resulting vector
+            cross_product = np.cross(unit_new_velocity, unit_old_velocity)
+
+            # print(cross_product,unit_new_velocity,unit_old_velocity)
+            if cross_product>0:
+                #clockwise
+                theta = -max_theta
+            else:
+                #anti_clockwise
+                theta = max_theta
+            
+            # Create the rotation matrix
+            rotation_matrix = np.array([[np.cos(theta), -np.sin(theta)], 
+                                [np.sin(theta),  np.cos(theta)]])
+            
+            # Rotate the vector
+            unit_new_velocity = np.dot(rotation_matrix, unit_old_velocity)
+
+        unit_new_velocity = np.append(unit_new_velocity, 0)
+
+
+
+        # set z component to 0 TODO removed for now because focusing on 2d
+        #########################################
+        # V_des_unit[2] = 0
+        #########################################
+        # force mag to lie between 0 and 1
+        # multiply the flow velocity by some predefined constant to set max speed 
+        self.velocity = unit_new_velocity * self.max_speed
         delta_s = self.velocity * self.delta_t   # use unit velocity
         
         self.position = self.position + np.array(delta_s)

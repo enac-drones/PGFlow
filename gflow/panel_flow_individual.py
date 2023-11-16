@@ -15,7 +15,7 @@ if TYPE_CHECKING:
     from vehicle import Vehicle, PersonalVehicle
     from building import Building
 
-from gflow_local.arena import ArenaMap
+from gflow.arena import ArenaMap
 import time
 
 
