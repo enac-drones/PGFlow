@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "gflow"
-version = "0.1.0"
+version = "0.2.0"
 description = ""
 authors = ["adriandelser <adrian.delser@gmail.com>"]
 readme = "README.md"
@@ -8,7 +8,7 @@ packages= [
     {include = "gflow"},
     ]
 [tool.poetry.dependencies]
-python = ">=3.10,<3.12"
+python = ">=3.11"
 numpy = "^1.24.3"
 pytest = "^7.3.1"
 pytest-xdist = "^3.3.1"

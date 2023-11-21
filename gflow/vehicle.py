@@ -81,7 +81,7 @@ class Vehicle:
         self.Vinfmag = None
         self.V_inf = None
         self.has_landed = False
-        self.turn_radius:float = 0.5 #max turn radius in meters
+        self.turn_radius:float = 0.1 #max turn radius in meters
 
     @property
     def arena(self):
@@ -205,8 +205,8 @@ class Vehicle:
 
         # self.update_position(flow_vels[index], self.arena)
         
-        # self.update_position_clipped(flow_vels)
-        self.update_position_max_radius(flow_vels)
+        self.update_position_clipped(flow_vels)
+        # self.update_position_max_radius(flow_vels)
 
 
     def update_position(self, flow_vel):
@@ -314,7 +314,9 @@ class Vehicle:
         unit_old_velocity= self.velocity[:2]/np.linalg.norm(speed)
         # min_cos = (1-(speed*self.delta_t/self.turn_radius)**2)/(1+(speed*self.delta_t/self.turn_radius)**2)
         
+        # this can be below -1 if the radius is less than vdt/2 which makes the turn radius mathematically unachievable 
         min_cos = 1-0.5*(speed*self.delta_t/self.turn_radius)**2
+
         # Calculate the angle in radians, and then convert it to degrees
         # The np.clip is used to handle potential floating-point arithmetic issues that might push the dot product 
         # slightly outside the range [-1, 1], which would cause np.arccos to return NaN

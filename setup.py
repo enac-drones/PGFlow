@@ -22,7 +22,7 @@ install_requires = \
  'shapely>=2.0.1,<3.0.0']
 
 setup_kwargs = {
-    'name': 'gflow_local',
+    'name': 'gflow',
     'version': '0.1.0',
     'description': '',
     'long_description': '# gflow\n\nFlow field guidance\n\nTo run with gui, run gui/gui_sim.py\nTo run simple example, run examples/simple_sim.py and select desired case within a json case file\n',
@@ -34,7 +34,7 @@ setup_kwargs = {
     'packages': packages,
     'package_data': package_data,
     'install_requires': install_requires,
-    'python_requires': '>=3.10,<3.12',
+    'python_requires': '>=3.10,<3.13',
 }
 
 
