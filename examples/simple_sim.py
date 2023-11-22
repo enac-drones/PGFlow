@@ -8,7 +8,8 @@ if __name__ == "__main__":
     case_name="default"
     # case = Cases.get_case(filename="bug_fixing/performance_enhancement.json", case_name="8_drones_2_buildings")
     # case = Cases.get_case(filename="bug_fixing/cases.json", case_name="ignore_arrived")
-    case = Cases.get_case(filename=file_name, case_name=case_name)
+    case = Cases.get_case(file_name=file_name, case_name=case_name)
+
     # case = Cases.get_case(filename="bug_fixing/cases.json", case_name="close_to_sink")
     set_new_attribute(case, "source_strength", new_attribute_value=1)
     set_new_attribute(case, "sink_strength", new_attribute_value=5)

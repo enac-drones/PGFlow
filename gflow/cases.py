@@ -107,12 +107,42 @@ class Case:
 
 
 class Cases:
-    def __init__(self, filename="examples/cases.json") -> None:
+    # def __init__(self, filename="examples/cases.json") -> None:
+    #     """initiate the class with the json filename and the case within that file"""
+    #     self._filename: str = filename
+    #     self.cases: dict = self._load_file(self._filename)
+    #     self._case_name: str = "default"
+    #     self.case:Case = None
+
+    def __init__(self, cases:dict, case_name: str = "default") -> None:
         """initiate the class with the json filename and the case within that file"""
-        self._filename: str = filename
-        self.cases: dict = self._load_file(self._filename)
-        self._case_name: str = "default"
-        self.case = None
+        # self._filename: str = filename
+        self.cases = cases
+        self._case_name = case_name
+        self.case:Case = None
+        self._filename: str = None
+
+    # @classmethod
+    # def get_case(cls, filename, case_name):
+    #     case_cls = cls(filename=filename)
+    #     case_cls.case_setup(case_name)
+    #     return case_cls.case
+
+    @classmethod
+    def get_case(cls, file_name: str, case_name:str) -> Case:
+        """Factory method to create an Case instance from a file and case_name"""
+        cases_instance = cls(cases = None, case_name=case_name)  # Create a Cases instance with the loaded data and case name
+        cases_instance.cases = cases_instance._load_file(filename=file_name)
+        cases_instance.case_setup(case_name)  # Setup the specific case
+        #return the case
+        return cases_instance.case
+
+    @classmethod
+    def from_dict(cls, cases: dict, case_name: str)->Case:
+        """Factory method to create an Case instance from a dictionary"""
+        cases_instance = cls(cases = cases, case_name=case_name)  # Create a Cases instance with the loaded data and case name
+        cases_instance.case_setup(case_name)  # Setup the specific case
+        return cases_instance.case
 
     @property
     def case_name(self):
@@ -164,22 +194,18 @@ class Cases:
                 f"File {new_name} contains a directory that does not exist. Please try again or create the directory."
             )
 
-    @classmethod
-    def get_case(cls, filename, case_name):
-        case_cls = cls(filename=filename)
-        case_cls.case_setup(case_name)
-        return case_cls.case
 
-    def case_setup(self, case_name):
+    def case_setup(self, case_name:str)->None:
         self.case_name = case_name
         self.case = Case(self.case_name)
         self.case.vehicle_list = self.obtain_vehicles()
         self.case.buildings = self.obtain_buildings()
         self.case.arena = ArenaMap(buildings=self.case.buildings)
 
-    def _load_file(self, filename) -> dict:
+    
+    def _load_file(self, filename:str) -> dict:
         """Return a dictionary of all the cases inside filename."""
-        # self.filename = filename
+        self._filename = filename
         self.cases = {}  # Initializing self.cases to be an empty dictionary
 
         if not os.path.exists(filename):
@@ -200,13 +226,11 @@ class Cases:
 
     def _is_file_empty(self) -> bool:
         """Check if file is empty."""
-        return os.stat(self.filename).st_size == 0
+        return os.stat(self._filename).st_size == 0
 
     def _load_cases_from_file(self):
         """Load cases from file."""
         self.cases = load_from_json(self.filename)
-        # with open(self.filename, "r") as f:
-        #     self.cases = json.load(f)
 
     def _handle_invalid_json(self, ex):
         """Handle invalid JSON error."""
@@ -324,7 +348,6 @@ class Cases:
             for vehicle in vehicle_list
         ]
 
-        # dump_to_json(self.filename, self.cases)
 
         # return the case that was just added
         self.case_name = case_name
