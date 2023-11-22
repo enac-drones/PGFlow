@@ -204,9 +204,9 @@ class Vehicle:
         # )
 
         # self.update_position(flow_vels[index], self.arena)
-        
-        self.update_position_clipped(flow_vels)
-        # self.update_position_max_radius(flow_vels)
+            
+        # self.update_position_clipped(flow_vels)
+        self.update_position_max_radius(flow_vels)
 
 
     def update_position(self, flow_vel):
