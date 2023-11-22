@@ -30,6 +30,12 @@ class Case:
         self.collision_threshold:float = 0.5
         self._max_avoidance_distance:float = 20.
 
+    @classmethod
+    def from_dict(cls, case_dict:dict):
+        '''Returns a Case instance from the json data in case_dict'''
+        raise NotImplementedError
+
+
     @property
     def name(self):
         return self._name
@@ -131,6 +137,7 @@ class Cases:
     @classmethod
     def get_case(cls, file_name: str, case_name:str) -> Case:
         """Factory method to create an Case instance from a file and case_name"""
+        # print("wa")
         cases_instance = cls(cases = None, case_name=case_name)  # Create a Cases instance with the loaded data and case name
         cases_instance.cases = cases_instance._load_file(filename=file_name)
         cases_instance.case_setup(case_name)  # Setup the specific case
@@ -198,8 +205,10 @@ class Cases:
     def case_setup(self, case_name:str)->None:
         self.case_name = case_name
         self.case = Case(self.case_name)
-        self.case.vehicle_list = self.obtain_vehicles()
-        self.case.buildings = self.obtain_buildings()
+        vehicles = self.cases[self.case_name]["vehicles"]
+        buildings = self.cases[self.case_name]["buildings"]
+        self.case.vehicle_list = self.obtain_vehicles(vehicles)
+        self.case.buildings = self.obtain_buildings(buildings)
         self.case.arena = ArenaMap(buildings=self.case.buildings)
 
     
@@ -284,18 +293,20 @@ class Cases:
         self.update_json()
         return None
 
-    def obtain_buildings(self):
+    @classmethod
+    def obtain_buildings(cls, building_data:list):
         """return a list of building objects"""
         buildings = []
-        for building in self.cases[self.case_name]["buildings"]:
+        for building in building_data:
             coords = building["vertices"]
             buildings.append(Building(coords))
         return buildings
 
-    def obtain_vehicles(self):
+    @classmethod
+    def obtain_vehicles(cls, vehicle_data:list):
         """return a list of vehicle objects"""
         vehicles = []
-        for vehicle in self.cases[self.case_name]["vehicles"]:
+        for vehicle in vehicle_data:
             position = vehicle["position"]
             goal = vehicle["goal"]
             ID = vehicle["ID"]

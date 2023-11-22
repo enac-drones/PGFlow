@@ -310,9 +310,12 @@ class Vehicle:
         # if mag == 0 or np.isnan(mag):
         unit_new_velocity = flow_vel / mag
 
-        speed = np.linalg.norm(self.velocity)
-        unit_old_velocity= self.velocity[:2]/np.linalg.norm(speed)
-        # min_cos = (1-(speed*self.delta_t/self.turn_radius)**2)/(1+(speed*self.delta_t/self.turn_radius)**2)
+        speed = np.linalg.norm(self.velocity[:2])
+        if speed == 0:
+            # initial velocity is just new velocity at start of simulation
+            unit_old_velocity= unit_new_velocity
+        else:
+            unit_old_velocity= self.velocity[:2]/speed
         
         # this can be below -1 if the radius is less than vdt/2 which makes the turn radius mathematically unachievable 
         min_cos = 1-0.5*(speed*self.delta_t/self.turn_radius)**2

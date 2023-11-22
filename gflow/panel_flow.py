@@ -22,7 +22,7 @@ if TYPE_CHECKING:
 # from .building import Building
 
 # from gflow_local.vehicle import Vehicle
-from gflow_local.arena import ArenaMap
+from gflow.arena import ArenaMap
 # from .building import Building
 import time
 
