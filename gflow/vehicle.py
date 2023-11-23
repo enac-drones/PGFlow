@@ -30,19 +30,13 @@ class PersonalVehicle:
 
 
 class Vehicle:
-    # add slots to this class
-    __slots__ = (
-        "position", "goal", "source_strength", "sink_strength", "imag_source_strength",
-        "max_avoidance_distance", "panel_flow", "t", "_arena", "desiredpos", "correction",
-        "velocity", "gamma", "altitude_mask", "ID", "path", "state", "distance_to_destination",
-        "delta_t", "velocity_desired", "velocity_corrected", "vel_err", "correction_type",
-        "personal_vehicle_dict", "transmitting", "max_speed", "ARRIVAL_DISTANCE", "safety", "AoA","altitude","Vinfmag", "V_inf","has_landed","turn_radius")
+    _id_counter = 0
 
-    
     def __init__(
-        self, ID:str, source_strength:float=0, imag_source_strength:float=0.75, correction_type="none"
+        self, source_strength:float=0, imag_source_strength:float=0.75, correction_type="none"
     ):
-        
+        self.ID = f"V{Vehicle._id_counter}"
+        Vehicle._id_counter += 1
         self.position=np.zeros(3)
         self.goal = np.zeros(3)
         self.source_strength:float =source_strength
@@ -60,7 +54,7 @@ class Vehicle:
         self.velocity = np.zeros(3)
         # self.gamma = 0
         # self.altitude_mask = None
-        self.ID = ID
+        # self.ID = ID
         self.path = []
         # FIXME there is a magic number of 0.2 for the destination, fix this
         self.state = 0

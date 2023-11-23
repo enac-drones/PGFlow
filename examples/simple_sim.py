@@ -2,10 +2,10 @@ import gflow.utils.plot_utils as ut
 from gflow.cases import Cases
 from time import time
 from gflow.utils.simulation_utils import run_simulation, set_new_attribute
-
+from pprint import pprint
 if __name__ == "__main__":
     file_name = "examples/gui_testing_1.json"
-    case_name="default"
+    case_name="a"
     # case = Cases.get_case(filename="bug_fixing/performance_enhancement.json", case_name="8_drones_2_buildings")
     # case = Cases.get_case(filename="bug_fixing/cases.json", case_name="ignore_arrived")
     case = Cases.get_case(file_name=file_name, case_name=case_name)
@@ -37,11 +37,13 @@ if __name__ == "__main__":
     start_time = time()
     result = run_simulation(
         case,
-        t=2000,
+        t=20,
         update_every=update_time_period,
         stop_at_collision=False,
         max_avoidance_distance=case.max_avoidance_distance,
     )
+
+    pprint(case.to_dict())
 
     time_taken = time() - start_time
     print(f"Simulation was safe: {result}")

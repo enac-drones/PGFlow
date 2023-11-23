@@ -12,11 +12,15 @@ from matplotlib.patches import Polygon
 
 
 class Building:
+    _id_counter = 0
+
     def __init__(
         self, vertices
     ):  # Buildings(obstacles) are defined by coordinates of their vertices.
         self.vertices = np.array(vertices)
-
+        #automatically increment the id
+        self.ID = f"B{Building._id_counter}"
+        Building._id_counter += 1
         self.inflate(rad=0.0)
         # self.position = np.array(position)
         self.panels = np.array([])
@@ -197,7 +201,7 @@ class RegularPolygon:
         # self.points = self.final_coords()
 
     def rotation_matrix2D(self, theta):
-        """return a rotation matrix to rotate a vector clockwise by theta"""
+        """return a rotation matrix to rotate a vector clockwise by theta radians"""
         # define cos(i*alpha) and sin(i*alpha)
         c, s = np.cos(theta), np.sin(theta)
         # create rotation matrix using previous definitions
