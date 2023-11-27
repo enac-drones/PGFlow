@@ -1,6 +1,6 @@
 import pytest
 
-from src.arena import ArenaMap
+from gflow.arena import ArenaMap
 
 
 @pytest.fixture

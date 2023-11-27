@@ -4,8 +4,8 @@ from time import time
 from gflow.utils.simulation_utils import run_simulation, set_new_attribute
 from pprint import pprint
 if __name__ == "__main__":
-    file_name = "examples/gui_testing_1.json"
-    case_name="a"
+    file_name = "examples/cases.json"
+    case_name="crossing"
     # case = Cases.get_case(filename="bug_fixing/performance_enhancement.json", case_name="8_drones_2_buildings")
     # case = Cases.get_case(filename="bug_fixing/cases.json", case_name="ignore_arrived")
     case = Cases.get_case(file_name=file_name, case_name=case_name)
@@ -13,9 +13,9 @@ if __name__ == "__main__":
     # case = Cases.get_case(filename="bug_fixing/cases.json", case_name="close_to_sink")
     set_new_attribute(case, "source_strength", new_attribute_value=1)
     set_new_attribute(case, "sink_strength", new_attribute_value=5)
-    # set_new_attribute(case, "max_speed", new_attribute_value=1)
+    set_new_attribute(case, "max_speed", new_attribute_value=5)
     set_new_attribute(case, "delta_t", new_attribute_value=1 / 50)
-    set_new_attribute(case, "turn_radius", new_attribute_value=0.5)
+    # set_new_attribute(case, "turn_radius", new_attribute_value=0.5)
 
 
     # set_new_attribute(case, "transmitting", new_attribute_value=True)
@@ -32,18 +32,18 @@ if __name__ == "__main__":
 
     print(f"update every = {update_time_period}")
 
-    case.max_avoidance_distance = 5
+    case.max_avoidance_distance = 1000000000000
 
     start_time = time()
     result = run_simulation(
         case,
-        t=20,
+        t=2000,
         update_every=update_time_period,
         stop_at_collision=False,
         max_avoidance_distance=case.max_avoidance_distance,
     )
 
-    pprint(case.to_dict())
+    # pprint(case.to_dict ())
 
     time_taken = time() - start_time
     print(f"Simulation was safe: {result}")

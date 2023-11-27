@@ -1,8 +1,8 @@
 import pytest
-from src.vehicle import Vehicle, PersonalVehicle
-from src.cases import Case, Cases
-from src.utils import simulation_utils as su
-from src.arena import ArenaMap
+from gflow.vehicle import Vehicle, PersonalVehicle
+from gflow.cases import Case, Cases
+from gflow.utils import simulation_utils as su
+from gflow.arena import ArenaMap
 import numpy as np
 
 

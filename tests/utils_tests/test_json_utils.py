@@ -1,5 +1,5 @@
 import os
-from src.utils import json_utils
+from gflow.utils import json_utils
 import json
 
 
