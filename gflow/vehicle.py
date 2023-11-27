@@ -5,7 +5,7 @@ import numpy as np
 from typing import List
 from numpy.typing import ArrayLike
 # from .panel_flow import Flow_Velocity_Calculation
-from gflow.panel_flow_individual import PanelFlow
+from gflow.panel_flow import PanelFlow
 from gflow.arena import ArenaMap
 # from gflow.panel_flow_class import PanelFlow
 
