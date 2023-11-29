@@ -256,6 +256,8 @@ def plot_trajectories1(Arena, ArenaR, Vehicle_list):
 ############################################################################################################################################################
 ############################################################################################################################################################
 
+
+
 class PlotTrajectories:
     """Same as above but trying to use the FuncAnimation for the play button implementation which supposedly uses less CPU"""
 

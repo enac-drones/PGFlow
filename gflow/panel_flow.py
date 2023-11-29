@@ -25,24 +25,12 @@ import time
 class PanelFlow:
     def __init__(self, vehicle:Vehicle) -> None:
         self.vehicle = vehicle
-        # self.position = vehicle.position
-        # self.goal = vehicle.goal
-        # self.source_strength = vehicle.source_strength
-        # self.sink_strength = vehicle.sink_strength
-        # self.imag_source_strength = vehicle.imag_source_strength
-
-
-    # def create_other_vehicles_list(self, vehicles:dict[str,PersonalVehicle], v_id: str):
-    #     # return vehicles[:current_index] + vehicles[current_index + 1 :]
-    #     return [vehicle for vehicle in vehicles.values() if vehicle.ID != v_id]
-
 
     def calculate_unknown_vortex_strengths(self,vehicle:Vehicle)->None:
         '''vehicles are the personal_vehicle_list containing all other vehicles'''
         vehicles = vehicle.personal_vehicle_dict
         arenamap = vehicle.arena
-        # Remove current vehicle from vehicle list.
-        # othervehicleslist = self.create_other_vehicles_list(vehicles, v_id)
+
         # Remove buildings with heights below cruise altitude:
         altitude_mask = self.altitude_mask(vehicle)
         # related_buildings keeps only the buildings for which the altitude_mask is 1, ie buildings that are higher than the altitude

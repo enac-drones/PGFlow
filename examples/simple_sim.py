@@ -5,7 +5,7 @@ from gflow.utils.simulation_utils import run_simulation, set_new_attribute
 from pprint import pprint
 if __name__ == "__main__":
     file_name = "examples/cases.json"
-    case_name="crossing"
+    case_name="alpha"
     # case = Cases.get_case(filename="bug_fixing/performance_enhancement.json", case_name="8_drones_2_buildings")
     # case = Cases.get_case(filename="bug_fixing/cases.json", case_name="ignore_arrived")
     case = Cases.get_case(file_name=file_name, case_name=case_name)
@@ -13,7 +13,7 @@ if __name__ == "__main__":
     # case = Cases.get_case(filename="bug_fixing/cases.json", case_name="close_to_sink")
     set_new_attribute(case, "source_strength", new_attribute_value=1)
     set_new_attribute(case, "sink_strength", new_attribute_value=5)
-    set_new_attribute(case, "max_speed", new_attribute_value=5)
+    set_new_attribute(case, "max_speed", new_attribute_value=1)
     set_new_attribute(case, "delta_t", new_attribute_value=1 / 50)
     # set_new_attribute(case, "turn_radius", new_attribute_value=0.5)
 
@@ -32,7 +32,7 @@ if __name__ == "__main__":
 
     print(f"update every = {update_time_period}")
 
-    case.max_avoidance_distance = 1000000000000
+    case.max_avoidance_distance = 3
 
     start_time = time()
     result = run_simulation(
@@ -52,6 +52,9 @@ if __name__ == "__main__":
 
     trajectory_plot = ut.PlotTrajectories(case, update_every=update_time_period)
 
+    # LIMS = (-20,20)
+    # trajectory_plot.ax.set_xlim(LIMS)
+    # trajectory_plot.ax.set_ylim(LIMS)
     trajectory_plot.show()
 
 # EOF

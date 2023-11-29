@@ -1,14 +1,23 @@
 import math
 
 import numpy as np
+from numpy.typing import ArrayLike
 import pyclipper
 import time
 from typing import List
 from matplotlib.patches import Polygon
-
+from shapely.geometry import box
 # from numpy import linalg
 
 """##Building Code"""
+
+from dataclasses import dataclass, field
+
+@dataclass(slots=True)
+class PersonalBuilding:
+    """Vehicle with the minimal required information: position, velocity, altitude, state etc"""
+    ID:str
+    vertices:ArrayLike
 
 
 class Building:
@@ -54,6 +63,11 @@ class Building:
         # self.vertices = points_sorted  
         self.vertices = points
 
+    def get_bounding_box(self):
+        min_x, min_y = np.min(self.vertices[:,:2], axis=0)
+        max_x, max_y = np.max(self.vertices[:,:2], axis=0)
+        return box(min_x, min_y, max_x, max_y)
+
     def panelize(self, size):
         # Divides obstacle edges into smaller line segments, called panels.
         for index, vertex in enumerate(self.vertices):
@@ -76,27 +90,6 @@ class Building:
             else:
                 # Divide the edge into "n" equal segments:
                 self.panels = np.vstack((self.panels, np.linspace(xyz1, xyz2, n)[1:]))
-
-    def panelize_optimized(self, size):
-        n_vertices = self.vertices.shape[0]
-        # Calculate the edge lengths
-        edge_lengths = np.linalg.norm(self.vertices - np.roll(self.vertices, -1, axis=0), axis=1)
-        
-        # Calculate the number of panels for each edge
-        n_panels = np.ceil(edge_lengths / size).astype(int)
-        
-        # Initialize an empty array to store the panels
-        total_panels = np.sum(n_panels)
-        self.panels = np.zeros((total_panels, self.vertices.shape[1]))
-        
-        idx = 0
-        for i in range(n_vertices):
-            xyz1 = self.vertices[i]
-            xyz2 = self.vertices[(i + 1) % n_vertices]
-            panels_for_this_edge = np.linspace(xyz1, xyz2, n_panels[i]+1)[1:]
-            
-            self.panels[idx:idx + n_panels[i]] = panels_for_this_edge
-            idx += n_panels[i]
 
 
     def contains_point(self, point):
@@ -139,8 +132,6 @@ class Building:
         t1 = time.time() - t 
         print(f"time taken to inverse is {t1}")
 
-
-    
 
     def gamma_calc(self, vehicle, othervehicles):
         """Calculate the unknown vortex strengths of the building panels
@@ -244,6 +235,7 @@ class RegularPolygon:
         # then translate the points by the centre vector
         translated = self.translate(rotated, self.centre)
         # add third dimension for compatibility with Building class. The 1.2 is a height at which the drones see the buildings
+        #FIXME remove magic number
         final = np.c_[translated, 1.2 * np.ones(self.n)]
         return final
 

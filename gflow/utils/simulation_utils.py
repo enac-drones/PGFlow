@@ -30,6 +30,7 @@ def step_simulation(case_vehicle_list: List[Vehicle], max_avoidance_distance=2):
         # update the vehicle's personal knowledge of other drones by only keeping those that meet specific conditions:
         # not too far, have not arrived yet, and are transmitting.
         vehicle.update_personal_vehicle_dict(case_vehicle_list,max_avoidance_distance)
+        # vehicle.update_nearby_buildings(threshold=5) #meters
 
         # update my position in the case_vehicle_list
         vehicle.run_simple_sim()

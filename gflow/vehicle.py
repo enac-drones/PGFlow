@@ -7,6 +7,8 @@ from numpy.typing import ArrayLike
 # from .panel_flow import Flow_Velocity_Calculation
 from gflow.panel_flow import PanelFlow
 from gflow.arena import ArenaMap
+from .building import PersonalBuilding, Building
+from shapely.geometry import Point
 # from gflow.panel_flow_class import PanelFlow
 
 
@@ -47,14 +49,12 @@ class Vehicle:
         self.panel_flow = PanelFlow(self)
         
         self.t = 0
-        self._arena:ArenaMap = None
+
+        self.arena:ArenaMap = None
         
         self.desiredpos = np.zeros(3)
         self.correction = np.zeros(3)
         self.velocity = np.zeros(3)
-        # self.gamma = 0
-        # self.altitude_mask = None
-        # self.ID = ID
         self.path = []
         # FIXME there is a magic number of 0.2 for the destination, fix this
         self.state = 0
@@ -65,7 +65,8 @@ class Vehicle:
         self.velocity_corrected = np.zeros(3)
         self.vel_err = np.zeros(3)
         self.correction_type = correction_type
-        self.personal_vehicle_dict: dict[str,Vehicle] = []
+        self.personal_vehicle_dict: dict[str,PersonalVehicle] = []
+        self.relevant_obstacles:dict[str, Building] = []
         self.transmitting = True
         self.max_speed = 0.8
         self.ARRIVAL_DISTANCE = 0.2
@@ -77,22 +78,14 @@ class Vehicle:
         self.has_landed = False
         self.turn_radius:float = 0.1 #max turn radius in meters
 
-    @property
-    def arena(self):
-        return self._arena
-
-    @arena.setter
-    def arena(self, arena):
-        self._arena = arena
-
-
     # @property
-    # def personal_vehicle_dict(self):
-    #     return self._personal_vehicle_dict
+    # def arena(self):
+    #     return self._arena
 
-    # @personal_vehicle_dict.setter
-    # def personal_vehicle_dict(self, vehicle_list:list[Vehicle]):
-    #     self._personal_vehicle_dict = vehicle_list
+    # @arena.setter
+    # def arena(self, arena):
+    #     self._arena = arena
+
 
     def update_personal_vehicle_dict(self,case_vehicle_list:list[Vehicle], max_avoidance_distance:float=100.)->None:
         for v in case_vehicle_list:
@@ -124,9 +117,11 @@ class Vehicle:
             else:
                 # not transmitting, keep the old, aka do nothing
                 pass
-
-        # Convert back to a list if necessary #FIXME should really have it as a dictionary the whole time let's be honest
-        # valid_personal_vehicle_list = list(personal_vehicle_dict.values())
+        return None
+    
+    def update_nearby_buildings(self, threshold:float = 5)->None:
+        position = Point(self.position)
+        self.relevant_obstacles = self.arena.get_nearby_buildings(position, threshold)
         return None
 
     def basic_properties(self):
@@ -187,18 +182,7 @@ class Vehicle:
         flow_vels = self.panel_flow.Flow_Velocity_Calculation(self,
             self.personal_vehicle_dict, method="Vortex"
         )
-        # now update my own velocity
-        # index = next(
-        #     (
-        #         index
-        #         for index, p_v in enumerate(self.personal_vehicle_dict.values())
-        #         if p_v.ID == self.ID
-        #     ),
-        #     None,
-        # )
-
-        # self.update_position(flow_vels[index], self.arena)
-            
+        
         # self.update_position_clipped(flow_vels)
         self.update_position_max_radius(flow_vels)
 
