@@ -4,8 +4,8 @@ from time import time
 from gflow.utils.simulation_utils import run_simulation, set_new_attribute
 from pprint import pprint
 if __name__ == "__main__":
-    file_name = "examples/cases.json"
-    case_name="alpha"
+    file_name = "examples/large_case.json"
+    case_name="large_case"
     # case = Cases.get_case(filename="bug_fixing/performance_enhancement.json", case_name="8_drones_2_buildings")
     # case = Cases.get_case(filename="bug_fixing/cases.json", case_name="ignore_arrived")
     case = Cases.get_case(file_name=file_name, case_name=case_name)
@@ -14,8 +14,8 @@ if __name__ == "__main__":
     set_new_attribute(case, "source_strength", new_attribute_value=1)
     set_new_attribute(case, "sink_strength", new_attribute_value=5)
     set_new_attribute(case, "max_speed", new_attribute_value=1)
-    set_new_attribute(case, "delta_t", new_attribute_value=1 / 50)
-    # set_new_attribute(case, "turn_radius", new_attribute_value=0.5)
+    set_new_attribute(case, "delta_t", new_attribute_value=1 / 150)
+    set_new_attribute(case, "turn_radius", new_attribute_value=0)
 
 
     # set_new_attribute(case, "transmitting", new_attribute_value=True)
@@ -27,21 +27,21 @@ if __name__ == "__main__":
 
     ######################################
     # this variable controls how many time steps occur between every communication of position
-    # update_time_period = 10
+    update_time_period = 1
     ######################################
 
     print(f"update every = {update_time_period}")
 
-    case.max_avoidance_distance = 3
+    case.max_avoidance_distance = 1
+    case.building_detection_threshold = 0.1
 
     start_time = time()
     result = run_simulation(
         case,
         t=2000,
         update_every=update_time_period,
-        stop_at_collision=False,
-        max_avoidance_distance=case.max_avoidance_distance,
-    )
+        stop_at_collision=False
+        )
 
     # pprint(case.to_dict ())
 

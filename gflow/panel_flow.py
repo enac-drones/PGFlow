@@ -15,7 +15,7 @@ if TYPE_CHECKING:
     from vehicle import Vehicle, PersonalVehicle
     from building import Building
 
-from gflow.arena import ArenaMap
+# from gflow.arena import ArenaMap
 import time
 
 
@@ -28,23 +28,25 @@ class PanelFlow:
 
     def calculate_unknown_vortex_strengths(self,vehicle:Vehicle)->None:
         '''vehicles are the personal_vehicle_list containing all other vehicles'''
-        vehicles = vehicle.personal_vehicle_dict
-        arenamap = vehicle.arena
+        # vehicles = vehicle.personal_vehicle_dict
+        # arenamap = vehicle.arena
+        buildings = vehicle.relevant_obstacles
 
         # Remove buildings with heights below cruise altitude:
         altitude_mask = self.altitude_mask(vehicle)
         # related_buildings keeps only the buildings for which the altitude_mask is 1, ie buildings that are higher than the altitude
         # of the vehicle in question
-        related_buildings:list[Building] = list(compress(arenamap.buildings, altitude_mask))
+        related_buildings:list[Building] = list(compress(buildings, altitude_mask))
         # Vortex strength calculation (related to panels of each building):
         for building in related_buildings:
             self.gamma_calc(building, self.vehicle)
 
 
     def altitude_mask(self, vehicle: Vehicle):
-        arenamap = vehicle.arena
-        mask = np.zeros((len(arenamap.buildings)))
-        for index, panelledbuilding in enumerate(arenamap.buildings):
+        # arenamap = vehicle.arena
+        buildings = vehicle.relevant_obstacles
+        mask = np.zeros((len(buildings)))
+        for index, panelledbuilding in enumerate(buildings):
             if (panelledbuilding.vertices[:, 2] > vehicle.position[2]).any():
                 mask[index] = 1
         return mask
@@ -52,17 +54,10 @@ class PanelFlow:
 
     def calculate_induced_sink_velocity(self,vehicle:Vehicle):
 
-        # vehicle_positions = np.array([v.position for v in vehicles.values()])
-        # sink_strengths = np.array([v.sink_strength for v in vehicles.values()])
-        # sink_positions = np.array(
-        #     [v.goal for v in vehicles.values()]
-        # )  # Assuming the sink position is stored in 'goal' attribute
-
-        # Calculate position differences and distances
+        
         position_diff_3D = vehicle.position - vehicle.goal
         position_diff_2D = position_diff_3D[:2]
         squared_distance = np.linalg.norm(position_diff_2D)**2
-        
 
         # Avoid division by zero (in case the vehicle is exactly at the sink)
         # squared_distances[squared_distances == 0] = 1
@@ -96,10 +91,7 @@ class PanelFlow:
         position_diff_2D = main_vehicle.position[:2] - other_positions 
         distances = np.linalg.norm(position_diff_2D, axis=1)
         effect = self.distance_effect_function(distances, main_vehicle.max_avoidance_distance)
-        # print(distances.shape, distances,self.distance_effect_function(distances))
-        # effects = strengths * effect_function(distances)[:, np.newaxis]
-        # cubed_distances = np.sum(np.abs(position_diff_2D)**2, axis=1)
-
+        
         # Calculate induced velocity
         induced_v = other_source_strengths[:, np.newaxis] * position_diff_2D * effect[:, np.newaxis]
         # Sum over all interactions to get total induced velocity on the main vehicle
@@ -139,16 +131,17 @@ class PanelFlow:
 
     
     def calculate_induced_building_velocity(self, main_vehicle: Vehicle):
-        arena = main_vehicle.arena
+        # arena = main_vehicle.arena
+        buildings = main_vehicle.relevant_obstacles
         # Determine the number of buildings and the maximum number of panels in any building
-        num_buildings = len(arena.buildings)
-        max_num_panels = max(building.nop for building in arena.buildings)
+        num_buildings = len(buildings)
+        max_num_panels = max(building.nop for building in buildings)
 
         # Initialize the all_pcp array with zeros
         all_pcp = np.zeros((num_buildings, max_num_panels, 2))
 
         # Populate the all_pcp array
-        for i, building in enumerate(arena.buildings):
+        for i, building in enumerate(buildings):
             num_panels = building.nop  # Number of panels in the current building
             all_pcp[i, :num_panels, :] = building.pcp[:num_panels, :2]
 
@@ -156,7 +149,7 @@ class PanelFlow:
         all_gammas = np.zeros((num_buildings, max_num_panels))
 
         # Populate the all_gammas array
-        for i, building in enumerate(arena.buildings):
+        for i, building in enumerate(buildings):
             num_panels = building.nop  # Number of panels in the current building
             if main_vehicle.ID in building.gammas:
                 all_gammas[i, :num_panels] = building.gammas[main_vehicle.ID][:num_panels].ravel()
@@ -211,15 +204,6 @@ class PanelFlow:
         # Velocity calculations for sink and imag_source
         vel_sink = -vehicle.sink_strength * sink_diff / (2 * np.pi * sink_sq_dist)[:, np.newaxis]
         vel_source_imag = vehicle.imag_source_strength * imag_diff / (2 * np.pi * imag_sq_dist)[:, np.newaxis]
-        # Velocity calculations for source
-        # for othervehicle in othervehicles:
-        #     source_diff = building.pcp[:,:2] - othervehicle.position[:2]
-        #     vortex_diff = np.zeros_like(source_diff)
-        #     vortex_diff[:, 0] = -source_diff[:, 1]
-        #     vortex_diff[:, 1] = source_diff[:, 0]
-        #     source_sq_dist = np.sum(source_diff ** 2, axis=-1)
-        #     vel_source += othervehicle.source_strength * source_diff / (2 * np.pi * source_sq_dist)[:, np.newaxis]
-        #     vel_vortex += othervehicle.source_strength/4 * vortex_diff / (2 * np.pi * source_sq_dist)[:, np.newaxis]
 
         ########
         if othervehicles:
@@ -266,11 +250,10 @@ class PanelFlow:
         building.gammas[vehicle.ID] = np.matmul(building.K_inv, RHS)
     
     def Flow_Velocity_Calculation(self,
-        vehicle:Vehicle, vehicles:dict[str,PersonalVehicle], method="Vortex"
-    )->ArrayLike:
+        vehicle:Vehicle, vehicles:dict[str,PersonalVehicle])->ArrayLike:
         n_vehicles = len(vehicles)
-        two_dim_shape = (n_vehicles, 2)
-        one_dim_shape = (n_vehicles, 1)
+        # two_dim_shape = (n_vehicles, 2)
+        # one_dim_shape = (n_vehicles, 1)
 
         V_gamma, V_sink, V_source, V_vortex, V_sum, V_normal, V_flow = [
             np.zeros(2) for _ in range(7)
@@ -283,20 +266,16 @@ class PanelFlow:
         
 
         # Calculating unknown vortex strengths using panel method:
-        if vehicle.arena.buildings:
+        if vehicle.relevant_obstacles:
             #calculates unknown building vortex strengths
             self.calculate_unknown_vortex_strengths(vehicle)
         # --------------------------------------------------------------------
             V_gamma = self.calculate_induced_building_velocity(vehicle)
 
 
-        # source_gain = 0
-
         # Velocity induced by 2D point sink, eqn. 10.2 & 10.3 in Katz & Plotkin:
         #calculate effect of sink
         V_sink = self.calculate_induced_sink_velocity(vehicle)
-
-
 
         # W_sink = self.calculate_all_induced_sink_velocities3D(vehicles)[:, 2]
         # Velocity induced by 2D point source, eqn. 10.2 & 10.3 in Katz & Plotkin:

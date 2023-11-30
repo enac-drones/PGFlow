@@ -6,7 +6,7 @@ import numpy as np
 from scipy.spatial import ConvexHull
 from rtree import index
 
-from .building import Building
+from gflow.building import Building
 from typing import List
 from shapely.geometry import box, Point
 
@@ -100,11 +100,20 @@ class ArenaMap:
         for i, building in enumerate(self.buildings):
             bbox = building.get_bounding_box()
             self.rtree_index.insert(i, bbox.bounds)
+        return None
+            
 
-    def get_nearby_buildings(self, drone_position, threshold_distance):
-        query_box = box(drone_position[0] - threshold_distance, drone_position[0] - threshold_distance,
-                        drone_position[1] + threshold_distance, drone_position[1]+ threshold_distance)
+    def get_nearby_buildings(self, drone_position, threshold_distance:float)->list[Building]:
+        # print(f"{drone_position=}, {drone_position[0] - threshold_distance=}")
+        # print(f"{self.rtree_index=}")
+        # print(f"{threshold_distance=}")
+        query_box = box(drone_position[0] - threshold_distance, drone_position[1] - threshold_distance,
+                        drone_position[0] + threshold_distance, drone_position[1]+ threshold_distance)
+        # print(f"{query_box.bounds=}")
         potential_buildings = list(self.rtree_index.intersection(query_box.bounds))
+        # print(f"{potential_buildings=}")
+        # import sys
+        # sys.exit()
         nearby_buildings = []
         for i in potential_buildings:
             building_polygon = self.buildings[i].get_bounding_box()  # or however you represent the building shape

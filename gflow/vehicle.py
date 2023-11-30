@@ -66,7 +66,7 @@ class Vehicle:
         self.vel_err = np.zeros(3)
         self.correction_type = correction_type
         self.personal_vehicle_dict: dict[str,PersonalVehicle] = []
-        self.relevant_obstacles:dict[str, Building] = []
+        self.relevant_obstacles:list[Building] = []
         self.transmitting = True
         self.max_speed = 0.8
         self.ARRIVAL_DISTANCE = 0.2
@@ -120,8 +120,9 @@ class Vehicle:
         return None
     
     def update_nearby_buildings(self, threshold:float = 5)->None:
-        position = Point(self.position)
-        self.relevant_obstacles = self.arena.get_nearby_buildings(position, threshold)
+        # position = Point(self.position)
+        self.relevant_obstacles = self.arena.get_nearby_buildings(self.position, threshold)
+        # print(self.relevant_obstacles)
         return None
 
     def basic_properties(self):
@@ -180,8 +181,7 @@ class Vehicle:
     def run_simple_sim(self):
         # these are the flow velocities induced on every vehicle (based off the personal vehicle list), stored as a list
         flow_vels = self.panel_flow.Flow_Velocity_Calculation(self,
-            self.personal_vehicle_dict, method="Vortex"
-        )
+            self.personal_vehicle_dict)
         
         # self.update_position_clipped(flow_vels)
         self.update_position_max_radius(flow_vels)
@@ -273,15 +273,6 @@ class Vehicle:
     def update_position_max_radius(self, flow_vel):
         """Updates my position within the global vehicle_list given the induced flow from other vehicles onto me"""
 
-        
-            # import sys
-            # sys.exit()
-        # K is vehicle speed coefficient, a design parameter
-        # flow_vels = flow_vels * self.delta_t
-        #########################################
-        #TODO currently array is 2D, so add a third dimension for compatibility
-        # V_des = flow_vel
-        #########################################
         # magnitude of the induced velocity vector in 2D
         mag = np.linalg.norm(flow_vel)
         # induced velocity unit vector
@@ -295,43 +286,38 @@ class Vehicle:
         else:
             unit_old_velocity= self.velocity[:2]/speed
         
-        # this can be below -1 if the radius is less than vdt/2 which makes the turn radius mathematically unachievable 
-        min_cos = 1-0.5*(speed*self.delta_t/self.turn_radius)**2
+        if not self.turn_radius < self.max_speed*self.delta_t/2:
 
-        # Calculate the angle in radians, and then convert it to degrees
-        # The np.clip is used to handle potential floating-point arithmetic issues that might push the dot product 
-        # slightly outside the range [-1, 1], which would cause np.arccos to return NaN
-        cos_angle = (np.clip(np.dot(unit_new_velocity, unit_old_velocity), -1.0, 1.0))
+            # this can be below -1 if the radius is less than vdt/2 which makes the turn radius mathematically unachievable 
+            min_cos = 1-0.5*(speed*self.delta_t/self.turn_radius)**2
 
-        if cos_angle < min_cos:
-            max_theta = np.arccos(np.clip(min_cos, -1.0, 1.0))
-            #in numpy cross product of two 2d vectors returns the z component of the resulting vector
-            cross_product = np.cross(unit_new_velocity, unit_old_velocity)
+            # Calculate the angle in radians, and then convert it to degrees
+            # The np.clip is used to handle potential floating-point arithmetic issues that might push the dot product 
+            # slightly outside the range [-1, 1], which would cause np.arccos to return NaN
+            cos_angle = (np.clip(np.dot(unit_new_velocity, unit_old_velocity), -1.0, 1.0))
 
-            # print(cross_product,unit_new_velocity,unit_old_velocity)
-            if cross_product>0:
-                #clockwise
-                theta = -max_theta
-            else:
-                #anti_clockwise
-                theta = max_theta
-            
-            # Create the rotation matrix
-            rotation_matrix = np.array([[np.cos(theta), -np.sin(theta)], 
-                                [np.sin(theta),  np.cos(theta)]])
-            
-            # Rotate the vector
-            unit_new_velocity = np.dot(rotation_matrix, unit_old_velocity)
+            if cos_angle < min_cos:
+                max_theta = np.arccos(np.clip(min_cos, -1.0, 1.0))
+                #in numpy cross product of two 2d vectors returns the z component of the resulting vector
+                cross_product = np.cross(unit_new_velocity, unit_old_velocity)
+
+                # print(cross_product,unit_new_velocity,unit_old_velocity)
+                if cross_product>0:
+                    #clockwise
+                    theta = -max_theta
+                else:
+                    #anti_clockwise
+                    theta = max_theta
+                
+                # Create the rotation matrix
+                rotation_matrix = np.array([[np.cos(theta), -np.sin(theta)], 
+                                    [np.sin(theta),  np.cos(theta)]])
+                
+                # Rotate the vector
+                unit_new_velocity = np.dot(rotation_matrix, unit_old_velocity)
 
         unit_new_velocity = np.append(unit_new_velocity, 0)
-
-
-
-        # set z component to 0 TODO removed for now because focusing on 2d
-        #########################################
-        # V_des_unit[2] = 0
-        #########################################
-        # force mag to lie between 0 and 1
+        
         # multiply the flow velocity by some predefined constant to set max speed 
         self.velocity = unit_new_velocity * self.max_speed
         delta_s = self.velocity * self.delta_t   # use unit velocity

@@ -29,6 +29,7 @@ class Case:
         self._arena:ArenaMap = None
         self.collision_threshold:float = 0.5
         self._max_avoidance_distance:float = 20.
+        self.building_detection_threshold:float = 10.
 
     @classmethod
     def from_dict(cls, case_dict:dict):
@@ -81,9 +82,9 @@ class Case:
     @arena.setter
     def arena(self, new_arena):
         """Arena setter, need to add some error handling first probably, just like in the vehicle_list setter"""
-        self._arena = deepcopy(new_arena)
+        self._arena = new_arena
         for vehicle in self._vehicle_list:
-            vehicle.arena = deepcopy(new_arena)
+            vehicle.arena = new_arena
 
     def colliding(self, get_culprits=False):
         squared_distance_threshold = self.collision_threshold**2
@@ -110,7 +111,7 @@ class Case:
     def clean_case(self):
         self.vehicle_list = []
         return None
-    
+
     def to_dict(self) -> dict:
         """Converts the Case instance to a dictionary for JSON-style output. 
         IMPORTANT: uses new json format with dicts instead of lists of buildings and vehicles"""
