@@ -69,6 +69,8 @@ class Building:
         return box(min_x, min_y, max_x, max_y)
 
     def panelize(self, size):
+        # t = time.perf_counter()
+
         # Divides obstacle edges into smaller line segments, called panels.
         for index, vertex in enumerate(self.vertices):
             xyz1 = self.vertices[index]  # Coordinates of the first vertex
@@ -90,7 +92,7 @@ class Building:
             else:
                 # Divide the edge into "n" equal segments:
                 self.panels = np.vstack((self.panels, np.linspace(xyz1, xyz2, n)[1:]))
-
+        # print("time taken to panelize: ", time.perf_counter()-t)
 
     def contains_point(self, point):
         # Checks if a point lies within the building.
@@ -100,7 +102,7 @@ class Building:
 
     def calculate_coef_matrix(self):
         '''Calculate the Matrix inverse of the building'''
-        t = time.time()
+        t = time.perf_counter()
         # Calculates coefficient matrix.
         self.nop = self.panels.shape[0]  # Number of Panels
         XYZ2 = self.panels  # Coordinates of end point of panel
@@ -129,7 +131,7 @@ class Building:
 
         # Inverse of coefficient matrix: (Needed for solution of panel method eqn.)
         self.K_inv = np.linalg.inv(self.K)
-        t1 = time.time() - t 
+        t1 = time.perf_counter() - t 
         print(f"time taken to inverse is {t1}")
 
 

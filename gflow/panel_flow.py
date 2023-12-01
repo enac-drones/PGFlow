@@ -237,9 +237,9 @@ class PanelFlow:
         cos_pb = np.cos(building.pb)
         sin_pb = np.sin(building.pb)
         RHS[:, 0] = (
-            - vehicle.V_inf[0] * cos_pb
-            - vehicle.V_inf[1] * sin_pb
-            - np.sum(vel_sink * np.array([cos_pb, sin_pb]).T, axis=1)
+            - vehicle.v_free_stream[0] * cos_pb
+            - vehicle.v_free_stream[1] * sin_pb
+            # - np.sum(vel_sink * np.array([cos_pb, sin_pb]).T, axis=1)
             - np.sum(vel_source * np.array([cos_pb, sin_pb]).T, axis=1)
             - np.sum(vel_vortex * np.array([cos_pb, sin_pb]).T, axis=1)
             - np.sum(vel_source_imag * np.array([cos_pb, sin_pb]).T, axis=1)
@@ -275,7 +275,8 @@ class PanelFlow:
 
         # Velocity induced by 2D point sink, eqn. 10.2 & 10.3 in Katz & Plotkin:
         #calculate effect of sink
-        V_sink = self.calculate_induced_sink_velocity(vehicle)
+        # V_sink = self.calculate_induced_sink_velocity(vehicle)
+        V_sink = vehicle.v_free_stream
 
         # W_sink = self.calculate_all_induced_sink_velocities3D(vehicles)[:, 2]
         # Velocity induced by 2D point source, eqn. 10.2 & 10.3 in Katz & Plotkin:

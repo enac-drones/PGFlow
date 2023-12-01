@@ -12,9 +12,10 @@ if __name__ == "__main__":
 
     # case = Cases.get_case(filename="bug_fixing/cases.json", case_name="close_to_sink")
     set_new_attribute(case, "source_strength", new_attribute_value=1)
+    set_new_attribute(case, "imag_source_strength", new_attribute_value=0.5)
     set_new_attribute(case, "sink_strength", new_attribute_value=5)
     set_new_attribute(case, "max_speed", new_attribute_value=1)
-    set_new_attribute(case, "delta_t", new_attribute_value=1 / 150)
+    set_new_attribute(case, "delta_t", new_attribute_value=1 / 50)
     set_new_attribute(case, "turn_radius", new_attribute_value=0)
 
 
@@ -32,8 +33,8 @@ if __name__ == "__main__":
 
     print(f"update every = {update_time_period}")
 
-    case.max_avoidance_distance = 1
-    case.building_detection_threshold = 0.1
+    case.max_avoidance_distance = 10
+    case.building_detection_threshold = 1
 
     start_time = time()
     result = run_simulation(
@@ -51,10 +52,10 @@ if __name__ == "__main__":
     print(f"Time for simulation is {time_taken}")
 
     trajectory_plot = ut.PlotTrajectories(case, update_every=update_time_period)
-
-    # LIMS = (-20,20)
-    # trajectory_plot.ax.set_xlim(LIMS)
-    # trajectory_plot.ax.set_ylim(LIMS)
+    trajectory_plot.BUILDING_EDGE_COLOUR
+    LIMS = (-50,50)
+    trajectory_plot.ax.set_xlim(LIMS)
+    trajectory_plot.ax.set_ylim(LIMS)
     trajectory_plot.show()
 
 # EOF

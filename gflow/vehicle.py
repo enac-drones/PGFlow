@@ -39,7 +39,7 @@ class Vehicle:
     ):
         self.ID = f"V{Vehicle._id_counter}"
         Vehicle._id_counter += 1
-        self.position=np.zeros(3)
+        self._position=np.zeros(3)
         self.goal = np.zeros(3)
         self.source_strength:float =source_strength
         self.sink_strength:float=0
@@ -77,14 +77,18 @@ class Vehicle:
         self.V_inf = None
         self.has_landed = False
         self.turn_radius:float = 0.1 #max turn radius in meters
+        self.v_free_stream:np.ndarray = np.zeros(2) #velocity constantly pushing the vehicle towards its goal
 
-    # @property
-    # def arena(self):
-    #     return self._arena
+    @property
+    def position(self):
+        return self._position
 
-    # @arena.setter
-    # def arena(self, arena):
-    #     self._arena = arena
+    @position.setter
+    def position(self, new_position):
+        self._position = new_position
+        vector_to_goal = (self.goal - new_position)[:2]
+        self.v_free_stream = vector_to_goal/np.linalg.norm(vector_to_goal)
+
 
 
     def update_personal_vehicle_dict(self,case_vehicle_list:list[Vehicle], max_avoidance_distance:float=100.)->None:
@@ -122,6 +126,11 @@ class Vehicle:
     def update_nearby_buildings(self, threshold:float = 5)->None:
         # position = Point(self.position)
         self.relevant_obstacles = self.arena.get_nearby_buildings(self.position, threshold)
+        for building in self.relevant_obstacles:
+            if building.K_inv is None:
+                
+                building.panelize(self.arena.size)
+                building.calculate_coef_matrix()
         # print(self.relevant_obstacles)
         return None
 
