@@ -17,6 +17,8 @@ from typing import List
 from gflow.vehicle import Vehicle
 from gflow.cases import Case
 
+from typing import Iterable
+
 
 ############################################################################################################################################################
 ############################################################################################################################################################
@@ -28,12 +30,11 @@ from gflow.cases import Case
 class PlotTrajectories:
     """Same as above but trying to use the FuncAnimation for the play button implementation which supposedly uses less CPU"""
 
-    # UPDATE_INTERVAL = 5
     SLIDER_ANIMATION_INTERVAL = 0.01
     FIG_SIZE = (8, 8)
     AXIS_LIMITS = (-5, 5)
     GOAL_THRESHOLD = 0.2
-    FRAMES = 101
+    FRAMES = 100
     UPDATE_INTERVAL = 50
     BUILDING_EDGE_COLOUR = "black"
     BUILDING_FILL_COLOUR = "darkgray"
@@ -46,7 +47,7 @@ class PlotTrajectories:
         self.Arena = case.arena
         self.ArenaR = case.arena
 
-
+        self.modified_artists:list = []
 
         self.vehicle_list = case.vehicle_list
         self.case_name = case.name
@@ -83,16 +84,18 @@ class PlotTrajectories:
         self.anim = FuncAnimation(
             self.fig,
             self.animate,
-            interval=self.UPDATE_INTERVAL,
+            interval=self.UPDATE_INTERVAL, # delay between frames in ms
             frames=self.FRAMES,
             init_func=None,
             blit=False,
-            repeat=True,
-            repeat_delay=1000,
+            repeat=True, # whether to repeat the animation after the end
+            repeat_delay=1000, # delay between repeats in ms
         )
 
         # tell the slider to update the plot when it is moved
         self.slider.on_changed(self.update)
+        # self.slider.on_changed(self.animate)
+
         # call the play function when the button is pressed (to play or pause the animation)
         self.play_button.on_clicked(self.play)
 
@@ -101,12 +104,13 @@ class PlotTrajectories:
         # plt.pause(0.1)
         # the line below also appears to do the trick, and better
         self.fig.canvas.draw()
+        # self.fig.canvas.flush_events()
+
 
         # these three lines are a bit of a hack to stop the simulation which for some reason automatically starts BUG
         self.animation_running = True
         self.play(event=None)
         self.slider.set_val(0.0)
-        # fig.canvas.draw_idle()
 
     def plot_setup(self):
         fig = plt.figure(figsize=self.FIG_SIZE)
@@ -264,9 +268,10 @@ class PlotTrajectories:
         return None
 
     def update(self, val):
+        return
         # val self.slider.val is the same as val
         plot_until = int(np.floor(val * self.time_steps_max))
-
+        self.modified_artists = []
         self.update_plot(plot_until)
         self.update_drone_positions(plot_until)
         self.update_warning_circles(plot_until)
@@ -287,16 +292,8 @@ class PlotTrajectories:
                 self.vehicle_list[i].path[:plot_until, 0],
                 self.vehicle_list[i].path[:plot_until, 1],
             )
+            self.modified_artists.append(self.plot_list[i])
 
-        # for i in range(len(self.plot_list)):
-        #     self.plot_list[i].set_data(
-        #         self.vehicle_list[i].path[:0, 0],
-        #         self.vehicle_list[i].path[:0, 1],
-        #     )
-        #     self.plot_list[i].set_data(
-        #         self.vehicle_list[i].path[:0, 0],
-        #         self.vehicle_list[i].path[:0, 1],
-        #     )
 
     def update_drone_positions(self, plot_until):
         for i in range(len(self.drone_list)):
@@ -307,6 +304,7 @@ class PlotTrajectories:
             else:
                 x, y, z = self.vehicle_list[i].path[-1, :3]
             self.drone_list[i].set_data(x, y)
+            self.modified_artists.append(self.drone_list[i])
             self.positions[i] = [x, y, z]
 
     def update_warning_circles(self, plot_until):
@@ -328,6 +326,8 @@ class PlotTrajectories:
                 self.warning_circles[i].set_facecolor("skyblue")
                 self.warning_circles[i].set_edgecolor("b")
             self.warning_circles[i].center = self.positions[i][:2]
+
+            self.modified_artists.append(self.warning_circles[i])
 
     def collision_handling(self):
         """Handle collisions and update display accordingly."""
@@ -370,7 +370,6 @@ class PlotTrajectories:
                     continue
 
                 if distance_matrix[i, j] < self.case.max_avoidance_distance:
-                    # print(self.vehicle_list[i].path[plot_until,0])
                     x_values = [self.vehicle_list[i].path[plot_until, 0], self.vehicle_list[j].path[plot_until, 0]]
                     y_values = [self.vehicle_list[i].path[plot_until, 1], self.vehicle_list[j].path[plot_until, 1]]
                     distance = distance_matrix[i, j]
@@ -378,7 +377,6 @@ class PlotTrajectories:
                     p = 1 - distance/max_distance # 1 at no distance, 0 and max_distance
 
                     max_linewidth = 4
-                    # print(f"{x_values=} ,{y_values=}")
                     # Create a colormap that transitions from green to red
                     # cmap = plt.cm.RdYlGn_r  # 'RdYlGn_r' is the reversed Red-Yellow-Green colormap
                     # cmap = plt.cm.Reds_r # Red black map
@@ -390,7 +388,6 @@ class PlotTrajectories:
                     # color_value = cmap(p_adjusted)
                     #not using colour for now, but could be interesting
                     line = self.ax.plot(x_values, y_values, 'k-', alpha = p, lw = p * max_linewidth )[0]  # 'k-' specifies a black line
-                    # print(f"{line=}")
                     self.connecting_lines[(i,j)] = line  # 'k-' specifies a black line
 
 
@@ -479,7 +476,9 @@ class PlotTrajectories:
             self.animation_running = True
         # this line seems to update the plot. Without it, the Play and Pause will not update until the mouse leaves the button area.
         # plt.pause(0.1)
-        self.fig.canvas.draw_idle()
+        self.fig.canvas.draw()
+        # self.fig.canvas.flush_events()
+
         return None
 
     # anim.event_source.stop()
@@ -492,6 +491,7 @@ class PlotTrajectories:
         self.animation_running = False
         # this line seems to update the plot. Without it, the Play and Pause will not update until the mouse leaves the button area.
         self.fig.canvas.draw_idle()
+        # self.fig.canvas.flush_events()
         return None
 
     def on_press(self, event):
@@ -500,29 +500,115 @@ class PlotTrajectories:
         if event.key == " ":
             self.play(event=None)
             self.fig.canvas.draw()
+            # self.fig.canvas.flush_events()
         return None
 
     def animate(self, i):
         """Function that updates the slider and calls the update function. i iterates from 0 to the number of frames"""
         # obtain the slider value to 2dp
+        # print(f"{i=}")
         current_slider_value = round(self.slider.val, 2)
         # set i to the slider value so that the simulation stops when the slider reaches the end
-        # it is 100x the slider value because the slider goes from 0 to 1 and the i from 0 to 100
-        i = int((self.FRAMES - 1) * current_slider_value)
+        # it is 100x the slider value because the slider goes from 0 to 1 and the i from 0 to 99
+        i = int((self.FRAMES) * current_slider_value)
+        # print(f"second time, {i=}")
+
         # increment the slider by 0.01 for every frame
         self.slider.set_val(
             (current_slider_value + self.SLIDER_ANIMATION_INTERVAL)
             % (self.slider.valmax + self.SLIDER_ANIMATION_INTERVAL)
         )
+
+        # val self.slider.val is the same as val
+        plot_until = int(np.floor(current_slider_value * self.time_steps_max))
+        self.modified_artists = []
+        self.update_plot(plot_until)
+        self.update_drone_positions(plot_until)
+        self.update_warning_circles(plot_until)
+        #limit plot_until to the max timesteps-1 to avoid index errors at the end. 
+        plot_until = min(plot_until, self.time_steps_max - 1)
+        self.handle_connecting_lines(plot_until)
+        self.collision_handling()
+
         # stop the animation when the slider reaches the end
-        if i == self.FRAMES - 2:
+        if i == self.FRAMES - 1:
             # calling the play function while the animation is running stops the animation
+            # pass
             self.play(event=None)
-        # nothing to return I'm pretty sure :)
-        return None
+
+        # if blit=True, need to return the sequence of artists that need updating
+        return self.modified_artists
 
     def show(self):
         # show the plot
         plt.show()
         return None
+    
+if __name__=="__main__":
+    print(list(range(10)))
+
+# FuncAnimation args:
+# (fig: Figure, func: (...) -> Iterable[Artist], frames: Iterable[Artist] | int | (() -> Generator) | None = ..., init_func: (() -> Iterable[Artist]) | None = ..., fargs: tuple[Any, ...] | None = ..., save_count: int | None = ..., *, cache_frame_data: bool = ..., **kwargs: Any) -> None
+# TimedAnimation subclass that makes an animation by repeatedly calling a function *func*.
+
+# Parameters
+# fig : ~matplotlib.figure.Figure
+#     The figure object used to get needed events, such as draw or resize.
+
+# func : callable
+#     The function to call at each frame. The first argument will be the next value in *frames*. Any additional positional arguments can be supplied using functools.partial or via the *fargs* parameter.
+
+#     The required signature is:
+
+#         def func(frame, *fargs) -> iterable_of_artists
+#     It is often more convenient to provide the arguments using functools.partial. In this way it is also possible to pass keyword arguments. To pass a function with both positional and keyword arguments, set all arguments as keyword arguments, just leaving the *frame* argument unset:
+
+#         def func(frame, art, *, y=None):
+#             ...
+
+#         ani = FuncAnimation(fig, partial(func, art=ln, y='foo'))
+#     If blit == True, *func* must return an iterable of all artists that were modified or created. This information is used by the blitting algorithm to determine which parts of the figure have to be updated. The return value is unused if blit == False and may be omitted in that case.
+
+# frames : iterable, int, generator function, or None, optional
+#     Source of data to pass *func* and each frame of the animation
+
+# If an iterable, then simply use the values provided. If the
+#       iterable has a length, it will override the *save_count* kwarg.
+
+# If an integer, then equivalent to passing range(frames)
+
+# If a generator function, then must have the signature:
+
+#          def gen_function() -> obj
+# If *None*, then equivalent to passing itertools.count.
+#     In all of these cases, the values in *frames* is simply passed through to the user-supplied *func* and thus can be of any type.
+
+# init_func : callable, optional
+#     A function used to draw a clear frame. If not given, the results of drawing from the first item in the frames sequence will be used. This function will be called once before the first frame.
+
+#     The required signature is:
+
+#         def init_func() -> iterable_of_artists
+#     If blit == True, *init_func* must return an iterable of artists to be re-drawn. This information is used by the blitting algorithm to determine which parts of the figure have to be updated. The return value is unused if blit == False and may be omitted in that case.
+
+# fargs : tuple or None, optional
+#     Additional arguments to pass to each call to *func*. Note: the use of functools.partial is preferred over *fargs*. See *func* for details.
+
+# save_count : int, optional
+#     Fallback for the number of values from *frames* to cache. This is only used if the number of frames cannot be inferred from *frames*, i.e. when it's an iterator without length or a generator.
+
+# interval : int, default: 200
+#     Delay between frames in milliseconds.
+
+# repeat_delay : int, default: 0
+#     The delay in milliseconds between consecutive animation runs, if *repeat* is True.
+
+# repeat : bool, default: True
+#     Whether the animation repeats when the sequence of frames is completed.
+
+# blit : bool, default: False
+#     Whether blitting is used to optimize drawing. Note: when using blitting, any animated artists will be drawn according to their zorder; however, they will be drawn on top of any previous artists, regardless of their zorder.
+
+# cache_frame_data : bool, default: True
+#     Whether frame data is cached. Disabling cache might be helpful when frames contain large objects.
 

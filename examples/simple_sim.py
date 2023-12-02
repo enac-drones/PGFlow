@@ -6,9 +6,9 @@ from pprint import pprint
 if __name__ == "__main__":
     file_name = "examples/large_case.json"
     case_name="large_case"
-    # case = Cases.get_case(filename="bug_fixing/performance_enhancement.json", case_name="8_drones_2_buildings")
     # case = Cases.get_case(filename="bug_fixing/cases.json", case_name="ignore_arrived")
     case = Cases.get_case(file_name=file_name, case_name=case_name)
+    case = Cases.get_case(file_name="examples/cases.json", case_name="twodrones")
 
     # case = Cases.get_case(filename="bug_fixing/cases.json", case_name="close_to_sink")
     set_new_attribute(case, "source_strength", new_attribute_value=1)
@@ -39,7 +39,7 @@ if __name__ == "__main__":
     start_time = time()
     result = run_simulation(
         case,
-        t=2000,
+        t=500,
         update_every=update_time_period,
         stop_at_collision=False
         )
@@ -53,7 +53,7 @@ if __name__ == "__main__":
 
     trajectory_plot = ut.PlotTrajectories(case, update_every=update_time_period)
     trajectory_plot.BUILDING_EDGE_COLOUR
-    LIMS = (-50,50)
+    LIMS = (-5,5)
     trajectory_plot.ax.set_xlim(LIMS)
     trajectory_plot.ax.set_ylim(LIMS)
     trajectory_plot.show()
