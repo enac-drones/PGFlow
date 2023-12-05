@@ -1,6 +1,7 @@
 import sys
 sys.path.append('../')
-
+# import matplotlib
+# matplotlib.use("QtAgg")
 import matplotlib.pyplot as plt
 from matplotlib.patches import FancyArrowPatch
 import numpy as np
@@ -30,11 +31,11 @@ from typing import Iterable
 class PlotTrajectories:
     """Same as above but trying to use the FuncAnimation for the play button implementation which supposedly uses less CPU"""
 
-    SLIDER_ANIMATION_INTERVAL = 0.01
     FIG_SIZE = (8, 8)
     AXIS_LIMITS = (-5, 5)
     GOAL_THRESHOLD = 0.2
-    FRAMES = 100
+    FRAMES = np.linspace(0, 1, 101)
+    SLIDER_ANIMATION_INTERVAL = FRAMES[1]-FRAMES[0]
     UPDATE_INTERVAL = 50
     BUILDING_EDGE_COLOUR = "black"
     BUILDING_FILL_COLOUR = "darkgray"
@@ -42,12 +43,12 @@ class PlotTrajectories:
     BUILDING_INFLATED_FILL_COLOUR = "r"
 
     def __init__(self, case: Case, update_every: int):
-
         self.case = case
         self.Arena = case.arena
         self.ArenaR = case.arena
 
-        self.modified_artists:list = []
+        self.animation_proportion:float = 0 #proportion of animation completed according to frames ie 9/100 frames = 0.09
+        self.modified_artists:set = set()
 
         self.vehicle_list = case.vehicle_list
         self.case_name = case.name
@@ -80,16 +81,16 @@ class PlotTrajectories:
         # addressed_conflicts = set()
         # connect the action of pressing the spacebar to the result we want it to have
         self.fig.canvas.mpl_connect("key_press_event", self.on_press)
-        # Create the animation object, it starts automatically against my will BUG
+        # Create the animation object, it starts automatically against my will. BUG? Unlikely...
         self.anim = FuncAnimation(
             self.fig,
             self.animate,
             interval=self.UPDATE_INTERVAL, # delay between frames in ms
             frames=self.FRAMES,
             init_func=None,
-            blit=False,
-            repeat=True, # whether to repeat the animation after the end
-            repeat_delay=1000, # delay between repeats in ms
+            blit=True,
+            repeat=True, # whether to repeat the animation after the end 
+            repeat_delay=1000, # delay between repeats in ms #BUG doesn't seem to delay at all
         )
 
         # tell the slider to update the plot when it is moved
@@ -111,6 +112,50 @@ class PlotTrajectories:
         self.animation_running = True
         self.play(event=None)
         self.slider.set_val(0.0)
+
+    def update(self, val):
+        # return
+        # val self.slider.val is the same as val
+        plot_until = int(np.floor(val * self.time_steps_max))
+        # self.modified_artists = []
+        self.update_plot(plot_until)
+        self.update_drone_positions(plot_until)
+        self.update_warning_circles(plot_until)
+        #limit plot_until to the max timesteps-1 to avoid index errors at the end. 
+        plot_until = min(plot_until, self.time_steps_max - 1)
+        self.handle_connecting_lines(plot_until)
+        self.collision_handling()
+        # self.animation_proportion = val
+
+
+    def animate(self, i):
+        """Function that updates the slider and calls the update function. i is the FRAMES argument"""
+        # obtain the slider value to 2dp
+        # self.fig.canvas.flush_events()
+        self.modified_artists.clear()
+        current_slider_value = round(self.slider.val, 2)
+        # print(f"{self.slider.val=}")
+        # set i to the slider value so that the simulation stops when the slider reaches the end
+        # it is 100x the slider value because the slider goes from 0 to 1 and the i from 0 to 99
+        #FIXME need better logic to set the frame number to where the slider is 
+        # (with the current implementation, frame number can not be changed easily)
+        self.slider.set_val(
+            (current_slider_value + self.SLIDER_ANIMATION_INTERVAL)
+            % (self.slider.valmax + self.SLIDER_ANIMATION_INTERVAL)
+        )        
+        i = self.slider.val
+
+        
+        # stop the animation when the slider reaches the end
+        #NOTE this can be done by setting repeat=False in FuncAnimation but then we wouldn't have access to the button to restart it
+        if i == self.FRAMES[-1]:
+            print("stopping")
+            # calling the play function while the animation is running stops the animation
+            self.play(event=None)
+
+        # if blit=True, need to return the sequence of artists that need updating
+
+        return tuple(self.modified_artists)
 
     def plot_setup(self):
         fig = plt.figure(figsize=self.FIG_SIZE)
@@ -140,7 +185,7 @@ class PlotTrajectories:
             ax=ax_prog,
             label="Progress ",
             valinit=0.0,
-            valstep=0.001,
+            valstep=self.SLIDER_ANIMATION_INTERVAL/10,
             valmin=0,
             valmax=1.0,
             valfmt=" %1.1f ",
@@ -242,7 +287,7 @@ class PlotTrajectories:
                 linewidth=2,
             )
             # the line below is for adding an icon to the current vehicle position
-            # also the 'x' at the end is the position marker, can be changed to other things
+            # the 'x' at the end is the position marker, can be changed to other things
             (drone_icon,) = ax.plot(x, y, "x")
 
             # plot the default warning circles
@@ -267,19 +312,7 @@ class PlotTrajectories:
             ax.plot(vehicle_list[v_idx].goal[0], vehicle_list[v_idx].goal[1], "*")
         return None
 
-    def update(self, val):
-        return
-        # val self.slider.val is the same as val
-        plot_until = int(np.floor(val * self.time_steps_max))
-        self.modified_artists = []
-        self.update_plot(plot_until)
-        self.update_drone_positions(plot_until)
-        self.update_warning_circles(plot_until)
-        #limit plot_until to the max timesteps-1 to avoid index errors at the end. 
-        plot_until = min(plot_until, self.time_steps_max - 1)
-        self.handle_connecting_lines(plot_until)
-        self.collision_handling()
-
+    
 
     def update_plot(self, plot_until):
         
@@ -292,7 +325,7 @@ class PlotTrajectories:
                 self.vehicle_list[i].path[:plot_until, 0],
                 self.vehicle_list[i].path[:plot_until, 1],
             )
-            self.modified_artists.append(self.plot_list[i])
+            # self.modified_artists.add(self.plot_list[i])
 
 
     def update_drone_positions(self, plot_until):
@@ -304,30 +337,36 @@ class PlotTrajectories:
             else:
                 x, y, z = self.vehicle_list[i].path[-1, :3]
             self.drone_list[i].set_data(x, y)
-            self.modified_artists.append(self.drone_list[i])
+            # self.modified_artists.add(self.drone_list[i])
             self.positions[i] = [x, y, z]
 
     def update_warning_circles(self, plot_until):
         for i in range(len(self.warning_circles)):
+            #start of simulation
             if plot_until == 0:
-                self.warning_circles[i].set_edgecolor("b")
+                self.warning_circles[i].set_edgecolor("r")
+                # print(dir(self.warning_circles[i]),self.warning_circles[i].get_edgecolor())
+            #during simulation
             elif plot_until < len(self.vehicle_list[i].path[:, 0]):
                 self.warning_circles[i].set_fill(False)
+                #show communication for up to 5 timesteps NOTE (or frames?) after the actual update so it flashes for longer
+                # FIXME this is a terrible way to do things lol
                 show_communication = plot_until % self.update_every in range(5)
                 if show_communication:
                     self.warning_circles[i].set_edgecolor("g")
                     self.warning_circles[i].set_fill(True)
                     self.warning_circles[i].set_facecolor("lightblue")
                 else:
-                    self.warning_circles[i].set_fill(False)
                     self.warning_circles[i].set_edgecolor("gray")
+                    self.warning_circles[i].set_fill(False)
+            #At the end of the simulation
             else:
                 self.warning_circles[i].set_fill(True)
-                self.warning_circles[i].set_facecolor("skyblue")
                 self.warning_circles[i].set_edgecolor("b")
+                self.warning_circles[i].set_facecolor("skyblue")
             self.warning_circles[i].center = self.positions[i][:2]
 
-            self.modified_artists.append(self.warning_circles[i])
+            self.modified_artists.add(self.warning_circles[i])
 
     def collision_handling(self):
         """Handle collisions and update display accordingly."""
@@ -490,7 +529,7 @@ class PlotTrajectories:
         self.play_button.label.set_text("Play")
         self.animation_running = False
         # this line seems to update the plot. Without it, the Play and Pause will not update until the mouse leaves the button area.
-        self.fig.canvas.draw_idle()
+        self.fig.canvas.draw()
         # self.fig.canvas.flush_events()
         return None
 
@@ -503,49 +542,14 @@ class PlotTrajectories:
             # self.fig.canvas.flush_events()
         return None
 
-    def animate(self, i):
-        """Function that updates the slider and calls the update function. i iterates from 0 to the number of frames"""
-        # obtain the slider value to 2dp
-        # print(f"{i=}")
-        current_slider_value = round(self.slider.val, 2)
-        # set i to the slider value so that the simulation stops when the slider reaches the end
-        # it is 100x the slider value because the slider goes from 0 to 1 and the i from 0 to 99
-        i = int((self.FRAMES) * current_slider_value)
-        # print(f"second time, {i=}")
-
-        # increment the slider by 0.01 for every frame
-        self.slider.set_val(
-            (current_slider_value + self.SLIDER_ANIMATION_INTERVAL)
-            % (self.slider.valmax + self.SLIDER_ANIMATION_INTERVAL)
-        )
-
-        # val self.slider.val is the same as val
-        plot_until = int(np.floor(current_slider_value * self.time_steps_max))
-        self.modified_artists = []
-        self.update_plot(plot_until)
-        self.update_drone_positions(plot_until)
-        self.update_warning_circles(plot_until)
-        #limit plot_until to the max timesteps-1 to avoid index errors at the end. 
-        plot_until = min(plot_until, self.time_steps_max - 1)
-        self.handle_connecting_lines(plot_until)
-        self.collision_handling()
-
-        # stop the animation when the slider reaches the end
-        if i == self.FRAMES - 1:
-            # calling the play function while the animation is running stops the animation
-            # pass
-            self.play(event=None)
-
-        # if blit=True, need to return the sequence of artists that need updating
-        return self.modified_artists
+    
 
     def show(self):
         # show the plot
         plt.show()
         return None
     
-if __name__=="__main__":
-    print(list(range(10)))
+
 
 # FuncAnimation args:
 # (fig: Figure, func: (...) -> Iterable[Artist], frames: Iterable[Artist] | int | (() -> Generator) | None = ..., init_func: (() -> Iterable[Artist]) | None = ..., fargs: tuple[Any, ...] | None = ..., save_count: int | None = ..., *, cache_frame_data: bool = ..., **kwargs: Any) -> None

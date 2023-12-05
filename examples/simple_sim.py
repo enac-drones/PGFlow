@@ -3,12 +3,14 @@ from gflow.cases import Cases
 from time import time
 from gflow.utils.simulation_utils import run_simulation, set_new_attribute
 from pprint import pprint
+
+from gflow.utils.better_plot import BetterPlot
 if __name__ == "__main__":
     file_name = "examples/large_case.json"
     case_name="large_case"
     # case = Cases.get_case(filename="bug_fixing/cases.json", case_name="ignore_arrived")
-    case = Cases.get_case(file_name=file_name, case_name=case_name)
-    case = Cases.get_case(file_name="examples/cases.json", case_name="twodrones")
+    # case = Cases.get_case(file_name=file_name, case_name=case_name)
+    case = Cases.get_case(file_name="examples/cases.json", case_name="alpha")
 
     # case = Cases.get_case(filename="bug_fixing/cases.json", case_name="close_to_sink")
     set_new_attribute(case, "source_strength", new_attribute_value=1)
@@ -33,29 +35,44 @@ if __name__ == "__main__":
 
     print(f"update every = {update_time_period}")
 
-    case.max_avoidance_distance = 10
+    case.max_avoidance_distance = 8
     case.building_detection_threshold = 1
 
     start_time = time()
     result = run_simulation(
         case,
-        t=500,
+        t=20000,
         update_every=update_time_period,
         stop_at_collision=False
         )
 
     # pprint(case.to_dict ())
-
+    # print(case.vehicle_list[0].path)
     time_taken = time() - start_time
     print(f"Simulation was safe: {result}")
 
     print(f"Time for simulation is {time_taken}")
 
     trajectory_plot = ut.PlotTrajectories(case, update_every=update_time_period)
-    trajectory_plot.BUILDING_EDGE_COLOUR
-    LIMS = (-5,5)
+    # trajectory_plot.BUILDING_EDGE_COLOUR
+    LIMS = (-10,10)
     trajectory_plot.ax.set_xlim(LIMS)
     trajectory_plot.ax.set_ylim(LIMS)
     trajectory_plot.show()
+    
+    # better_plot = BetterPlot(case)
+    # better_plot.create_animation()
+    # better_plot.show()
+    # import matplotlib.pyplot as plt
+    # import numpy as np
+    # positions = case.vehicle_list[0].path
+    # desired_positions = np.array(case.vehicle_list[0].desired_vectors)
+
+    # # plt.plot(positions[:,0],positions[:,1])
+    # print(desired_positions.shape)
+    # plt.plot(desired_positions[:,0],desired_positions[:,1])
+    # # plt.xlim(0,10)
+    # # plt.ylim(-10,0)
+    # plt.show()
 
 # EOF

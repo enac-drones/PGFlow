@@ -7,8 +7,9 @@ from numpy.typing import ArrayLike
 # from .panel_flow import Flow_Velocity_Calculation
 from gflow.panel_flow import PanelFlow
 from gflow.arena import ArenaMap
-from .building import PersonalBuilding, Building
+from gflow.building import PersonalBuilding, Building
 from shapely.geometry import Point
+from gflow.PIDcontroller import VehicleDynamics, PIDController
 # from gflow.panel_flow_class import PanelFlow
 
 
@@ -47,7 +48,12 @@ class Vehicle:
         
         self.max_avoidance_distance:float = 20
         self.panel_flow = PanelFlow(self)
-        
+        Kp, Ki, Kd = 4.5, 0.01, 4.5
+        self.dynamics = VehicleDynamics(mass = 1, min_accel=-2, max_accel=2)
+        self.pid_x = PIDController(Kp, Ki, Kd, self.dynamics.min_accel, self.dynamics.max_accel)
+        self.pid_y = PIDController(Kp, Ki, Kd, self.dynamics.min_accel, self.dynamics.max_accel)
+        self.desired_vectors = []
+
         self.t = 0
 
         self.arena:ArenaMap = None
@@ -194,6 +200,7 @@ class Vehicle:
         
         # self.update_position_clipped(flow_vels)
         self.update_position_max_radius(flow_vels)
+        # self.update_position_pid(flow_vels)
 
 
     def update_position(self, flow_vel):
@@ -287,7 +294,6 @@ class Vehicle:
         # induced velocity unit vector
         # if mag == 0 or np.isnan(mag):
         unit_new_velocity = flow_vel / mag
-
         speed = np.linalg.norm(self.velocity[:2])
         if speed == 0:
             # initial velocity is just new velocity at start of simulation
@@ -340,6 +346,66 @@ class Vehicle:
             # goal has been reached
             self.state = 1
         return self.position
+    
+    def update_position_pid(self, flow_vel:ArrayLike)->None:
+        """Updates my position within the global vehicle_list given the induced flow from other vehicles onto me"""
+
+        # magnitude of the induced velocity vector in 2D
+        mag = np.linalg.norm(flow_vel)
+        # induced velocity unit vector
+        # if mag == 0 or np.isnan(mag):
+        unit_new_velocity = flow_vel / mag
+        # speed = np.linalg.norm(self.velocity[:2])
+
+        #define desired position
+        desired_position = self.position[:2] + unit_new_velocity*self.delta_t*200
+        self.desired_vectors.append(unit_new_velocity)
+
+        x_desired, y_desired = desired_position[0], desired_position[1]
+        # vx_desired, vy_desired = unit_new_velocity[0], unit_new_velocity[1]
+
+        #define current position and velocity
+        x, y = self.position[0], self.position[1]
+        vx,vy = self.velocity[0], self.velocity[1]
+
+        #obtain error
+        error_x = x_desired - x
+        error_y = y_desired - y
+
+        # error_x = vx_desired - vx
+        # error_y = vy_desired - vy
+
+        #obtain desired accelerations from pid controllers
+        ax = self.pid_x.update(error_x, self.delta_t) 
+        ay = self.pid_y.update(error_y, self.delta_t)
+
+        #define velocity limits
+        min_velocity, max_velocity = -1,1,
+
+        # Adjust acceleration based on current velocity and limits
+        # print(vx, ax, max_velocity, min_velocity, self.delta_t)
+        ax = self.pid_x.adjust_acceleration(vx, ax, max_velocity, min_velocity, self.delta_t)
+        ay = self.pid_y.adjust_acceleration(vy, ay, max_velocity, min_velocity, self.delta_t)
+
+        # x, vx, y, vy = update_drone_state(x, vx, y, vy, ax, ay, dt)
+        x, vx, y, vy = self.dynamics.update_state_verlet(x, vx, y, vy, ax, ay, self.delta_t)
+
+        #set vehicle state to new state
+        self.position[0], self.position[1] = x, y  
+        # self.position = np.array([x,y,self.position[2]])
+        # print(self.position)
+        self.velocity[0], self.velocity[1] = vx, vy 
+        # print(vx,vy)
+        # print(np.linalg.norm(self.velocity[:2]))
+        # print(vx,vy)
+
+        self.path = np.vstack((self.path, self.position))
+
+        if self.arrived(arrival_distance = self.ARRIVAL_DISTANCE):
+            print("goal is reached")
+            # goal has been reached
+            self.state = 1
+        
 
     def arrived(self, arrival_distance):
         """Similar to state but using the current live position"""
@@ -348,14 +414,14 @@ class Vehicle:
         # self.state = 1
 
 
-if __name__ == "__main__":
-    import pickle
+# if __name__ == "__main__":
+#     import pickle
 
-    vehicle_instance = Vehicle(ID="v1")  # Replace with whatever constructor arguments you use
+#     vehicle_instance = Vehicle(ID="v1")  # Replace with whatever constructor arguments you use
 
-    try:
-        serialized = pickle.dumps(vehicle_instance)
-        print("Vehicle is pickleable!")
-    except (pickle.PicklingError, AttributeError, TypeError) as e:
-        print(f"Vehicle is not pickleable! Error: {e}")
+#     try:
+#         serialized = pickle.dumps(vehicle_instance)
+#         print("Vehicle is pickleable!")
+#     except (pickle.PicklingError, AttributeError, TypeError) as e:
+#         print(f"Vehicle is not pickleable! Error: {e}")
 
