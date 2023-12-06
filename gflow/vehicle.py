@@ -48,11 +48,12 @@ class Vehicle:
         
         self.max_avoidance_distance:float = 20
         self.panel_flow = PanelFlow(self)
-        Kp, Ki, Kd = 4.5, 0.01, 4.5
+        Kp, Ki, Kd = 40, 0.1, 40
         self.dynamics = VehicleDynamics(mass = 1, min_accel=-2, max_accel=2)
         self.pid_x = PIDController(Kp, Ki, Kd, self.dynamics.min_accel, self.dynamics.max_accel)
         self.pid_y = PIDController(Kp, Ki, Kd, self.dynamics.min_accel, self.dynamics.max_accel)
         self.desired_vectors = []
+        self.pid_output = []
 
         self.t = 0
 
@@ -93,7 +94,7 @@ class Vehicle:
     def position(self, new_position):
         self._position = new_position
         vector_to_goal = (self.goal - new_position)[:2]
-        self.v_free_stream = vector_to_goal/np.linalg.norm(vector_to_goal)
+        self.v_free_stream = 0.5*vector_to_goal/np.linalg.norm(vector_to_goal)
 
 
 
@@ -199,8 +200,8 @@ class Vehicle:
             self.personal_vehicle_dict)
         
         # self.update_position_clipped(flow_vels)
-        self.update_position_max_radius(flow_vels)
-        # self.update_position_pid(flow_vels)
+        # self.update_position_max_radius(flow_vels)
+        self.update_position_pid(flow_vels)
 
 
     def update_position(self, flow_vel):
@@ -294,6 +295,8 @@ class Vehicle:
         # induced velocity unit vector
         # if mag == 0 or np.isnan(mag):
         unit_new_velocity = flow_vel / mag
+        self.desired_vectors.append(unit_new_velocity)
+
         speed = np.linalg.norm(self.velocity[:2])
         if speed == 0:
             # initial velocity is just new velocity at start of simulation
@@ -355,11 +358,14 @@ class Vehicle:
         # induced velocity unit vector
         # if mag == 0 or np.isnan(mag):
         unit_new_velocity = flow_vel / mag
+
+        # print(f"{self.ID}, {unit_new_velocity=}")
+        self.desired_vectors.append(unit_new_velocity)
         # speed = np.linalg.norm(self.velocity[:2])
 
         #define desired position
-        desired_position = self.position[:2] + unit_new_velocity*self.delta_t*200
-        self.desired_vectors.append(unit_new_velocity)
+        desired_position = self.position[:2] + unit_new_velocity*self.delta_t*10
+
 
         x_desired, y_desired = desired_position[0], desired_position[1]
         # vx_desired, vy_desired = unit_new_velocity[0], unit_new_velocity[1]
@@ -387,11 +393,11 @@ class Vehicle:
         ax = self.pid_x.adjust_acceleration(vx, ax, max_velocity, min_velocity, self.delta_t)
         ay = self.pid_y.adjust_acceleration(vy, ay, max_velocity, min_velocity, self.delta_t)
 
+        self.pid_output.append([ax,ay])
         # x, vx, y, vy = update_drone_state(x, vx, y, vy, ax, ay, dt)
         x, vx, y, vy = self.dynamics.update_state_verlet(x, vx, y, vy, ax, ay, self.delta_t)
-
         #set vehicle state to new state
-        self.position[0], self.position[1] = x, y  
+        self.position = np.array([x, y,self.position[2]])  
         # self.position = np.array([x,y,self.position[2]])
         # print(self.position)
         self.velocity[0], self.velocity[1] = vx, vy 

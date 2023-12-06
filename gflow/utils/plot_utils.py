@@ -8,6 +8,7 @@ import numpy as np
 
 # Import animation package
 from matplotlib.animation import FuncAnimation
+from matplotlib.axes import Axes
 
 # Import slider package
 from matplotlib.widgets import Slider, Button
@@ -40,7 +41,7 @@ class PlotTrajectories:
     BUILDING_EDGE_COLOUR = "black"
     BUILDING_FILL_COLOUR = "darkgray"
     BUILDING_INFLATED_EDGE_COLOUR = "b"
-    BUILDING_INFLATED_FILL_COLOUR = "r"
+    BUILDING_INFLATED_FILL_COLOUR = "k"
 
     def __init__(self, case: Case, update_every: int):
         self.case = case
@@ -68,6 +69,7 @@ class PlotTrajectories:
         self.drone_list = []
         # same as above, but display these only when certain separation minima are not respected
         self.warning_circles = []
+        self.arrows = []
         self.connecting_lines:dict[tuple, Line2D] = {}
         # initialize empty array to store vehicle positions
         self.positions = np.zeros((len(self.vehicle_list), 3))
@@ -88,7 +90,7 @@ class PlotTrajectories:
             interval=self.UPDATE_INTERVAL, # delay between frames in ms
             frames=self.FRAMES,
             init_func=None,
-            blit=True,
+            blit=False,
             repeat=True, # whether to repeat the animation after the end 
             repeat_delay=1000, # delay between repeats in ms #BUG doesn't seem to delay at all
         )
@@ -116,11 +118,15 @@ class PlotTrajectories:
     def update(self, val):
         # return
         # val self.slider.val is the same as val
+        # print(f"{val=}")
+        # print(self.time_steps_max)
         plot_until = int(np.floor(val * self.time_steps_max))
         # self.modified_artists = []
         self.update_plot(plot_until)
         self.update_drone_positions(plot_until)
         self.update_warning_circles(plot_until)
+        self.update_arrows(plot_until)
+
         #limit plot_until to the max timesteps-1 to avoid index errors at the end. 
         plot_until = min(plot_until, self.time_steps_max - 1)
         self.handle_connecting_lines(plot_until)
@@ -149,7 +155,6 @@ class PlotTrajectories:
         # stop the animation when the slider reaches the end
         #NOTE this can be done by setting repeat=False in FuncAnimation but then we wouldn't have access to the button to restart it
         if i == self.FRAMES[-1]:
-            print("stopping")
             # calling the play function while the animation is running stops the animation
             self.play(event=None)
 
@@ -270,8 +275,8 @@ class PlotTrajectories:
         max_timesteps = max(len(vehicle.path[:, 0]) for vehicle in vehicle_list)
         return max_timesteps
 
-    def initial_plot(self, vehicle_list, ax):
-        for v_idx, _ in enumerate(vehicle_list):
+    def initial_plot(self, vehicle_list:list[Vehicle], ax:Axes):
+        for v_idx, vehicle in enumerate(vehicle_list):
             # define the current coordinates of the drone
             x, y, z = (
                 vehicle_list[v_idx].path[-1, 0],
@@ -296,11 +301,17 @@ class PlotTrajectories:
                 (x, y),
                 self.case.collision_threshold / 2,
                 fill=False,
-                edgecolor="r",
+                edgecolor="k",
                 linewidth=2,
             )
             # add the circle to the plot
             ax.add_artist(warning_circle)
+            # print(*vehicle.desired_vectors[0])
+
+            gflow_output_arrow = ax.arrow(x,y,*vehicle.desired_vectors[0],width=0.5)
+
+            # ax.add_artist(gflow_output_arrow)
+            self.arrows.append(gflow_output_arrow)
 
             self.warning_circles.append(warning_circle)
 
@@ -340,11 +351,37 @@ class PlotTrajectories:
             # self.modified_artists.add(self.drone_list[i])
             self.positions[i] = [x, y, z]
 
+    def update_arrows(self, plot_until):
+        for i in range(len(self.arrows)):
+            if plot_until == 0:
+                x, y, z = self.vehicle_list[i].path[0, :3]
+            elif plot_until < len(self.vehicle_list[i].path[:, 0]):
+                x, y, z = self.vehicle_list[i].path[plot_until - 1, :3]
+            else:
+                x, y, z = self.vehicle_list[i].path[-1, :3]
+            
+            try:
+                [dx,dy] = self.vehicle_list[i].desired_vectors[plot_until]
+            except IndexError:
+                [dx,dy] = self.vehicle_list[i].desired_vectors[-1]
+            self.arrows[i].set_data(x=x, y=y, dx=dx,dy=dy,width=0.1)
+            # try:    
+            #     # print(f"{plot_until=}")
+            #     prin
+            #     [dx,dy] = self.vehicle_list[i].desired_vectors[plot_until]
+            # except IndexError:
+            #     # print('wazaaa')
+            #     [dx,dy] = self.vehicle_list[i].desired_vectors[-1]
+
+            #     self.arrows[i].set_data(x=x, y=y, dx=dx,dy=dy,width=0.1)
+            # # self.modified_artists.add(self.drone_list[i])
+            # # self.positions[i] = [x, y, z]
+
     def update_warning_circles(self, plot_until):
         for i in range(len(self.warning_circles)):
             #start of simulation
             if plot_until == 0:
-                self.warning_circles[i].set_edgecolor("r")
+                self.warning_circles[i].set_edgecolor("k")
                 # print(dir(self.warning_circles[i]),self.warning_circles[i].get_edgecolor())
             #during simulation
             elif plot_until < len(self.vehicle_list[i].path[:, 0]):
