@@ -48,7 +48,7 @@ class Vehicle:
         
         self.max_avoidance_distance:float = 20
         self.panel_flow = PanelFlow(self)
-        Kp, Ki, Kd = 40, 0.1, 40
+        Kp, Ki, Kd = 40, 0.1, 30
         self.dynamics = VehicleDynamics(mass = 1, min_accel=-2, max_accel=2)
         self.pid_x = PIDController(Kp, Ki, Kd, self.dynamics.min_accel, self.dynamics.max_accel)
         self.pid_y = PIDController(Kp, Ki, Kd, self.dynamics.min_accel, self.dynamics.max_accel)

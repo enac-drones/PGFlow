@@ -9,12 +9,12 @@ if __name__ == "__main__":
     file_name = "examples/large_case_working.json"
     case_name="large_case"
     # case = Cases.get_case(filename="bug_fixing/cases.json", case_name="ignore_arrived")
-    # case = Cases.get_case(file_name=file_name, case_name=case_name)
+    case = Cases.get_case(file_name=file_name, case_name=case_name)
     case = Cases.get_case(file_name="examples/cases.json", case_name="alpha")
 
     # case = Cases.get_case(filename="bug_fixing/cases.json", case_name="close_to_sink")
-    set_new_attribute(case, "source_strength", new_attribute_value=3)
-    set_new_attribute(case, "imag_source_strength", new_attribute_value=30)
+    set_new_attribute(case, "source_strength", new_attribute_value=10)
+    set_new_attribute(case, "imag_source_strength", new_attribute_value=20)
     set_new_attribute(case, "sink_strength", new_attribute_value=5)
     set_new_attribute(case, "max_speed", new_attribute_value=1)
     set_new_attribute(case, "delta_t", new_attribute_value=1 / 50)
@@ -37,7 +37,7 @@ if __name__ == "__main__":
 
     print(f"update every = {update_time_period}")
 
-    case.max_avoidance_distance = 3
+    case.max_avoidance_distance = 10
     case.building_detection_threshold = 3
 
     start_time = time()
@@ -48,7 +48,7 @@ if __name__ == "__main__":
         stop_at_collision=False
         )
 
-    # pprint(case.to_dict ())
+    case.to_dict(file_path="example_output.json")
     # print(case.vehicle_list[0].path)
     time_taken = time() - start_time
     print(f"Simulation was safe: {result}")
@@ -57,7 +57,7 @@ if __name__ == "__main__":
 
     trajectory_plot = ut.PlotTrajectories(case, update_every=update_time_period)
     # trajectory_plot.BUILDING_EDGE_COLOUR
-    LIMS = (-5,5)
+    LIMS = (-10,10)
     trajectory_plot.ax.set_xlim(LIMS)
     trajectory_plot.ax.set_ylim(LIMS)
     trajectory_plot.show()

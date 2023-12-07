@@ -112,19 +112,20 @@ class Case:
         self.vehicle_list = []
         return None
 
-    def to_dict(self,file_path:str) -> dict:
+    def to_dict(self,file_path:str|None = None) -> dict:
         """Converts the Case instance to a dictionary for JSON-style output. 
         IMPORTANT: uses new json format with dicts instead of lists of buildings and vehicles"""
 
-        buildings_data = {building.ID:{"vertices": building.vertices.tolist()} for building in self.buildings} if self.buildings else []
-        vehicles_data = {vehicle.ID:{'path': vehicle.path.tolist()} for vehicle in self.vehicle_list} if self.vehicle_list else []
+        buildings_data = [{"ID":building.ID,"vertices": building.vertices.tolist()} for building in self.buildings] if self.buildings else []
+        vehicles_data = [{"ID":vehicle.ID, 'path': vehicle.path.tolist()} for vehicle in self.vehicle_list] if self.vehicle_list else []
 
         case_data = {
             'name': self._name,
             'buildings': buildings_data,
             'vehicles': vehicles_data
         }
-        dump_to_json(file_path, case_data)
+        if file_path:
+            dump_to_json(file_path, case_data)
         return case_data
     
     def to_json(self) -> dict:
