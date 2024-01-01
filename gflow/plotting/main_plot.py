@@ -5,13 +5,12 @@ import json
 from gflow.plotting.graphics.path_graphics import PathPlotter
 from gflow.plotting.graphics.building_graphics import BuildingsPlotter
 from gflow.plotting.graphics.drone_graphics import DronePlotter
-from gflow.plotting.entities.building import BuildingEntity
-from gflow.plotting.entities.drone import DroneEntity
-from gflow.plotting.entities.path import PathEntity
+from gflow.plotting.graphics.arrow_graphics import ArrowPlotter
 
 class SimulationVisualizer:
     def __init__(self, json_file_path):
         self.json_file_path = json_file_path
+        self.full_data = {}
         self.buildings = []
         self.vehicles = []
         self.paths = []
@@ -23,32 +22,34 @@ class SimulationVisualizer:
             data:dict = json.load(file)
             self.buildings = data.get('buildings', [])
             self.vehicles = data.get('vehicles', [])
+            self.arrows = data.get('desired_vectors', [])
+            self.full_data = data
 
-    def initial_plot(self):
-        fig, ax = plt.subplots()
+    # def initial_plot(self):
+    #     fig, ax = plt.subplots()
 
-        # Plot buildings
-        buildings_plotter = BuildingsPlotter(self.buildings)
-        buildings_plotter.plot(ax)
-        buildings_plotter.set_building_attributes(fc = "k", ec = "r")
+    #     # Plot buildings
+    #     buildings_plotter = BuildingsPlotter(self.buildings)
+    #     buildings_plotter.plot(ax)
+    #     buildings_plotter.set_building_attributes(fc = "k", ec = "r")
 
-        # Plot vehicles and their paths
-        drone_plotter = DronePlotter(vehicle_data=self.vehicles)
-        drone_plotter.plot(ax)
-        drone_plotter.set_circle_attributes(radius=1, ec = "pink", lw = 1)
-        drone_plotter.set_point_attributes(color="r",marker="*")
+    #     # Plot vehicles and their paths
+    #     drone_plotter = DronePlotter(vehicle_data=self.vehicles)
+    #     drone_plotter.plot(ax)
+    #     drone_plotter.set_circle_attributes(radius=1, ec = "pink", lw = 1)
+    #     drone_plotter.set_point_attributes(color="r",marker="*")
 
-        path_manager = PathPlotter(vehicle_data=self.vehicles)
-        path_manager.plot(ax)
+    #     path_manager = PathPlotter(vehicle_data=self.vehicles)
+    #     path_manager.plot(ax)
 
-        path_manager.set_path_attributes(color="r",linewidth=2)
+    #     path_manager.set_path_attributes(color="r",linewidth=2)
 
-        LIMS = (-5,5)
-        ax.set_xlim(LIMS)
-        ax.set_ylim(LIMS)
+    #     LIMS = (-5,5)
+    #     ax.set_xlim(LIMS)
+    #     ax.set_ylim(LIMS)
 
-        ax.set_aspect('equal', adjustable='box')
-        plt.show()
+    #     ax.set_aspect('equal', adjustable='box')
+    #     plt.show()
 
     def animate_simulation(self):
         fig, ax = plt.subplots()
@@ -58,13 +59,20 @@ class SimulationVisualizer:
         buildings_plotter.plot(ax)
         drone_plotter = DronePlotter(self.vehicles)
         drone_plotter.plot(ax)
+        patches = drone_plotter.get_patches()
+        for p in patches:
+            p.set_animated(False)
         path_manager = PathPlotter(self.vehicles)
         path_manager.plot(ax)
+        arrow_manager = ArrowPlotter(self.vehicles)
+        arrow_manager.plot(ax)
         # Set up the animation
-        num_frames = 10000
+        num_frames = 1000
         def animate(frame):
             drone_plotter.animate_drones(frame,num_frames)
             patches = drone_plotter.get_patches()
+            arrow_manager.animate_arrows(frame,num_frames)
+            
             # Redraw the canvas
             fig.canvas.draw_idle()
             return patches
@@ -77,13 +85,13 @@ class SimulationVisualizer:
                              func=animate,
                              frames=num_frames,
                              init_func=None,
-                             interval=1,
+                             interval=10/num_frames,
                              repeat=True,
                              repeat_delay = 1000,
                              blit=False,
                              )
 
-        LIMS = (-5,5)
+        LIMS = (-50,50)
         ax.set_xlim(LIMS)
         ax.set_ylim(LIMS)
 

@@ -41,12 +41,13 @@ class DronePatch:
     def create_patches(self)->None:
         # Create the central point
         self.point = plt.Line2D([self.drone.position[0]], [self.drone.position[1]], 
-                           color=self.point_color, marker=self.marker, markersize=self.markersize)
+                           color=self.point_color, marker=self.marker, markersize=self.markersize,animated=True)
 
         # Create the detection circle
         self.circle = Circle(self.drone.position, self.drone.radius, 
                         edgecolor=self.circle_color, facecolor='none', 
-                        linewidth=self.circle_width)
+                        linewidth=self.circle_width,
+                        animated=True)
 
         return None
     
@@ -149,6 +150,8 @@ class DronePlotter:
             interpolated_frame = int((frame / total_frames) * path_length)
             current_frame = min(interpolated_frame, path_length - 1)
             drone_patch.set_position(*drone_patch.drone.path[current_frame])
+
+            
 
     def _get_drones_from_dict(self, vehicle_data:list[dict])->List[DroneEntity]:
         """
