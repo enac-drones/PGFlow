@@ -36,7 +36,7 @@ def step_simulation(case:Case):
         # print(vehicle.relevant_obstacles)
 
         # update my position in the case_vehicle_list
-        vehicle.run_simple_sim()
+        vehicle.run_simple_sim(case.mode)
 
     return None
 

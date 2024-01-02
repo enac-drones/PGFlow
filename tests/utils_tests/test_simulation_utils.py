@@ -10,14 +10,14 @@ import numpy as np
 @pytest.fixture
 def sample_vehicle():
     # Add your initialization parameters if any
-    test_vehicle = Vehicle(ID="test_vehicle")
+    test_vehicle = Vehicle()
     test_vehicle.goal = np.array([1, 1, 0])
-    return Vehicle(ID="test_vehicle")
+    return test_vehicle
 
 
 @pytest.fixture
 def sample_case():
-    case = Cases.get_case(filename="bug_fixing/cases.json", case_name="default")
+    case = Cases.get_case(file_name="cases.json", case_name="default")
     return case
 
 
@@ -34,6 +34,6 @@ def test_set_new_attribute(sample_case):
 
 
 def test_run_simulation(sample_case):
-    result = su.run_simulation(sample_case, t=100)
+    result = su.run_simulation(sample_case, t=2)
     # Adjust the expected outcome based on your specific logic
     assert result

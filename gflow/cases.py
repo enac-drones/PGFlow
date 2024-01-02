@@ -30,6 +30,7 @@ class Case:
         self.collision_threshold:float = 0.5
         self._max_avoidance_distance:float = 20.
         self.building_detection_threshold:float = 10.
+        self.mode = "standard"
 
     @classmethod
     def from_dict(cls, case_dict:dict):
@@ -144,8 +145,8 @@ class Case:
                             "goal":vehicle.goal.tolist(),
                             "source_strength":vehicle.source_strength,
                             "imag_source_strength":vehicle.imag_source_strength,
-                            "sink_strength": vehicle.sink_strength,
-                            "safety":None}
+                            "sink_strength": vehicle.sink_strength
+                            }
             vehicles_data.append(vehicle_dict)
         # vehicles_data = {vehicle.ID:{'path': vehicle.path.tolist()} for vehicle in self.vehicle_list} if self.vehicle_list else []
 
@@ -265,17 +266,17 @@ class Cases:
             source_strength = vehicle["source_strength"]
             imag_source_strength = vehicle["imag_source_strength"]
             sink_strength = vehicle["sink_strength"]
-            safety = vehicle["safety"]
+            # safety = vehicle["safety"]
             myVehicle = Vehicle(
                 source_strength=source_strength,
                 imag_source_strength=imag_source_strength,
             )
             myVehicle.ID = ID
-            myVehicle.Set_Position(position)
-            myVehicle.Set_Goal(goal=goal, goal_strength=sink_strength, safety=safety)
-            myVehicle.Go_to_Goal(
-                altitude=0.5, AoAsgn=0, t_start=0, Vinfmag=0
-            )  # FIXME add these to the json
+            myVehicle.set_initial_position(position)
+            myVehicle.Set_Goal(goal=goal, goal_strength=sink_strength)
+            # myVehicle.Go_to_Goal(
+            #     altitude=0.5, AoAsgn=0, t_start=0, Vinfmag=0
+            # )  # FIXME add these to the json
             vehicles.append(myVehicle)
         return vehicles
     
@@ -346,8 +347,8 @@ class Cases:
         )
         building = Building(obstacle.points())
         Vehicle1 = Vehicle(source_strength=0.5, imag_source_strength=0.5)
-        Vehicle1.Set_Goal(goal=[3, 0, 0.5], goal_strength=5, safety=0.0001)
-        Vehicle1.Set_Position(pos=[-3, 0.0001, 0.5])
+        Vehicle1.Set_Goal(goal=[3, 0, 0.5], goal_strength=5)
+        Vehicle1.set_initial_position(pos=[-3, 0.0001, 0.5])
         buildings, vehicles = [], []
         buildings.append(building)
         vehicles.append(Vehicle1)
@@ -387,8 +388,8 @@ class Cases:
                 "goal": vehicle.goal.tolist(),
                 "source_strength": vehicle.source_strength,
                 "imag_source_strength": vehicle.imag_source_strength,
-                "sink_strength": vehicle.sink_strength,
-                "safety": vehicle.safety,
+                "sink_strength": vehicle.sink_strength
+                # "safety": vehicle.safety,
             }
             for vehicle in vehicle_list
         ]
@@ -424,8 +425,8 @@ class Cases:
             vehicle = Vehicle(
                 source_strength=0.5, imag_source_strength=0.5
             )
-            vehicle.Set_Position(pos=coord)
-            vehicle.Set_Goal(goal=goal_positions[idx], goal_strength=5, safety=0.0001)
+            vehicle.set_initial_position(pos=coord)
+            vehicle.Set_Goal(goal=goal_positions[idx], goal_strength=5)
             vehicle_list.append(vehicle)
         case = Case(name=case_name)
         case.vehicle_list = vehicle_list

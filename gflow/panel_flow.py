@@ -231,7 +231,7 @@ class PanelFlow:
             # Sum across the contributions of all vehicles
             vel_source = np.sum(vel_source_contribs, axis=1)
             vel_vortex = np.sum(vel_vortex_contribs, axis=1)
-
+        print(vel_source.shape,vel_vortex.shape,vel_sink.shape)
         ########
         # RHS calculation
         cos_pb = np.cos(building.pb)
@@ -239,7 +239,8 @@ class PanelFlow:
         RHS[:, 0] = (
             # - vehicle.v_free_stream[0] * cos_pb
             # - vehicle.v_free_stream[1] * sin_pb
-            # - np.sum(vel_sink * np.array([cos_pb, sin_pb]).T, axis=1)
+            # - vehicle.v_free_stream * np.array([cos_pb,sin_pb])
+            - np.sum(vel_sink * np.array([cos_pb, sin_pb]).T, axis=1)
             - np.sum(vel_source * np.array([cos_pb, sin_pb]).T, axis=1)
             - np.sum(vel_vortex * np.array([cos_pb, sin_pb]).T, axis=1)
             - np.sum(vel_source_imag * np.array([cos_pb, sin_pb]).T, axis=1)
@@ -250,7 +251,8 @@ class PanelFlow:
         building.gammas[vehicle.ID] = np.matmul(building.K_inv, RHS)
     
     def Flow_Velocity_Calculation(self,
-        vehicle:Vehicle, vehicles:dict[str,PersonalVehicle])->ArrayLike:
+        vehicle:Vehicle)->ArrayLike:
+        vehicles = vehicle.personal_vehicle_dict
         n_vehicles = len(vehicles)
         # two_dim_shape = (n_vehicles, 2)
         # one_dim_shape = (n_vehicles, 1)
@@ -277,7 +279,7 @@ class PanelFlow:
         #calculate effect of sink
         # V_sink = self.calculate_induced_sink_velocity(vehicle)
         V_sink = vehicle.v_free_stream
-        # print(f"{V_sink=}")
+        print(f"{V_sink=}")
 
         # W_sink = self.calculate_all_induced_sink_velocities3D(vehicles)[:, 2]
         # Velocity induced by 2D point source, eqn. 10.2 & 10.3 in Katz & Plotkin:
@@ -296,6 +298,7 @@ class PanelFlow:
         #########################################################################################################################
         # FIXME remove the for loop later and replace with this when it works
         # # Summing the effects for all vehicles at once
+        print(V_gamma , V_sink , V_source , V_vortex)
         V_sum = V_gamma + V_sink + V_source + V_vortex
 
         # Normalization and flow calculation for all vehicles

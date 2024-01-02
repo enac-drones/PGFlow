@@ -135,48 +135,48 @@ class Building:
         print(f"time taken to inverse is {t1}")
 
 
-    def gamma_calc(self, vehicle, othervehicles):
-        """Calculate the unknown vortex strengths of the building panels
+    # def gamma_calc(self, vehicle, othervehicles):
+    #     """Calculate the unknown vortex strengths of the building panels
 
-        Args:
-            vehicle (Vehicle): _description_
-            othervehicles (list[Vehicle]): _description_
-        """
-        # Initialize arrays
-        vel_sink = np.zeros((self.nop, 2))
-        vel_source = np.zeros((self.nop, 2))
-        vel_source_imag = np.zeros((self.nop, 2))
-        RHS = np.zeros((self.nop, 1))
+    #     Args:
+    #         vehicle (Vehicle): _description_
+    #         othervehicles (list[Vehicle]): _description_
+    #     """
+    #     # Initialize arrays
+    #     vel_sink = np.zeros((self.nop, 2))
+    #     vel_source = np.zeros((self.nop, 2))
+    #     vel_source_imag = np.zeros((self.nop, 2))
+    #     RHS = np.zeros((self.nop, 1))
 
-        # Pre-calculate repeated terms
-        sink_diff = self.pcp[:,:2] - vehicle.goal[:2]
-        sink_sq_dist = np.sum(sink_diff ** 2, axis=-1)
-        imag_diff = self.pcp[:,:2] - vehicle.position[:2]
-        imag_sq_dist = np.sum(imag_diff ** 2, axis=-1)
+    #     # Pre-calculate repeated terms
+    #     sink_diff = self.pcp[:,:2] - vehicle.goal[:2]
+    #     sink_sq_dist = np.sum(sink_diff ** 2, axis=-1)
+    #     imag_diff = self.pcp[:,:2] - vehicle.position[:2]
+    #     imag_sq_dist = np.sum(imag_diff ** 2, axis=-1)
 
-        # Velocity calculations for sink and imag_source
-        vel_sink = -vehicle.sink_strength * sink_diff / (2 * np.pi * sink_sq_dist)[:, np.newaxis]
-        vel_source_imag = vehicle.imag_source_strength * imag_diff / (2 * np.pi * imag_sq_dist)[:, np.newaxis]
-        # Velocity calculations for source
-        for othervehicle in othervehicles:
-            source_diff = self.pcp[:,:2] - othervehicle.position[:2]
-            source_sq_dist = np.sum(source_diff ** 2, axis=-1)
-            vel_source += othervehicle.source_strength * source_diff / (2 * np.pi * source_sq_dist)[:, np.newaxis]
+    #     # Velocity calculations for sink and imag_source
+    #     vel_sink = -vehicle.sink_strength * sink_diff / (2 * np.pi * sink_sq_dist)[:, np.newaxis]
+    #     vel_source_imag = vehicle.imag_source_strength * imag_diff / (2 * np.pi * imag_sq_dist)[:, np.newaxis]
+    #     # Velocity calculations for source
+    #     for othervehicle in othervehicles:
+    #         source_diff = self.pcp[:,:2] - othervehicle.position[:2]
+    #         source_sq_dist = np.sum(source_diff ** 2, axis=-1)
+    #         vel_source += othervehicle.source_strength * source_diff / (2 * np.pi * source_sq_dist)[:, np.newaxis]
 
-        # RHS calculation
-        cos_pb = np.cos(self.pb)
-        sin_pb = np.sin(self.pb)
-        RHS[:, 0] = (
-            - vehicle.V_inf[0] * cos_pb
-            - vehicle.V_inf[1] * sin_pb
-            - np.sum(vel_sink * np.array([cos_pb, sin_pb]).T, axis=1)
-            - np.sum(vel_source * np.array([cos_pb, sin_pb]).T, axis=1)
-            - np.sum(vel_source_imag * np.array([cos_pb, sin_pb]).T, axis=1)
-        )
+    #     # RHS calculation
+    #     cos_pb = np.cos(self.pb)
+    #     sin_pb = np.sin(self.pb)
+    #     RHS[:, 0] = (
+    #         - vehicle.V_inf[0] * cos_pb
+    #         - vehicle.V_inf[1] * sin_pb
+    #         - np.sum(vel_sink * np.array([cos_pb, sin_pb]).T, axis=1)
+    #         - np.sum(vel_source * np.array([cos_pb, sin_pb]).T, axis=1)
+    #         - np.sum(vel_source_imag * np.array([cos_pb, sin_pb]).T, axis=1)
+    #     )
 
 
-        # Solve for gammas
-        self.gammas[vehicle.ID] = np.matmul(self.K_inv, RHS)
+    #     # Solve for gammas
+    #     self.gammas[vehicle.ID] = np.matmul(self.K_inv, RHS)
 
 
 

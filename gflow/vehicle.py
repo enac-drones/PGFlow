@@ -26,18 +26,15 @@ class PersonalVehicle:
     source_strength:float
     sink_strength:float
     imag_source_strength:float = 0.75
-    #state is unnused in PersonalVehicle
+    #state is unnused in PersonalVehicle FIXME for now
     state:int = 0
-    # not sure what V_inf is for
-    V_inf: List[float] = field(default_factory=lambda: [0, 0]) 
 
 
 class Vehicle:
     _id_counter = 0
 
     def __init__(
-        self, source_strength:float=0, imag_source_strength:float=0.75, correction_type="none"
-    ):
+        self, source_strength:float=0, imag_source_strength:float=0.75):
         self.ID = f"V{Vehicle._id_counter}"
         Vehicle._id_counter += 1
         self._position=np.zeros(3)
@@ -55,33 +52,21 @@ class Vehicle:
         self.desired_vectors = []
         self.pid_output = []
 
-        self.t = 0
-
         self.arena:ArenaMap = None
         
-        self.desiredpos = np.zeros(3)
-        self.correction = np.zeros(3)
+        # self.desiredpos = np.zeros(3)
         self.velocity = np.zeros(3)
-        self.path = []
+        self.path = np.zeros((1,3))
         # FIXME there is a magic number of 0.2 for the destination, fix this
         self.state = 0
-        self.distance_to_destination = None
         # originally 1/50
         self.delta_t = 1 / 50  # 1/300 or less for vortex method, 1/50 for hybrid
-        self.velocity_desired = np.zeros(3)
-        self.velocity_corrected = np.zeros(3)
-        self.vel_err = np.zeros(3)
-        self.correction_type = correction_type
         self.personal_vehicle_dict: dict[str,PersonalVehicle] = []
         self.relevant_obstacles:list[Building] = []
         self.transmitting = True
         self.max_speed = 0.8
         self.ARRIVAL_DISTANCE = 0.2
-        self.safety = None
-        self.AoA = None
-        self.altitude = None
-        self.Vinfmag = None
-        self.V_inf = None
+
         self.has_landed = False
         self.turn_radius:float = 0.1 #max turn radius in meters
         self.v_free_stream:np.ndarray = np.zeros(2) #velocity constantly pushing the vehicle towards its goal
@@ -94,7 +79,11 @@ class Vehicle:
     def position(self, new_position):
         self._position = new_position
         vector_to_goal = (self.goal - new_position)[:2]
-        self.v_free_stream = 0.5*vector_to_goal/np.linalg.norm(vector_to_goal)
+        if np.all(vector_to_goal)==0:
+            # non zero vector of ones in case the vehicle is exactly on the goal
+            self.v_free_stream = np.ones(2)
+        else:
+            self.v_free_stream = 0.5*vector_to_goal/np.linalg.norm(vector_to_goal)
 
 
 
@@ -150,58 +139,29 @@ class Vehicle:
             'sink_strength': self.sink_strength,
         }
 
-    def Set_Position(self, pos):
+    def set_initial_position(self, pos):
         self.position = np.array(pos)
         self.path = np.array(pos)
         self.path = self.path.reshape(1, 3)
-        if np.all(self.goal) is not None:
-            self.distance_to_destination = np.linalg.norm(
-                np.array(self.goal) - np.array(self.position)
-            )
-            if np.all(self.distance_to_destination) < 0.2:
-                self.state = 1
+        if self.arrived(self.ARRIVAL_DISTANCE):
+            self.state=1
 
-    def Set_Velocity(self, vel):
-        self.velocity = vel
-
-    def Set_Goal(self, goal, goal_strength, safety):
-        self.goal = np.array(goal)  # or just goal...FIXME
+    def Set_Goal(self, goal, goal_strength):
+        self.goal = np.array(goal)
         self.sink_strength = goal_strength
-        self.safety = safety
-        # self.aoa = np.arctan2(self.goal[1]-self.position[1],self.goal[0]-self.position[0]) # Do we still need this ? FIXME
-
-    def Set_Next_Goal(self, goal, goal_strength=5):
-        self.state = 0
-        self.goal = goal
-        # self.sink_strength = goal_strength NOT USED FOR NOW
-
-    def Go_to_Goal(self, altitude=1.5, AoAsgn=0, t_start=0, Vinfmag=0):
-        self.AoA = (
-            np.arctan2(self.goal[1] - self.position[1], self.goal[0] - self.position[0])
-        ) + AoAsgn * np.pi / 2
-
-        """
-        print( " AoA "    +  str( self.AoA*180/np.pi ) )
-        print( " goal "   +  str( self.goal ) )
-        print( " pos "    +  str( self.position ) )
-        print( " AoAsgn " +  str( AoAsgn ) )
-        print( " arctan " +  str( (np.arctan2(self.goal[1]-self.position[1],self.goal[0]-self.position[0]))*180/np.pi ) )
-        """
-        self.altitude = altitude
-        self.Vinfmag = Vinfmag  # Cruise altitude
-        self.V_inf = np.array(
-            [self.Vinfmag * np.cos(self.AoA), self.Vinfmag * np.sin(self.AoA)]
-        )  # Freestream velocity. AoA is measured from horizontal axis, cw (+)tive
-        self.t = t_start
-
-    def run_simple_sim(self):
+     
+    def run_simple_sim(self, mode:str):
+        '''run one iteration of the simulation
+        mode:str (standard | radius | pid)'''
         # these are the flow velocities induced on every vehicle (based off the personal vehicle list), stored as a list
-        flow_vels = self.panel_flow.Flow_Velocity_Calculation(self,
-            self.personal_vehicle_dict)
+        flow_vels = self.panel_flow.Flow_Velocity_Calculation(self)
         
-        # self.update_position_clipped(flow_vels)
-        # self.update_position_max_radius(flow_vels)
-        self.update_position_pid(flow_vels)
+        if mode == 'radius':
+            self.update_position_max_radius(flow_vels)
+        elif mode == 'pid':
+            self.update_position_pid(flow_vels)
+        else:
+            self.update_position_clipped(flow_vels)
 
 
     def update_position(self, flow_vel):
@@ -289,7 +249,7 @@ class Vehicle:
     
     def update_position_max_radius(self, flow_vel):
         """Updates my position within the global vehicle_list given the induced flow from other vehicles onto me"""
-
+        # print(f"{flow_vel=}")
         # magnitude of the induced velocity vector in 2D
         mag = np.linalg.norm(flow_vel)
         # induced velocity unit vector
@@ -300,7 +260,7 @@ class Vehicle:
         speed = np.linalg.norm(self.velocity[:2])
         if speed == 0:
             # initial velocity is just new velocity at start of simulation
-            unit_old_velocity= unit_new_velocity
+            unit_old_velocity = unit_new_velocity
         else:
             unit_old_velocity= self.velocity[:2]/speed
         
@@ -338,6 +298,7 @@ class Vehicle:
         
         # multiply the flow velocity by some predefined constant to set max speed 
         self.velocity = unit_new_velocity * self.max_speed
+        # print(self.velocity)
         delta_s = self.velocity * self.delta_t   # use unit velocity
         
         self.position = self.position + np.array(delta_s)
