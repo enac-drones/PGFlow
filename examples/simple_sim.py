@@ -44,7 +44,7 @@ if __name__ == "__main__":
     start_time = time()
     result = run_simulation(
         case,
-        t=3,
+        t=2000,
         update_every=update_time_period,
         stop_at_collision=False
         )

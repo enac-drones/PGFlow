@@ -231,37 +231,37 @@ class PanelFlow:
             # Sum across the contributions of all vehicles
             vel_source = np.sum(vel_source_contribs, axis=1)
             vel_vortex = np.sum(vel_vortex_contribs, axis=1)
-        print(vel_source.shape,vel_vortex.shape,vel_sink.shape)
         ########
         # RHS calculation
         cos_pb = np.cos(building.pb)
         sin_pb = np.sin(building.pb)
-        RHS[:, 0] = (
-            # - vehicle.v_free_stream[0] * cos_pb
-            # - vehicle.v_free_stream[1] * sin_pb
-            # - vehicle.v_free_stream * np.array([cos_pb,sin_pb])
-            - np.sum(vel_sink * np.array([cos_pb, sin_pb]).T, axis=1)
-            - np.sum(vel_source * np.array([cos_pb, sin_pb]).T, axis=1)
-            - np.sum(vel_vortex * np.array([cos_pb, sin_pb]).T, axis=1)
-            - np.sum(vel_source_imag * np.array([cos_pb, sin_pb]).T, axis=1)
+
+        normal_vectors = np.array([cos_pb, sin_pb]).T
+        
+        # Combine all velocity components into a single array before summing
+        total_velocity = (
+            # effect from sink if using
+            vel_sink +
+            # free stream velocity
+            vehicle.v_free_stream + 
+            vel_source_imag + 
+            # elements from other vehicles
+            vel_source + 
+            vel_vortex
         )
 
-
+        RHS[:, 0] = -np.sum(total_velocity * normal_vectors, axis=1)
         # Solve for gammas
+        # building.gammas = np.matmul(building.K_inv, RHS)
         building.gammas[vehicle.ID] = np.matmul(building.K_inv, RHS)
-    
+        
+
     def Flow_Velocity_Calculation(self,
         vehicle:Vehicle)->ArrayLike:
         vehicles = vehicle.personal_vehicle_dict
-        n_vehicles = len(vehicles)
-        # two_dim_shape = (n_vehicles, 2)
-        # one_dim_shape = (n_vehicles, 1)
 
-        V_gamma, V_sink, V_source, V_vortex, V_sum, V_normal, V_flow = [
-            np.zeros(2) for _ in range(7)
-        ]
-        V_norm, W_sink, W_source, W_flow, W_sum, W_norm, W_normal = [
-            np.zeros(1) for _ in range(7)
+        V_gamma, V_sink, V_source, V_vortex, V_sum = [
+            np.zeros(2) for _ in range(5)
         ]
 
         flow_vels = np.zeros([len(vehicles), 3])
@@ -277,9 +277,8 @@ class PanelFlow:
 
         # Velocity induced by 2D point sink, eqn. 10.2 & 10.3 in Katz & Plotkin:
         #calculate effect of sink
-        # V_sink = self.calculate_induced_sink_velocity(vehicle)
-        V_sink = vehicle.v_free_stream
-        print(f"{V_sink=}")
+        V_sink = self.calculate_induced_sink_velocity(vehicle)
+        # V_sink = vehicle.v_free_stream
 
         # W_sink = self.calculate_all_induced_sink_velocities3D(vehicles)[:, 2]
         # Velocity induced by 2D point source, eqn. 10.2 & 10.3 in Katz & Plotkin:
@@ -289,7 +288,6 @@ class PanelFlow:
             V_vortex = self.calculate_induced_vortex_velocities_on_main_vehicle(vehicle)
             # TODO everything involving W_source is super dodgy, why are we only using the z component, weird... needs serious testing
             # Velocity induced by 3-D point sink. Katz&Plotkin Eqn. 3.25
-            # W_source = source_gain * self.calculate_all_induced_source_velocities3D(vehicles)[:, 2]
 
         t = time.time()
         # Pre-calculate the arrays
@@ -298,27 +296,11 @@ class PanelFlow:
         #########################################################################################################################
         # FIXME remove the for loop later and replace with this when it works
         # # Summing the effects for all vehicles at once
-        print(V_gamma , V_sink , V_source , V_vortex)
-        V_sum = V_gamma + V_sink + V_source + V_vortex
-
+        V_sum = V_gamma + V_sink + V_source + V_vortex + vehicle.v_free_stream
+        # Added a small constant to avoid division by zero
+        V_sum /= (np.linalg.norm(V_sum)+1e-10)
         # Normalization and flow calculation for all vehicles
-        V_norm = np.linalg.norm(V_sum)
-        # V_norm = np.linalg.norm(V_sum, axis=1, keepdims=True)
-        V_normal = V_sum / (V_norm + 1e-10)  # Added a small constant to avoid division by zero
-        V_flow = V_normal / (V_norm + 1e-10)
-
-        #########################################################################################################################
-        # TODO Removed 3D components for now, it was dodgy anyway
-        # For W components
-        # W_sum = W_sink + W_source
-        # W_norm = np.abs(W_sum)
-        # W_normal = W_sum / (W_norm + 1e-10)  # Added a small constant to avoid division by zero
-        # W_flow = np.clip(W_normal / (W_norm + 1e-10), -0.07, 0.07)
-        #########################################################################################################################
-        # Finally, populate flow_vels for all vehicles at once
-        # flow_vels = np.hstack([V_flow, W_flow.reshape(-1, 1)])
-
-        flow_vels:np.ndarray = V_sum   # no need to normalise if this is done in vehicle, TODO could normalise here instead, need to decide
+        flow_vels = V_sum   # no need to normalise if this is done in vehicle, TODO could normalise here instead, need to decide
         #########################################################################################################################
         return flow_vels
 

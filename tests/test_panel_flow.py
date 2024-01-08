@@ -1,6 +1,8 @@
 import pytest
 import numpy as np
-
+from gflow.panel_flow import PanelFlow
+from gflow.building import Building
+from gflow.vehicle import Vehicle, PersonalVehicle
 # code shows two different ways to test, with and without pytest fixtures
 # tests are deprected as the functions have been vectorised for performance
 
@@ -28,37 +30,23 @@ def vehicle_at_coords_2_2_2():
     return MockVehicle(np.array([2.0, 2.0, 2.0]), 1.0)
 
 
-# def test_induced_source_velocity2D(vehicle_at_origin,vehicle_at_coords_1_1_1, vehicle_at_coords_2_2_2):
-#     from src.panel_flow import induced_source_velocity2D
+from unittest.mock import MagicMock
 
-#     # Test that induced velocity is in the opposite direction
-#     v = induced_source_velocity2D(vehicle_at_origin, vehicle_at_coords_1_1_1)
-#     assert v[0] < 0 and v[1] < 0
+def test_calculate_unknown_vortex_strengths():
+    vehicle = Vehicle()
+    buildings = [Building([[i,0,1],[i+1,0,1],[0.5+i,0.5,1]]) for i in range(2)]
+    for b in buildings:
+        b.panelize(size=0.01)
+        b.calculate_coef_matrix()
+    vehicle.relevant_obstacles = buildings
 
-#     # Test that magnitude of induced velocity decreases with distance
-#     vehicle3 = MockVehicle(np.array([2., 2.,2.]), 1.)
-#     v_new = induced_source_velocity2D(vehicle_at_origin, vehicle_at_coords_2_2_2)
-#     assert np.linalg.norm(v_new) < np.linalg.norm(v)
+    vehicle.personal_vehicle_dict = {
+                vehicle.ID:PersonalVehicle(**vehicle.basic_properties())
+                }
+    panel_flow = PanelFlow(vehicle)
+    
+    panel_flow.calculate_unknown_vortex_strengths(vehicle)
 
-#     # BUG maybe this should be implemented, but realistically it will never happen
-#     # although, never say never?
+    # Add assertions to check if the method behaves as expected
+    # For example, check if the gamma_calc method was called for each relevant building
 
-#     # Test that induced velocity is zero when the vehicles are at the same position
-#     # vehicle4 = TestVehicle(np.array([0., 0.]), 1.)
-#     # v_zero = induced_source_velocity2D(vehicle1, vehicle4)
-#     # assert np.all(v_zero == np.array([0., 0.]))
-
-# def test_induced_source_velocity3D():
-#     from src.panel_flow import induced_source_velocity3D
-
-#     vehicle1 = MockVehicle(np.array([0., 0., 0.]), 1.)
-#     vehicle2 = MockVehicle(np.array([1., 1., 1.]), 1.)
-
-#     # Test that induced velocity is in the opposite direction
-#     v = induced_source_velocity3D(vehicle1, vehicle2)
-#     assert v[0] < 0 and v[1] < 0 and v[2] < 0
-
-#     # Test that magnitude of induced velocity decreases with distance
-#     vehicle3 = MockVehicle(np.array([2., 2., 2.]), 1.)
-#     v_new = induced_source_velocity3D(vehicle1, vehicle3)
-#     assert np.linalg.norm(v_new) < np.linalg.norm(v)
