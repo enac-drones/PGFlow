@@ -6,11 +6,11 @@ from gflow.utils.simulation_utils import run_simulation, set_new_attribute
 
 # from gflow.utils.better_plot import BetterPlot
 if __name__ == "__main__":
-    file_name = "examples/large_case_working.json"
-    case_name="large_case"
+    file_name = "examples/case3.json"
+    case_name="essai"
     # case = Cases.get_case(filename="bug_fixing/cases.json", case_name="ignore_arrived")
     case = Cases.get_case(file_name=file_name, case_name=case_name)
-    case = Cases.get_case(file_name="examples/cases.json", case_name="default")
+    # case = Cases.get_case(file_name="examples/cases.json", case_name="default")
 
     # case = Cases.get_case(filename="bug_fixing/cases.json", case_name="close_to_sink")
     set_new_attribute(case, "source_strength", new_attribute_value=10)
@@ -18,7 +18,7 @@ if __name__ == "__main__":
     set_new_attribute(case, "sink_strength", new_attribute_value=5)
     set_new_attribute(case, "max_speed", new_attribute_value=1)
     set_new_attribute(case, "delta_t", new_attribute_value=1 / 50)
-    set_new_attribute(case, "turn_radius", new_attribute_value=0.5)
+    set_new_attribute(case, "turn_radius", new_attribute_value=0.1)
     # set_new_attribute(case, "v_free_stream", new_attribute_value=0.02)
 
 
@@ -38,7 +38,7 @@ if __name__ == "__main__":
     print(f"update every = {update_time_period}")
 
     case.max_avoidance_distance = 10
-    case.building_detection_threshold = 3
+    case.building_detection_threshold = 10
     case.mode = 'radius'
 
     start_time = time()
@@ -58,7 +58,7 @@ if __name__ == "__main__":
 
     trajectory_plot = ut.PlotTrajectories(case, update_every=update_time_period)
     # trajectory_plot.BUILDING_EDGE_COLOUR
-    LIMS = (-10,10)
+    LIMS = (-5,5)
     trajectory_plot.ax.set_xlim(LIMS)
     trajectory_plot.ax.set_ylim(LIMS)
     trajectory_plot.show()
