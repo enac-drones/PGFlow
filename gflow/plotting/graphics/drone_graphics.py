@@ -29,7 +29,7 @@ class DronePatch:
                  circle_color='k', 
                  circle_width=0.5,
                  marker = 'o',
-                 markersize:float = 10):
+                 markersize:float = 2):
         
         self.drone = drone
         self.point_color = point_color
@@ -41,13 +41,13 @@ class DronePatch:
     def create_patches(self)->None:
         # Create the central point
         self.point = plt.Line2D([self.drone.position[0]], [self.drone.position[1]], 
-                           color=self.point_color, marker=self.marker, markersize=self.markersize,animated=True)
+                           color=self.point_color, marker=self.marker, markersize=self.markersize,animated=False)
 
         # Create the detection circle
         self.circle = Circle(self.drone.position, self.drone.radius, 
                         edgecolor=self.circle_color, facecolor='none', 
                         linewidth=self.circle_width,
-                        animated=True)
+                        animated=False)
 
         return None
     
@@ -144,14 +144,25 @@ class DronePlotter:
         total_frames : int
             The total number of frames to animate.
         """
+        # Step 1: Find the longest path
+        longest_path = max(len(drone_patch.drone.path) for drone_patch in self.drone_patches.values())
+
         for drone_patch in self.drone_patches.values():
             path_length = len(drone_patch.drone.path)
-            # Calculate the interpolated frame
-            interpolated_frame = int((frame / total_frames) * path_length)
-            current_frame = min(interpolated_frame, path_length - 1)
-            drone_patch.set_position(*drone_patch.drone.path[current_frame])
 
+            # Step 2: Calculate the number of frames for this drone
+            drone_total_frames = int((path_length / longest_path) * total_frames)
+
+            # Avoid division by zero for drones with no path
+            if drone_total_frames == 0:
+                continue
+
+            # Step 3: Calculate the interpolated frame for this drone
+            interpolated_frame = int((frame / drone_total_frames) * path_length)
+            current_frame = min(interpolated_frame, path_length - 1)
             
+            drone_patch.set_position(*drone_patch.drone.path[current_frame])
+                    
 
     def _get_drones_from_dict(self, vehicle_data:list[dict])->List[DroneEntity]:
         """
@@ -170,7 +181,7 @@ class DronePlotter:
         drones:List[DroneEntity] = []
         for vehicle in vehicle_data:
             path_2d = [tuple(p[:2]) for p in vehicle['path']]
-            drone = DroneEntity(position=path_2d[0], goal=path_2d[-1], radius=0.5, path=path_2d)
+            drone = DroneEntity(position=path_2d[0], goal=path_2d[-1], radius=vehicle.get('radius', 0.5), path=path_2d)
             drones.append(drone)
         return drones
     

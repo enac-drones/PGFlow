@@ -122,12 +122,12 @@ class ArrowPlotter:
             vehicle_start = vehicle.get("path")[0][:2]
             vehicle_positions.append(np.array(vehicle_start))
             # desired_direction_2d = vehicle.get("gflow")[0][:2]
-            self.desired_vectors.append(vehicle.get("gflow"))
+            self.desired_vectors.append(vehicle.get("desired_vectors"))
             self.paths.append(vehicle.get("path"))
 
         for idx, desired_vector in enumerate(self.desired_vectors):
 
-            arrow = ArrowEntity(vehicle_positions[idx], vehicle_positions[idx]+desired_vector[0][:2])
+            arrow = ArrowEntity(vehicle_positions[idx], vehicle_positions[idx] + desired_vector[0][:2])
             arrows.append(arrow)
         
         # self.desired_vectors = desired_vectors
@@ -144,18 +144,33 @@ class ArrowPlotter:
         total_frames : int
             The total number of frames to animate.
         """
+   
+        # Step 1: Find the longest path
+        longest_path = max(len(path) for path in self.paths)
+
         for idx, arrow_patch in self.arrow_patches.items():
             path = self.paths[idx]
             desired_vector = self.desired_vectors[idx]
 
             path_length = len(path)
-            d_len = len(desired_vector)
-            print(f"{path_length=}, {d_len=}")
-            # Calculate the interpolated frame
-            interpolated_frame = int((frame / total_frames) * path_length)
+
+            # Step 2: Calculate the number of frames for this drone
+            drone_total_frames = int((path_length / longest_path) * total_frames)
+
+            # Avoid division by zero for drones with no path
+            if drone_total_frames == 0:
+                continue
+
+            # Step 3: Calculate the interpolated frame for this drone
+            interpolated_frame = int((frame / drone_total_frames) * path_length)
             current_frame = min(interpolated_frame, path_length - 1)
+            
             [new_x, new_y] = path[current_frame][:2]
-            [new_dx, new_dy] = desired_vector[current_frame][:2]
+            try:
+                [new_dx, new_dy] = desired_vector[current_frame][:2]
+            except IndexError:
+                [new_dx, new_dy] = desired_vector[-1][:2]
 
             arrow_patch.set_data(x = new_x, y = new_y,
                                  dx = new_dx, dy = new_dy)
+                    

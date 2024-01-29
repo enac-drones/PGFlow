@@ -220,7 +220,7 @@ class Vehicle:
         # induced velocity unit vector
         # if mag == 0 or np.isnan(mag):
         V_des_unit = V_des / mag
-        self.desired_vectors.append(V_des_unit[:2])
+        self.desired_vectors.append(V_des_unit[:2].tolist())
 
 
         # set z component to 0 TODO removed for now because focusing on 2d
@@ -249,7 +249,7 @@ class Vehicle:
             self.state = 1
         return self.position
     
-    def update_position_max_radius(self, flow_vel):
+    def update_position_max_radius(self, flow_vel:np.ndarray):
         """Updates my position within the global vehicle_list given the induced flow from other vehicles onto me"""
         # print(f"{flow_vel=}")
         # magnitude of the induced velocity vector in 2D
@@ -257,7 +257,7 @@ class Vehicle:
         # induced velocity unit vector
         # if mag == 0 or np.isnan(mag):
         unit_new_velocity = flow_vel / mag
-        self.desired_vectors.append(unit_new_velocity)
+        self.desired_vectors.append(unit_new_velocity.tolist())
 
         speed = np.linalg.norm(self.velocity[:2])
         if speed == 0:
@@ -323,7 +323,7 @@ class Vehicle:
         unit_new_velocity = flow_vel / mag
 
         # print(f"{self.ID}, {unit_new_velocity=}")
-        self.desired_vectors.append(unit_new_velocity)
+        self.desired_vectors.append(unit_new_velocity.tolist())
         # speed = np.linalg.norm(self.velocity[:2])
 
         #define desired position

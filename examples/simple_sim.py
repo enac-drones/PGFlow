@@ -7,7 +7,7 @@ from gflow.utils.simulation_utils import run_simulation, set_new_attribute
 # from gflow.utils.better_plot import BetterPlot
 if __name__ == "__main__":
     file_name = "examples/cases.json"
-    case_name="square"
+    case_name="alpha"
     # case = Cases.get_case(filename="bug_fixing/cases.json", case_name="ignore_arrived")
     case = Cases.get_case(file_name=file_name, case_name=case_name)
     # case = Cases.get_case(file_name="examples/test5.json", case_name="Test Case")

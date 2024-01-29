@@ -6,15 +6,24 @@ from gflow.plotting.graphics.path_graphics import PathPlotter
 from gflow.plotting.graphics.building_graphics import BuildingsPlotter
 from gflow.plotting.graphics.drone_graphics import DronePlotter
 from gflow.plotting.graphics.arrow_graphics import ArrowPlotter
+from gflow.plotting.observer_utils import Observer
+from gflow.plotting.ui_components import UIComponents
 
-class SimulationVisualizer:
+class SimulationVisualizer(Observer):
     def __init__(self, json_file_path):
         self.json_file_path = json_file_path
         self.full_data = {}
         self.buildings = []
         self.vehicles = []
         self.paths = []
+        self.current_frame = 0
+        self.num_frames = 1000
+        self.simulation_running = True
+
+        self.fig, self.ax = plt.subplots(figsize=(8, 8))
         self.load_data()
+        self.setup(self.ax)
+        self.anim = self.animate_simulation(self.fig)
 
     def load_data(self):
         """Load and parse data from the JSON file."""
@@ -25,82 +34,101 @@ class SimulationVisualizer:
             self.arrows = data.get('desired_vectors', [])
             self.full_data = data
 
-    # def initial_plot(self):
-    #     fig, ax = plt.subplots()
+    def setup(self, ax):
+        LIMS = (-5,5)
+        ax.set_xlim(LIMS)
+        ax.set_ylim(LIMS)
+        ax.set_aspect('equal', adjustable='box')
 
-    #     # Plot buildings
-    #     buildings_plotter = BuildingsPlotter(self.buildings)
-    #     buildings_plotter.plot(ax)
-    #     buildings_plotter.set_building_attributes(fc = "k", ec = "r")
-
-    #     # Plot vehicles and their paths
-    #     drone_plotter = DronePlotter(vehicle_data=self.vehicles)
-    #     drone_plotter.plot(ax)
-    #     drone_plotter.set_circle_attributes(radius=1, ec = "pink", lw = 1)
-    #     drone_plotter.set_point_attributes(color="r",marker="*")
-
-    #     path_manager = PathPlotter(vehicle_data=self.vehicles)
-    #     path_manager.plot(ax)
-
-    #     path_manager.set_path_attributes(color="r",linewidth=2)
-
-    #     LIMS = (-5,5)
-    #     ax.set_xlim(LIMS)
-    #     ax.set_ylim(LIMS)
-
-    #     ax.set_aspect('equal', adjustable='box')
-    #     plt.show()
-
-    def animate_simulation(self):
-        fig, ax = plt.subplots()
+        self.ui_components = UIComponents(self.ax)
+        self.ui_components.add_observer(self)
+        #this line makes sure the current axes are the main ones
+        plt.sca(ax)
 
         # Initialize plotters
         buildings_plotter = BuildingsPlotter(self.buildings)
         buildings_plotter.plot(ax)
-        drone_plotter = DronePlotter(self.vehicles)
-        drone_plotter.plot(ax)
-        patches = drone_plotter.get_patches()
-        for p in patches:
-            p.set_animated(False)
+        self.drone_plotter = DronePlotter(self.vehicles)
+        self.drone_plotter.plot(ax)
+        # patches = drone_plotter.get_patches()
+        # for p in patches:
+        #     p.set_animated(False)
         path_manager = PathPlotter(self.vehicles)
         path_manager.plot(ax)
-        arrow_manager = ArrowPlotter(self.vehicles)
-        arrow_manager.plot(ax)
+        self.arrow_manager = ArrowPlotter(self.vehicles)
+        self.arrow_manager.plot(ax)
+
+    def show_plot(self):
+        plt.show()
+
+
+    def call(self, event:str):
+        if event == 'run':
+            print('run')
+            if not self.simulation_running:
+                self.anim.resume()
+                self.simulation_running = True
+
+        elif event == 'pause':
+            print("pause")
+            if self.simulation_running:
+                self.anim.pause()
+                self.simulation_running = False
+
+        elif event == 'reset':
+            self.current_frame = 0
+            if not self.simulation_running:
+                self.update_visuals(frame=0)
+        else:
+            print('other')
+
+
+    def animate_simulation(self, fig):
+        
         # Set up the animation
-        num_frames = 1000
+
         def animate(frame):
-            drone_plotter.animate_drones(frame,num_frames)
-            patches = drone_plotter.get_patches()
-            arrow_manager.animate_arrows(frame,num_frames)
+            # Use self.current_frame instead of the frame parameter
+            self.drone_plotter.animate_drones(self.current_frame, self.num_frames)
+            # patches = drone_plotter.get_patches()
+            self.arrow_manager.animate_arrows(self.current_frame, self.num_frames)
             
+            # Increment and reset frame counter
+            self.current_frame += 1
+            if self.current_frame >= self.num_frames:
+                self.current_frame = 0
+
             # Redraw the canvas
             fig.canvas.draw_idle()
-            return patches
 
-        # Determine the number of frames based on the longest path
-        # num_frames = max(len(drone.path.path) for drone in drone_plotter.drone_entities)
+            #only return something if using blitting
+            return None #patches
 
-        # anim = FuncAnimation(fig, animate, frames=num_frames, interval=100, repeat=False)
+
         anim = FuncAnimation(fig=fig,
                              func=animate,
-                             frames=num_frames,
+                             frames=range(self.num_frames),
                              init_func=None,
-                             interval=10/num_frames,
+                             interval=10/self.num_frames,
+                            #  interval=10,
                              repeat=True,
-                             repeat_delay = 1000,
+                            #  repeat_delay = 1000,
                              blit=False,
                              )
 
-        LIMS = (-50,50)
-        ax.set_xlim(LIMS)
-        ax.set_ylim(LIMS)
-
-        ax.set_aspect('equal', adjustable='box')
-        plt.show()
-
         return anim
+    
+    def update_visuals(self, frame):
+        """Update the visuals of the simulation to a specific frame."""
+        # This should contain the logic to update your plot to a specific frame
+        # For example, you might call animate_drones, animate_arrows, etc., for the given frame
+        self.drone_plotter.animate_drones(frame, self.num_frames)
+        self.arrow_manager.animate_arrows(frame, self.num_frames)
+        self.fig.canvas.draw_idle()
+
+    
 
 # Example usage
 if __name__ == '__main__':
     visualizer = SimulationVisualizer('example_output.json')
-    visualizer.animate_simulation()
+    visualizer.show_plot()

@@ -34,7 +34,7 @@ class PlotTrajectories:
 
     FIG_SIZE = (8, 8)
     AXIS_LIMITS = (-5, 5)
-    GOAL_THRESHOLD = 0.2
+    # arrival_distance = 0.2
     FRAMES = np.linspace(0, 1, 101)
     SLIDER_ANIMATION_INTERVAL = FRAMES[1]-FRAMES[0]
     UPDATE_INTERVAL = 50
@@ -47,7 +47,7 @@ class PlotTrajectories:
         self.case = case
         self.Arena = case.arena
         self.ArenaR = case.arena
-
+        self.arrival_distance = case.arrival_distance
         self.animation_proportion:float = 0 #proportion of animation completed according to frames ie 9/100 frames = 0.09
         self.modified_artists:set = set()
 
@@ -480,7 +480,7 @@ class PlotTrajectories:
             np.linalg.norm(
                 self.vehicle_list[drone_index].goal - self.positions[drone_index]
             )
-            < self.GOAL_THRESHOLD
+            < self.arrival_distance
         )
 
     def is_collision(self, drone_index1, drone_index2, distance_matrix):

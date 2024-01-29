@@ -31,6 +31,7 @@ class Case:
         self._max_avoidance_distance:float = 20.
         self.building_detection_threshold:float = 10.
         self.mode = "standard"
+        self.arrival_distance = 0.5
 
     @classmethod
     def from_dict(cls, case_dict:dict):
@@ -65,6 +66,7 @@ class Case:
             vehicle.personal_vehicle_dict = {
                 v.ID:PersonalVehicle(**v.basic_properties()) for v in new_vehicle_list
             }
+        self.arrival_distance = self.vehicle_list[0].ARRIVAL_DISTANCE
 
     @property
     def max_avoidance_distance(self)->float:
@@ -117,14 +119,20 @@ class Case:
         """Converts the Case instance to a dictionary for JSON-style output. 
         IMPORTANT: uses new json format with dicts instead of lists of buildings and vehicles"""
 
-        buildings_data = [{"ID":building.ID,"vertices": building.vertices.tolist()} for building in self.buildings] if self.buildings else []
-        vehicles_data = [{"ID":vehicle.ID, 'path': vehicle.path.tolist()} for vehicle in self.vehicle_list] if self.vehicle_list else []
+        buildings_data = [{"ID":building.ID,
+                           "vertices": building.vertices.tolist()} 
+                           for building in self.buildings] if self.buildings else []
+        vehicles_data = [{"ID":vehicle.ID, 
+                          "radius": vehicle.ARRIVAL_DISTANCE,
+                          'path': vehicle.path.tolist(),
+                          'desired_vectors': vehicle.desired_vectors} 
+                          for vehicle in self.vehicle_list] if self.vehicle_list else []
 
         case_data = {
             'name': self._name,
             'buildings': buildings_data,
             'vehicles': vehicles_data
-        }
+            }
         if file_path:
             dump_to_json(file_path, case_data)
         return case_data

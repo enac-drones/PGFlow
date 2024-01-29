@@ -16,7 +16,7 @@ class DroneEntity:
         The radius of the collision circle around the drone.
     """
     _id_counter = 0
-    def __init__(self, position:Point2D, goal:Point2D, path:NDArray, radius:float = 0.5):
+    def __init__(self, position:Point2D, goal:Point2D, path:NDArray, radius:float = 0.2):
         """
         Initializes a DroneEntity object.
         
