@@ -79,7 +79,7 @@ class Vehicle:
     def position(self, new_position):
         self._position = new_position
         vector_to_goal = (self.goal - new_position)[:2]
-        if np.all(vector_to_goal)==0:
+        if np.all(vector_to_goal==0):
             # non zero vector of ones in case the vehicle is exactly on the goal
             self.v_free_stream = np.ones(2)
         else:

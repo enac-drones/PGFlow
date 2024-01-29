@@ -280,8 +280,10 @@ class Cases:
                 imag_source_strength=imag_source_strength,
             )
             myVehicle.ID = ID
-            myVehicle.set_initial_position(position)
+            #FIXME the order the setting goal and initial position matters for the first entry
+            #  into desired vectors so be careful
             myVehicle.Set_Goal(goal=goal, goal_strength=sink_strength)
+            myVehicle.set_initial_position(position)
             # myVehicle.Go_to_Goal(
             #     altitude=0.5, AoAsgn=0, t_start=0, Vinfmag=0
             # )  # FIXME add these to the json
