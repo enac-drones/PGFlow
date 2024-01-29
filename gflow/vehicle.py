@@ -220,6 +220,8 @@ class Vehicle:
         # induced velocity unit vector
         # if mag == 0 or np.isnan(mag):
         V_des_unit = V_des / mag
+        self.desired_vectors.append(V_des_unit[:2])
+
 
         # set z component to 0 TODO removed for now because focusing on 2d
         #########################################

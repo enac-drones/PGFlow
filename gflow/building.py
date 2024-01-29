@@ -30,7 +30,7 @@ class Building:
         #automatically increment the id
         self.ID = f"B{Building._id_counter}"
         Building._id_counter += 1
-        self.inflate(rad=0.0)
+        # self.inflate(rad=0.0)
         # self.position = np.array(position)
         self.panels = np.array([])
         self.nop = None  # Number of Panels
