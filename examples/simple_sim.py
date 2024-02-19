@@ -2,15 +2,17 @@ import gflow.utils.plot_utils as ut
 from gflow.cases import Cases
 from time import time
 from gflow.utils.simulation_utils import run_simulation, set_new_attribute
+from gflow.plotting.main_plot import SimulationVisualizer
+
 # from pprint import pprint
 
 # from gflow.utils.better_plot import BetterPlot
 if __name__ == "__main__":
-    file_name = "examples/cases.json"
-    case_name="simple_example"
+    file_name = "examples/ankush.json"
+    case_name="Test Case"
     # case = Cases.get_case(filename="bug_fixing/cases.json", case_name="ignore_arrived")
-    case = Cases.get_case(file_name=file_name, case_name=case_name)
-    # case = Cases.get_case(file_name="examples/test5.json", case_name="Test Case")
+    # case = Cases.get_case(file_name=file_name, case_name=case_name)
+    case = Cases.get_case(file_name="examples/cases.json", case_name="Tes")
 
     # case = Cases.get_case(filename="bug_fixing/cases.json", case_name="close_to_sink")
     set_new_attribute(case, "source_strength", new_attribute_value=1)
@@ -19,7 +21,7 @@ if __name__ == "__main__":
     set_new_attribute(case, "max_speed", new_attribute_value=1)
     set_new_attribute(case, "delta_t", new_attribute_value=1 / 50)
     set_new_attribute(case, "turn_radius", new_attribute_value=0.1)
-    set_new_attribute(case, "ARRIVAL_DISTANCE", new_attribute_value=0.25)
+    set_new_attribute(case, "ARRIVAL_DISTANCE", new_attribute_value=0.2)
     # case.collision_threshold = 3
     # set_new_attribute(case, "v_free_stream", new_attribute_value=0.02)
 
@@ -46,7 +48,7 @@ if __name__ == "__main__":
     start_time = time()
     result = run_simulation(
         case,
-        t=2000,
+        t=3000,
         update_every=update_time_period,
         stop_at_collision=False
         )

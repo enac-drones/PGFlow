@@ -23,7 +23,7 @@ class ArenaMap:
     ):
         # self.panels = None
         self.inflation_radius = 0.0
-        self.size = 0.2 #max size of a panel?
+        self.size = 0.02 #max size of a panel?
         self.wind = [0, 0]
         self.windT = 0
         self.buildings = buildings

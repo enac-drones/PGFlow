@@ -20,6 +20,7 @@ scipy = "^1.10.1"
 shapely = "^2.0.1"
 rtree = "^1.1.0"
 pytest-cov = "^4.1.0"
+scenebuilder = {path = "/Users/adriandelser/Desktop/ENAC/scenebuilder"}
 
 
 [tool.poetry.group.dev.dependencies]

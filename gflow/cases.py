@@ -271,9 +271,10 @@ class Cases:
             position = vehicle["position"]
             goal = vehicle["goal"]
             ID = vehicle["ID"]
-            source_strength = vehicle["source_strength"]
-            imag_source_strength = vehicle["imag_source_strength"]
-            sink_strength = vehicle["sink_strength"]
+            #if the values below are undefined, give some default values
+            source_strength = vehicle.get("source_strength", 1)
+            imag_source_strength = vehicle.get("imag_source_strength", 0.5)
+            sink_strength = vehicle.get("sink_strength", 5)
             # safety = vehicle["safety"]
             myVehicle = Vehicle(
                 source_strength=source_strength,

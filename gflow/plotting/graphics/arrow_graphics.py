@@ -100,6 +100,18 @@ class ArrowPlotter:
         """
         for arrow_patch in self.arrow_patches.values():
             arrow_patch.set_new_attributes(**kwargs)
+    
+    def set_data(self, **kwargs):
+        """
+        Set the attributes of the building patches.
+
+        Parameters:
+        -----------
+        kwargs : dict
+            The keyword arguments to pass to the set_new_attributes() method of each BuildingPatch instance.
+        """
+        for arrow_patch in self.arrow_patches.values():
+            arrow_patch.set_data(**kwargs)
 
     def _get_arrows_from_dict(self, vehicle_data:List[dict])->List[ArrowEntity]:
         """
