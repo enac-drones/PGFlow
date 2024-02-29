@@ -127,11 +127,21 @@ class Case:
                           'path': vehicle.path.tolist(),
                           'desired_vectors': vehicle.desired_vectors} 
                           for vehicle in self.vehicle_list] if self.vehicle_list else []
-
+        params = [{"source_strength": self.vehicle_list[0].source_strength,
+                   "sink_strength": self.vehicle_list[0].sink_strength,
+                   "imag_source_strength": self.vehicle_list[0].imag_source_strength,
+                   "turn_radius": self.vehicle_list[0].turn_radius,
+                   "max_speed": self.vehicle_list[0].max_speed,
+                   "mode": self.mode,
+                   "building_detection_threshold": self.building_detection_threshold,
+                   "max_avoidance_distance": self.max_avoidance_distance
+                   }]
+        
         case_data = {
             'name': self._name,
             'buildings': buildings_data,
-            'vehicles': vehicles_data
+            'vehicles': vehicles_data,
+            'parameters': params
             }
         if file_path:
             dump_to_json(file_path, case_data)
