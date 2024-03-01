@@ -70,7 +70,7 @@ class Vehicle:
         self.has_landed = False
         self.turn_radius:float = 0.1 #max turn radius in meters
         self.v_free_stream:np.ndarray = np.zeros(2) #velocity constantly pushing the vehicle towards its goal
-
+        self.v_free_stream_mag = 0.5
     @property
     def position(self):
         return self._position
@@ -83,7 +83,7 @@ class Vehicle:
             # non zero vector of ones in case the vehicle is exactly on the goal
             self.v_free_stream = np.ones(2)
         else:
-            self.v_free_stream = 0.5*vector_to_goal/np.linalg.norm(vector_to_goal)
+            self.v_free_stream = self.v_free_stream_mag*vector_to_goal/np.linalg.norm(vector_to_goal)
 
 
 
@@ -150,6 +150,7 @@ class Vehicle:
         self.goal = np.array(goal)
         self.sink_strength = goal_strength
      
+    
     def run_simple_sim(self, mode:str):
         '''run one iteration of the simulation
         mode:str (standard | radius | pid)'''
