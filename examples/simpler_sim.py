@@ -41,5 +41,5 @@ trajectory_plot.ax.set_ylim(LIMS)
 trajectory_plot.show()
 
 # visualisation part
-visualizer = SimulationVisualizer('example_output.json')
-visualizer.show_plot()
+# visualizer = SimulationVisualizer('example_output.json')
+# visualizer.show_plot()

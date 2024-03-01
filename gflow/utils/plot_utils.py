@@ -352,7 +352,7 @@ class PlotTrajectories:
             self.positions[i] = [x, y, z]
 
     def update_arrows(self, plot_until):
-        for i in range(len(self.es)):
+        for i in range(len(self.drone_list)):
             if plot_until == 0:
                 x, y, z = self.vehicle_list[i].path[0, :3]
             elif plot_until < len(self.vehicle_list[i].path[:, 0]):
