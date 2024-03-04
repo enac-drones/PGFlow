@@ -71,6 +71,7 @@ class Vehicle:
         self.turn_radius:float = 0.1 #max turn radius in meters
         self.v_free_stream:np.ndarray = np.zeros(2) #velocity constantly pushing the vehicle towards its goal
         self.v_free_stream_mag = 0.5
+        
     @property
     def position(self):
         return self._position

@@ -18,6 +18,7 @@ if TYPE_CHECKING:
 # from gflow.arena import ArenaMap
 import time
 
+#vortexL lines 289, 232, 180
 
 
 """# Velocity Calculation"""
@@ -77,7 +78,9 @@ class PanelFlow:
         ratio = distance/max_distance
         linear_dropoff = 1-distance/max_distance
         exponential_dropoff = 1/(1+np.e**(10*(ratio-0.7)))
-        effect = (1/(2 * np.pi * distance**4)) * exponential_dropoff
+        effect = (1/(2 * np.pi * distance**2)) * exponential_dropoff
+        # effect = (1/(2 * np.pi * distance**2))
+
         return effect
     
     def calculate_induced_source_velocities_on_main_vehicle(self, main_vehicle: Vehicle):
@@ -102,31 +105,31 @@ class PanelFlow:
 
 
 
-    def calculate_induced_vortex_velocities_on_main_vehicle(self, main_vehicle: Vehicle):
-        # Get positions and vortex strengths of other vehicles
-        other_vehicles = main_vehicle.personal_vehicle_dict
+    # def calculate_induced_vortex_velocities_on_main_vehicle(self, main_vehicle: Vehicle):
+    #     # Get positions and vortex strengths of other vehicles
+    #     other_vehicles = main_vehicle.personal_vehicle_dict
 
-        other_positions = np.array([v.position[:2] for v in other_vehicles.values()])
-        other_vortex_strengths = np.array([v.source_strength for v in other_vehicles.values()]) / 4
+    #     other_positions = np.array([v.position[:2] for v in other_vehicles.values()])
+    #     other_vortex_strengths = np.array([v.source_strength for v in other_vehicles.values()]) / 4
         
-        # Calculate position differences and distances
-        position_diff_2D =  main_vehicle.position[:2] - other_positions
-        perpendicular_array = np.zeros_like(position_diff_2D)
-        perpendicular_array[:, 0] = -position_diff_2D[:, 1]  # replace x with -y
-        perpendicular_array[:, 1] = position_diff_2D[:, 0]   # replace y with x
+    #     # Calculate position differences and distances
+    #     position_diff_2D =  main_vehicle.position[:2] - other_positions
+    #     perpendicular_array = np.zeros_like(position_diff_2D)
+    #     perpendicular_array[:, 0] = -position_diff_2D[:, 1]  # replace x with -y
+    #     perpendicular_array[:, 1] = position_diff_2D[:, 0]   # replace y with x
         
-        # squared_distances = np.sum(np.abs(position_diff_2D) ** 4, axis=1)
-        distances = np.linalg.norm(position_diff_2D, axis=1)
-        effect = self.distance_effect_function(distances, main_vehicle.max_avoidance_distance)
+    #     # squared_distances = np.sum(np.abs(position_diff_2D) ** 4, axis=1)
+    #     distances = np.linalg.norm(position_diff_2D, axis=1)
+    #     effect = self.distance_effect_function(distances, main_vehicle.max_avoidance_distance)
 
-        # squared_distances = distances**4
+    #     # squared_distances = distances**4
         
-        # Calculate induced velocity
-        induced_v = other_vortex_strengths[:, np.newaxis] * perpendicular_array * effect[:, np.newaxis]
+    #     # Calculate induced velocity
+    #     induced_v = other_vortex_strengths[:, np.newaxis] * perpendicular_array * effect[:, np.newaxis]
         
-        # Sum over all interactions to get total induced velocity on the main vehicle
-        V_vortex = np.sum(induced_v, axis=0)
-        return V_vortex
+    #     # Sum over all interactions to get total induced velocity on the main vehicle
+    #     V_vortex = np.sum(induced_v, axis=0)
+    #     return V_vortex
 
 
     
@@ -138,12 +141,12 @@ class PanelFlow:
         max_num_panels = max(building.nop for building in buildings)
 
         # Initialize the all_pcp array with zeros
-        all_pcp = np.zeros((num_buildings, max_num_panels, 2))
+        all_vp = np.zeros((num_buildings, max_num_panels, 2))
 
         # Populate the all_pcp array
         for i, building in enumerate(buildings):
             num_panels = building.nop  # Number of panels in the current building
-            all_pcp[i, :num_panels, :] = building.pcp[:num_panels, :2]
+            all_vp[i, :num_panels, :] = building.vp[:num_panels, :2]
 
         # Initialize the all_gammas array with zeros or NaNs
         all_gammas = np.zeros((num_buildings, max_num_panels))
@@ -158,22 +161,26 @@ class PanelFlow:
         main_vehicle_position = main_vehicle.position[:2]
 
         # Calculate position differences and distances
-        diff = main_vehicle_position - all_pcp
+        diff = main_vehicle_position - all_vp
         squared_distances = np.sum(diff ** 2, axis=-1)
 
         # Create the numerator for all buildings
-        numerators = np.zeros((num_buildings, max_num_panels, 2))
-        numerators[:, :, 0] = main_vehicle_position[1] - all_pcp[:, :, 1]
-        numerators[:, :, 1] = -(main_vehicle_position[0] - all_pcp[:, :, 0])
+        vec_to_vehicle = np.zeros((num_buildings, max_num_panels, 2))
+
+        #don't need to reshape, broadcasting is possible
+        vec_to_vehicle =  main_vehicle_position - all_vp 
 
         # Normalize all_gammas
         all_gammas_normalized = all_gammas / (2 * np.pi)
 
         # uv calculations
-        uv = all_gammas_normalized[:, :, np.newaxis] * numerators / squared_distances[:, :, np.newaxis]
+        uv = all_gammas_normalized[:, :, np.newaxis] * vec_to_vehicle / squared_distances[:, :, np.newaxis]
 
         # Summing across num_buildings and num_panels axes
         V_gamma_main = np.sum(uv, axis=(0, 1))
+        #set x to y and y to -x (rotate vec_to_vehicle by pi/2 clockwise)
+        #rotate 90 degrees clockwise to corresponding to vortex effect
+        V_gamma_main[0], V_gamma_main[1] = V_gamma_main[1], -V_gamma_main[0]
 
         return V_gamma_main
 
@@ -188,7 +195,7 @@ class PanelFlow:
             othervehicles (list[Vehicle]): _description_
         """
         othervehicles = vehicle.personal_vehicle_dict.values()
-        # Initialize arrays
+        # Initialize arrays in case no other vehicles
         vel_sink = np.zeros((building.nop, 2))
         vel_source = np.zeros((building.nop, 2))
         vel_source_imag = np.zeros((building.nop, 2))
@@ -213,24 +220,27 @@ class PanelFlow:
             # Compute source differences
             source_diff = building.pcp[:, np.newaxis, :2] - all_positions
 
-            # Compute vortex differences
-            vortex_diff = np.zeros_like(source_diff)
-            vortex_diff[..., 0] = -source_diff[..., 1]
-            vortex_diff[..., 1] = source_diff[..., 0]
-
             # Compute squared distances
             source_sq_dist = np.sum(source_diff ** 2, axis=-1)
+            # distances1 = np.sqrt(source_sq_dist)
+            distances = np.linalg.norm(source_diff, axis=-1)
+
 
             # Extract all source strengths
             all_source_strengths = np.array([other.source_strength for other in othervehicles])
 
             # Compute velocities due to sources and vortices
+            effect = self.distance_effect_function(distances, vehicle.max_avoidance_distance)
             vel_source_contribs = (all_source_strengths[:, np.newaxis] * source_diff / (2 * np.pi * source_sq_dist[..., np.newaxis]))
-            vel_vortex_contribs = (all_source_strengths[:, np.newaxis] / 4 * vortex_diff / (2 * np.pi * source_sq_dist[..., np.newaxis]))
+            alternative = all_source_strengths[:, np.newaxis] * source_diff * effect[..., np.newaxis]
 
             # Sum across the contributions of all vehicles
-            vel_source = np.sum(vel_source_contribs, axis=1)
-            vel_vortex = np.sum(vel_vortex_contribs, axis=1)
+            # vel_source = np.sum(vel_source_contribs, axis=1) #shape(nop, 2)
+            vel_source = np.sum(alternative, axis=1) #shape(nop, 2)
+
+            # for vortex, just rotate by 90 degrees anticlockwise and divide by 4 #TODO, division by 4 is arbitrary
+            vel_vortex = np.column_stack([vel_source[...,1], -vel_source[...,0]]) / 4
+
         ########
         # RHS calculation
         cos_pb = np.cos(building.pb)
@@ -252,7 +262,7 @@ class PanelFlow:
 
         RHS[:, 0] = -np.sum(total_velocity * normal_vectors, axis=1)
         # Solve for gammas
-        # building.gammas = np.matmul(building.K_inv, RHS)
+        #gammas is dictionary because a building might have different gammas for different vehicles
         building.gammas[vehicle.ID] = np.matmul(building.K_inv, RHS)
         
 
@@ -285,7 +295,8 @@ class PanelFlow:
         if vehicle.personal_vehicle_dict:
             V_source = self.calculate_induced_source_velocities_on_main_vehicle(vehicle)
             # V_source = self.experimental_induced_source(vehicle)
-            V_vortex = self.calculate_induced_vortex_velocities_on_main_vehicle(vehicle)
+            # V_vortex = self.calculate_induced_vortex_velocities_on_main_vehicle(vehicle)
+            V_vortex = np.array([V_source[1], -V_source[0]]) / 4
             # TODO everything involving W_source is super dodgy, why are we only using the z component, weird... needs serious testing
             # Velocity induced by 3-D point sink. Katz&Plotkin Eqn. 3.25
 
@@ -304,7 +315,7 @@ class PanelFlow:
         #########################################################################################################################
         return flow_vels
 
-
+#vortexL lines 289, 232, 180
 
 if __name__ == "__main__":
     def add_one(n:float)->float:
