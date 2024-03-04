@@ -9,7 +9,7 @@ p = InteractivePlot()
 p.draw_scene() 
 
 #gflow part
-file_name = "two_buildings.json"
+file_name = "scenebuilder.json"
 case_name="scenebuilder"
 case = Cases.get_case(file_name, case_name)
 # set_new_attribute(case, "ARRIVAL_DISTANCE", new_attribute_value=1e-6)
