@@ -9,15 +9,15 @@ p = InteractivePlot()
 p.draw_scene() 
 
 #gflow part
-file_name = "scenebuilder.json"
+file_name = "scenebuilder_hard_case.json"
 case_name="scenebuilder"
 case = Cases.get_case(file_name, case_name)
 # set_new_attribute(case, "ARRIVAL_DISTANCE", new_attribute_value=1e-6)
-set_new_attribute(case, "sink_strength", new_attribute_value=5)
+set_new_attribute(case, "sink_strength", new_attribute_value=1)
 set_new_attribute(case, "max_speed", new_attribute_value=1)
-set_new_attribute(case, "imag_source_strength", new_attribute_value=0)
+set_new_attribute(case, "imag_source_strength", new_attribute_value=5)
 set_new_attribute(case, "source_strength", new_attribute_value=2)
-set_new_attribute(case,"v_free_stream_mag", new_attribute_value=0.0)
+set_new_attribute(case,"v_free_stream_mag", new_attribute_value=1)
 
 # set_new_attribute(case, "mode", new_attribute_value="radius")
 set_new_attribute(case, "turn_radius", new_attribute_value=0.01)

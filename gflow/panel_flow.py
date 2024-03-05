@@ -78,7 +78,7 @@ class PanelFlow:
         ratio = distance/max_distance
         linear_dropoff = 1-distance/max_distance
         exponential_dropoff = 1/(1+np.e**(10*(ratio-0.7)))
-        effect = (1/(2 * np.pi * distance**2)) * exponential_dropoff
+        effect = (1/(2 * np.pi * distance**4)) * exponential_dropoff
         # effect = (1/(2 * np.pi * distance**2))
 
         return effect
@@ -239,7 +239,7 @@ class PanelFlow:
             vel_source = np.sum(alternative, axis=1) #shape(nop, 2)
 
             # for vortex, just rotate by 90 degrees anticlockwise and divide by 4 #TODO, division by 4 is arbitrary
-            vel_vortex = np.column_stack([vel_source[...,1], -vel_source[...,0]]) / 4
+            vel_vortex = np.column_stack([-vel_source[...,1], vel_source[...,0]]) / 4
 
         ########
         # RHS calculation
@@ -296,7 +296,7 @@ class PanelFlow:
             V_source = self.calculate_induced_source_velocities_on_main_vehicle(vehicle)
             # V_source = self.experimental_induced_source(vehicle)
             # V_vortex = self.calculate_induced_vortex_velocities_on_main_vehicle(vehicle)
-            V_vortex = np.array([V_source[1], -V_source[0]]) / 4
+            V_vortex = np.array([-V_source[1], V_source[0]]) / 4
             # TODO everything involving W_source is super dodgy, why are we only using the z component, weird... needs serious testing
             # Velocity induced by 3-D point sink. Katz&Plotkin Eqn. 3.25
 
