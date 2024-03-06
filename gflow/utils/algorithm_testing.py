@@ -5,6 +5,7 @@ from scenebuilder.gui_sim import InteractivePlot
 from gflow.cases import Cases, Case
 from gflow.utils.simulation_utils import set_new_attribute
 from numpy.typing import ArrayLike
+from gflow.arena import ArenaMap
 
 
 def plot_buildings(ax, buildings):
@@ -36,8 +37,8 @@ def calculate_field_vectors(coords:ArrayLike, case:Case)->ArrayLike:
     for idx,coord in enumerate(coords):
         vehicle.position = np.hstack((coord,np.array([0])))
         # print(vehicle.position)
-        vehicle.update_personal_vehicle_dict(case.vehicle_list,case.max_avoidance_distance)
         vehicle.update_nearby_buildings(threshold = case.building_detection_threshold)
+        vehicle.update_personal_vehicle_dict(case.vehicle_list,case.max_avoidance_distance)
         # print(vehicle.relevant_obstacles)
         flow_vels = vehicle.panel_flow.Flow_Velocity_Calculation(vehicle)
         uv[idx] = flow_vels
@@ -82,7 +83,6 @@ def create_quiver_plot(case, buildings, drones, xlim, ylim):
     # ax.set_xlim(LIMS)
     # ax.set_ylim(LIMS)
     ax.set_aspect('equal')
-    plt.show()
 
 
 if __name__ == '__main__':
@@ -92,8 +92,10 @@ if __name__ == '__main__':
 
     #gflow part
     #%%
-    file_name = "scenebuilder_hard_case.json"
-    case_name="scenebuilder"
+    ArenaMap.inflation_radius = 0.5
+    ArenaMap.size = 0.2
+    file_name = "examples/cases.json"
+    case_name="voliere4"
     case = Cases.get_case(file_name, case_name)
     # set_new_attribute(case, "ARRIVAL_DISTANCE", new_attribute_value=1e-6)
     set_new_attribute(case, "sink_strength", new_attribute_value=1)
@@ -103,11 +105,12 @@ if __name__ == '__main__':
     # set_new_attribute(case, "mode", new_attribute_value="radius")
     set_new_attribute(case,"v_free_stream_mag", new_attribute_value=0.5)
     set_new_attribute(case, "turn_radius", new_attribute_value=0.01)
-    case.max_avoidance_distance = 1
+    case.max_avoidance_distance = 10
     case.building_detection_threshold = 10
     # Example usage
-    case.vehicle_list[0], case.vehicle_list[2] = case.vehicle_list[2], case.vehicle_list[0]
+    # case.vehicle_list[0], case.vehicle_list[2] = case.vehicle_list[2], case.vehicle_list[0]
     # buildings = case.buildings
     buildings = [building.vertices[...,:2] for building in case.buildings]  # Define buildings as tuples of vertices
     drones = [vehicle.position[:2] for vehicle in case.vehicle_list]  # Drone positions
-    create_quiver_plot(case, buildings, drones, xlim=(0., 2), ylim=(-2, 0))
+    create_quiver_plot(case, buildings, drones, xlim=(-5, 5), ylim=(-5, 5))
+    plt.show()

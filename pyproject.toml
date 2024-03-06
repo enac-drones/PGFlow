@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "gflow"
-version = "0.2.2"
+version = "0.2.6"
 description = ""
 authors = ["adriandelser <adrian.delser@gmail.com>"]
 readme = "README.md"

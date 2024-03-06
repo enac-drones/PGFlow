@@ -26,13 +26,16 @@ def step_simulation(case:Case):
     max_avoidance_distance = case.max_avoidance_distance
     """'Step the simulation by one timstep, list_of_vehicles is case.vehicle_list"""
     for vehicle in case_vehicle_list:
+        if case.arena.contains_point(vehicle.position[:2]):
+            pass
         # if the current vehicle has arrived, do nothing, continue looking at the other vehicles
         if vehicle.state == 1:
             continue
         # update the vehicle's personal knowledge of other drones by only keeping those that meet specific conditions:
         # not too far, have not arrived yet, and are transmitting.
-        vehicle.update_personal_vehicle_dict(case_vehicle_list,max_avoidance_distance)
+        #NOTE order matters, update buildings before vehicles
         vehicle.update_nearby_buildings(threshold = case.building_detection_threshold) #meters
+        vehicle.update_personal_vehicle_dict(case_vehicle_list,max_avoidance_distance)
         # print(vehicle.relevant_obstacles)
 
         # update my position in the case_vehicle_list

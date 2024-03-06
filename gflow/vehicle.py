@@ -97,11 +97,21 @@ class Vehicle:
                 self.personal_vehicle_dict.pop(self.ID, None)
                 # self.personal_vehicle_dict[self.ID] = PersonalVehicle(**v.basic_properties())
                 continue
+            #if vehicle is inside a building (special treatment for it later). remove it
+            #NOTE moved to gamma_calc
+            # vehicle_inside_building = False
+            # for building in self.relevant_obstacles:
+            #     if building.contains_point(v.position[:2]):
+            #         vehicle_inside_building = True
+            #         self.personal_vehicle_dict.pop(v.ID, None)
+            #         continue
+            # if vehicle_inside_building:
+            #     continue
+
             if v.transmitting == True:
                 # other vehicle is transmitting so either take the newer vehicle info or remove it entirely if too far or arrived
                 if v.state == 1:
                     # arrived, so remove from list, we don't care about it
-                    # pass
                     self.personal_vehicle_dict.pop(v.ID, None)
 
                 else:

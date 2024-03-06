@@ -9,11 +9,14 @@ from rtree import index
 from gflow.building import Building
 from typing import List
 from shapely.geometry import box, Point
+from numpy.typing import ArrayLike
 
 """##Arena Code"""
 
 
 class ArenaMap:
+    inflation_radius = 0.2
+    size = 0.02#max size of a panel?
     def __init__(
         self,
         buildings:list[Building]= None,
@@ -22,8 +25,8 @@ class ArenaMap:
         # number_of_vehicles=1,
     ):
         # self.panels = None
-        self.inflation_radius = 0.0
-        self.size = 0.02 #max size of a panel?
+        # self.inflation_radius = 0.2
+        # self.size = 0.02 #max size of a panel?
         self.wind = [0, 0]
         self.windT = 0
         self.buildings = buildings
@@ -72,3 +75,12 @@ class ArenaMap:
             if distance < threshold_distance:
                 nearby_buildings.append(self.buildings[i])
         return nearby_buildings
+    
+    def contains_point(self, point2D:ArrayLike)->bool:
+        'returns true if the point lies within any of the buildings'
+        for building in self.buildings:
+            if building.contains_point(point2D):
+                return True
+        return False
+                
+

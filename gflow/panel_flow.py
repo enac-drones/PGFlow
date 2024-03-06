@@ -12,8 +12,8 @@ from itertools import compress
 from typing import List, TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from vehicle import Vehicle, PersonalVehicle
-    from building import Building
+    from gflow.vehicle import Vehicle, PersonalVehicle
+    from gflow.building import Building
 
 # from gflow.arena import ArenaMap
 import time
@@ -72,14 +72,31 @@ class PanelFlow:
 
         return induced_v
 
-    def distance_effect_function(self, distance: float, max_distance:float) -> float:
-        """Drop-off effect based on distance."""
-        # max_distance = self.vehicle.max_avoidance_distance
-        ratio = distance/max_distance
-        linear_dropoff = 1-distance/max_distance
-        exponential_dropoff = 1/(1+np.e**(10*(ratio-0.7)))
-        effect = (1/(2 * np.pi * distance**4)) * exponential_dropoff
-        # effect = (1/(2 * np.pi * distance**2))
+    # def distance_effect_function(self, distance: float, max_distance:float) -> float:
+    #     """Drop-off effect based on distance."""
+    #     # max_distance = self.vehicle.max_avoidance_distance
+    #     ratio = distance/max_distance
+    #     linear_dropoff = 1-distance/max_distance
+    #     exponential_dropoff = 1/(1+np.e**(10*(ratio-0.7)))
+    #     effect = (1/(2 * np.pi * distance**4)) * exponential_dropoff
+
+    #     return effect
+    
+    def distance_effect_function(self, distance_array: np.ndarray, max_distance:float) -> np.ndarray:
+        """Drop-off effect based on distance, accepting an array of distances."""
+        max_distance = 3
+        ratio = distance_array / max_distance
+        linear_dropoff = 1 - ratio
+        exponential_dropoff = 1 / (1 + np.exp(10 * (ratio - 0.7)))
+        
+        effect = np.zeros_like(distance_array)  # Initialize array to store results
+
+        # Apply conditions
+        near_indices = distance_array < 1
+        far_indices = ~near_indices  # Elements not satisfying the 'near' condition
+
+        effect[near_indices] = (1 / (2 * np.pi * distance_array[near_indices] ** 4))
+        effect[far_indices] = (1 / (2 * np.pi * distance_array[far_indices] ** 2)) * exponential_dropoff[far_indices]
 
         return effect
     
@@ -194,7 +211,9 @@ class PanelFlow:
             vehicle (Vehicle): _description_
             othervehicles (list[Vehicle]): _description_
         """
+
         othervehicles = vehicle.personal_vehicle_dict.values()
+        othervehicles = [v for v in othervehicles if not building.contains_point(v.position[:2])]
         # Initialize arrays in case no other vehicles
         vel_sink = np.zeros((building.nop, 2))
         vel_source = np.zeros((building.nop, 2))
@@ -216,7 +235,8 @@ class PanelFlow:
         if othervehicles:
             # Extract positions of all vehicles
             all_positions = np.array([other.position[:2] for other in othervehicles])
-
+            # if not all_positions:
+            #     break
             # Compute source differences
             source_diff = building.pcp[:, np.newaxis, :2] - all_positions
 
@@ -231,12 +251,12 @@ class PanelFlow:
 
             # Compute velocities due to sources and vortices
             effect = self.distance_effect_function(distances, vehicle.max_avoidance_distance)
-            vel_source_contribs = (all_source_strengths[:, np.newaxis] * source_diff / (2 * np.pi * source_sq_dist[..., np.newaxis]))
             alternative = all_source_strengths[:, np.newaxis] * source_diff * effect[..., np.newaxis]
+            vel_source_contribs = (all_source_strengths[:, np.newaxis] * source_diff / (2 * np.pi * source_sq_dist[..., np.newaxis]))
 
             # Sum across the contributions of all vehicles
-            # vel_source = np.sum(vel_source_contribs, axis=1) #shape(nop, 2)
-            vel_source = np.sum(alternative, axis=1) #shape(nop, 2)
+            vel_source = np.sum(vel_source_contribs, axis=1) #shape(nop, 2)
+            # vel_source = np.sum(alternative, axis=1) #shape(nop, 2)
 
             # for vortex, just rotate by 90 degrees anticlockwise and divide by 4 #TODO, division by 4 is arbitrary
             vel_vortex = np.column_stack([-vel_source[...,1], vel_source[...,0]]) / 4
@@ -321,17 +341,34 @@ if __name__ == "__main__":
     def add_one(n:float)->float:
         return n+1
     
-    def distance_effect_function(distance: float) -> float:
-        """Drop-off effect based on distance."""
+    def distance_effect_function(distance_array: np.ndarray) -> np.ndarray:
+        """Drop-off effect based on distance, accepting an array of distances."""
         max_distance = 3
-        linear_dropoff = 1-distance/max_distance
-        effect = (1/(2 * np.pi * distance**4)) * linear_dropoff
+        ratio = distance_array / max_distance
+        linear_dropoff = 1 - ratio
+        exponential_dropoff = 1 / (1 + np.exp(10 * (ratio - 0.7)))
+        
+        effect = np.zeros_like(distance_array)  # Initialize array to store results
+
+        # Apply conditions
+        near_indices = distance_array < 1
+        far_indices = ~near_indices  # Elements not satisfying the 'near' condition
+
+        effect[near_indices] = (1 / (2 * np.pi * distance_array[near_indices] ** 4))
+        effect[far_indices] = (1 / (2 * np.pi * distance_array[far_indices] ** 2)) * exponential_dropoff[far_indices]
+
         return effect
     
-    a = np.ones((3,))
+    x = np.arange(0.5,3,0.05)
+    y = distance_effect_function(x)
+    import matplotlib.pyplot as plt
+    fig,ax = plt.subplots(figsize = (8,8))
+    ax.plot(x,y)
+    # ax.plot(x,1-x/3)
+    # ax.plot(x,(1/(2 * np.pi * x**4)))
+    # ax.plot(x,1/(1+np.e**(10*(x/3-0.7)))
 
-    b = distance_effect_function(a)
-
+    plt.show()
     
 # comments
 # Remove current vehicle from vehicle list

@@ -19,6 +19,12 @@ class PersonalBuilding:
     ID:str
     vertices:ArrayLike
 
+#TODO
+class RelevantObstacles(dict):
+    '''class to inherit from dict but also have additional methods
+    such as easily checking if a point lies within any of the buildings
+    etc'''
+    pass
 
 class Building:
     _id_counter = 0
