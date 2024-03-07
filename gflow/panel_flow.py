@@ -213,6 +213,7 @@ class PanelFlow:
         """
 
         othervehicles = vehicle.personal_vehicle_dict.values()
+        #remove vehicles that are inside the building. 
         othervehicles = [v for v in othervehicles if not building.contains_point(v.position[:2])]
         # Initialize arrays in case no other vehicles
         vel_sink = np.zeros((building.nop, 2))
@@ -284,6 +285,18 @@ class PanelFlow:
         # Solve for gammas
         #gammas is dictionary because a building might have different gammas for different vehicles
         building.gammas[vehicle.ID] = np.matmul(building.K_inv, RHS)
+
+    def is_inside_buildings(self, buildings:list[Building], position:ArrayLike)->None|Building:
+        for b in buildings:
+            if b.contains_point(position):
+                return b
+        return None
+    
+    def eject(self, vehicle:Vehicle, building:Building)->ArrayLike:
+        pos2d = vehicle.position[:2]
+        nearest_point = building.nearest_point_on_perimeter(pos2d)
+        ejection_vector = nearest_point-pos2d
+        return ejection_vector/np.linalg.norm(ejection_vector)
         
 
     def Flow_Velocity_Calculation(self,
@@ -297,8 +310,13 @@ class PanelFlow:
         flow_vels = np.zeros([len(vehicles), 3])
         
 
+
         # Calculating unknown vortex strengths using panel method:
         if vehicle.relevant_obstacles:
+            #first if a vehicle is inside any buildings, push it out by the "nearest exit"
+            containing_building = self.is_inside_buildings(vehicle.relevant_obstacles,vehicle.position[:2])
+            if containing_building is not None:
+                return self.eject(vehicle, containing_building)
             #calculates unknown building vortex strengths
             self.calculate_unknown_vortex_strengths(vehicle)
         # --------------------------------------------------------------------

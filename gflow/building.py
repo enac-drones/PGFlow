@@ -5,8 +5,10 @@ from numpy.typing import ArrayLike
 import pyclipper
 import time
 from typing import List
-from matplotlib.patches import Polygon
-from shapely.geometry import box
+from matplotlib.patches import Polygon as Pm
+from shapely.geometry import box, Point
+from shapely.geometry import Polygon as Ps
+from shapely.ops import nearest_points
 # from numpy import linalg
 
 """##Building Code"""
@@ -29,10 +31,11 @@ class RelevantObstacles(dict):
 class Building:
     _id_counter = 0
 
-    def __init__(
-        self, vertices
-    ):  # Buildings(obstacles) are defined by coordinates of their vertices.
-        self.vertices = np.array(vertices)
+    def __init__(self, vertices):  
+        # Buildings(obstacles) are defined by coordinates of their vertices.
+        self._vertices = np.array(vertices)
+        self.mplPoly = self.create_mpl_polygon()
+        self.shapelyPoly = self.create_shapely_polygon()
         #automatically increment the id
         self.ID = f"B{Building._id_counter}"
         Building._id_counter += 1
@@ -44,6 +47,19 @@ class Building:
         self.K_inv = None
         self.gammas = {}  # Vortex Strenghts
         # self.solution = np.array([])
+
+    @property
+    def vertices(self):
+        """The getter method returns the value of _vertices."""
+        return self._vertices
+    
+    @vertices.setter
+    def vertices(self, new_verts):
+        """The setter method updates _vertices and recalculates the polygons."""
+        self._vertices = new_verts
+        self.mplPoly = self.create_mpl_polygon()
+        self.shapelyPoly = self.create_shapely_polygon()
+
 
     def inflate(self, safetyfac=1.1, rad=1e-4):
         rad = rad * safetyfac
@@ -69,11 +85,18 @@ class Building:
         # self.vertices = points_sorted  
         self.vertices = points
 
+
     def get_bounding_box(self):
         min_x, min_y = np.min(self.vertices[:,:2], axis=0)
         max_x, max_y = np.max(self.vertices[:,:2], axis=0)
         return box(min_x, min_y, max_x, max_y)
 
+    def create_mpl_polygon(self):
+        return Pm(self.vertices[:, :2])
+    
+    def create_shapely_polygon(self):
+        return Ps(self.vertices[:, :2])
+    
     def panelize(self, size):
         # t = time.perf_counter()
 
@@ -100,10 +123,17 @@ class Building:
                 self.panels = np.vstack((self.panels, np.linspace(xyz1, xyz2, n)[1:]))
         # print("time taken to panelize: ", time.perf_counter()-t)
 
-    def contains_point(self, point):
-        # Checks if a point lies within the building.
-        p = Polygon(self.vertices[:, :2])
-        return p.contains_point(point, radius=0)
+    def contains_point(self, point:ArrayLike)->bool:
+        '''Checks if a point lies within the building.
+        Faster with matplotlib than shapely'''
+        return self.mplPoly.contains_point(point, radius=0)
+    
+    def nearest_point_on_perimeter(self, point:ArrayLike)->ArrayLike:
+        # Define the point you're checking
+        ps = Point(point)
+        # Use nearest_points to find the closest point on the polygon's perimeter to the given point
+        closest_point, _ = nearest_points(self.shapelyPoly.boundary, ps)
+        return np.array([closest_point.x, closest_point.y])
 
 
     def calculate_coef_matrix(self):
