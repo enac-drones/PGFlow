@@ -11,7 +11,7 @@ from gflow.building import PersonalBuilding, Building
 from shapely.geometry import Point
 from gflow.PIDcontroller import VehicleDynamics, PIDController
 # from gflow.panel_flow_class import PanelFlow
-
+from gflow.dynamics import dynamics_matrices, get_next_X
 
 """##Vehicles"""
 
@@ -60,7 +60,7 @@ class Vehicle:
         # FIXME there is a magic number of 0.2 for the destination, fix this
         self.state = 0
         # originally 1/50
-        self.delta_t = 1 / 50  # 1/300 or less for vortex method, 1/50 for hybrid
+        self._delta_t = 1 / 50  # 1/300 or less for vortex method, 1/50 for hybrid
         self.personal_vehicle_dict: dict[str,PersonalVehicle] = []
         self.relevant_obstacles:list[Building] = []
         self.transmitting = True
@@ -71,7 +71,8 @@ class Vehicle:
         self.turn_radius:float = 0.1 #max turn radius in meters
         self.v_free_stream:np.ndarray = np.zeros(2) #velocity constantly pushing the vehicle towards its goal
         self.v_free_stream_mag = 0.5
-        
+        self.matA, self.matB = dynamics_matrices(self.delta_t)
+
     @property
     def position(self):
         return self._position
@@ -86,8 +87,16 @@ class Vehicle:
         else:
             self.v_free_stream = self.v_free_stream_mag*vector_to_goal/np.linalg.norm(vector_to_goal)
 
+    @property
+    def delta_t(self):
+        return self._delta_t
 
+    @delta_t.setter
+    def delta_t(self, new_delta_t):
+        self._delta_t = new_delta_t
+        self.matA, self.matB = dynamics_matrices(new_delta_t)
 
+    
     def update_personal_vehicle_dict(self,case_vehicle_list:list[Vehicle], max_avoidance_distance:float=100.)->None:
         for v in case_vehicle_list:
             # overall options are: keep my previous knowledge, update it, or remove the drone entirely
@@ -172,10 +181,98 @@ class Vehicle:
             self.update_position_max_radius(flow_vels)
         elif mode == 'pid':
             self.update_position_pid(flow_vels)
+        elif mode =='dynamics':
+            self.update_position_dynamics(flow_vels)
+        elif mode =='fancy':
+            self.update_position_dynamics_fancy(flow_vels)
         else:
             self.update_position_clipped(flow_vels)
+    
+    def update_position_dynamics_fancy(self, flow_vel):
+        """Updates my position within the global vehicle_list given the induced flow from other vehicles onto me"""
+        current_position = self.position.copy()
+        #temporarily set my position a bit in the future
+        X = np.array([*self.position, *self.velocity])  # Example values for current state
+        V_des = np.append(flow_vel, 0)
+        self.position = get_next_X(X, V_des, delta_t=2, num_points=5)[:3] #position 0.5 seconds in the future    
+        future_flow_vel = self.panel_flow.Flow_Velocity_Calculation(self)
+        self.position = current_position #reset to current position
+        flow_vel = flow_vel+0.7*future_flow_vel
+        V_des = np.append(flow_vel, 0)
 
+        #TODO currently array is 2D, so add a third dimension for compatibility
+        #########################################
+        # magnitude of the induced velocity vector
+        mag = np.linalg.norm(V_des)
+        # induced velocity unit vector
+        # if mag == 0 or np.isnan(mag):
+        V_des_unit = V_des / mag
 
+        self.desired_vectors.append(V_des_unit[:2].tolist())
+
+        mag_clipped = np.clip(mag, 0.0, self.max_speed)  # 0.3 tello 0.5 pprz
+        # set the magnitude of the induced velocity vector to mag_converted (ie the clipped value between 0 and 1)
+        clipped_velocity = V_des_unit * mag_clipped
+
+        # Define your current state X and control input U
+        X = np.array([*self.position, *self.velocity])  # Example values for current state
+        U = V_des_unit * self.max_speed # Control inputs based on desired direction
+        # Calculate the next state directly
+        X_next = self.matA @ X + self.matB @ U
+
+        self.position, self.velocity = X_next[:3], X_next[3:6]
+
+        # # multiply the flow velocity by some predefined constant, this is sort of like imposing the delaT
+        # self.velocity = V_des_unit * self.max_speed
+        # delta_s = self.velocity * self.delta_t   # use unit velocity
+        # self.position = self.position + np.array(delta_s)
+
+        self.path = np.vstack((self.path, self.position))
+
+        if self.arrived(arrival_distance = self.ARRIVAL_DISTANCE):
+            print("goal is reached")
+            # goal has been reached
+            self.state = 1
+        return self.position
+    
+    def update_position_dynamics(self, flow_vel):
+        """Updates my position within the global vehicle_list given the induced flow from other vehicles onto me"""
+        #TODO currently array is 2D, so add a third dimension for compatibility
+        V_des = np.append(flow_vel, 0)
+        #########################################
+        # magnitude of the induced velocity vector
+        mag = np.linalg.norm(V_des)
+        # induced velocity unit vector
+        # if mag == 0 or np.isnan(mag):
+        V_des_unit = V_des / mag
+
+        self.desired_vectors.append(V_des_unit[:2].tolist())
+
+        mag_clipped = np.clip(mag, 0.0, self.max_speed)  # 0.3 tello 0.5 pprz
+        # set the magnitude of the induced velocity vector to mag_converted (ie the clipped value between 0 and 1)
+        clipped_velocity = V_des_unit * mag_clipped
+
+        # Define your current state X and control input U
+        X = np.array([*self.position, *self.velocity])  # Example values for current state
+        U = V_des_unit * self.max_speed # Control inputs based on desired direction
+        # Calculate the next state directly
+        X_next = self.matA @ X + self.matB @ U
+
+        self.position, self.velocity = X_next[:3], X_next[3:6]
+
+        # # multiply the flow velocity by some predefined constant, this is sort of like imposing the delaT
+        # self.velocity = V_des_unit * self.max_speed
+        # delta_s = self.velocity * self.delta_t   # use unit velocity
+        # self.position = self.position + np.array(delta_s)
+
+        self.path = np.vstack((self.path, self.position))
+
+        if self.arrived(arrival_distance = self.ARRIVAL_DISTANCE):
+            print("goal is reached")
+            # goal has been reached
+            self.state = 1
+        return self.position
+    
     def update_position(self, flow_vel):
         """Updates my position within the global vehicle_list given the induced flow from other vehicles onto me, self.velocity is used, so that the movement is less brutal"""
 

@@ -1,38 +1,34 @@
-from gflow.building import Building
-import time
-from shapely.geometry import Polygon as Ps
-from shapely.geometry import Point
-from matplotlib.patches import Polygon as Pm
+import matplotlib.pyplot as plt
 import numpy as np
-import gflow.building
-from numpy.typing import ArrayLike
-print(gflow.building.__file__)
+from matplotlib.collections import LineCollection
+from matplotlib.colors import ListedColormap, BoundaryNorm
 
-verts = np.array([[ 4.05    , -1.135656,  1.2     ],
-       [ 3.073492, -0.35445 ,  1.2     ],
-       [ 2.45    , -0.654116,  1.2     ],
-       [ 2.45    , -3.05    ,  1.2     ],
-       [ 4.05    , -3.05    ,  1.2     ]])
+# Example data: replace these with your actual xy points and velocities
+xy = np.column_stack((np.linspace(0, 3 * np.pi, 500), np.sin(np.linspace(0, 3 * np.pi, 500))))
+velocities = np.abs(np.cos(0.5 * (xy[:-1, 0] + xy[1:, 0])))  # Example velocities
 
+# Create line segments
+segments = np.concatenate([xy[:-1, None], xy[1:, None]], axis=1)
 
-# b = Building([[-1,-1,0],[-1,1,0],[1,1,0],[1,-1,0]]) 
-b = Building(verts)    
+fig, axs = plt.subplots(2, 1, sharex=True, sharey=True)
 
-verts = b.vertices[...,:2]
-# bs = Ps(verts)
-# bm = Pm(verts)
+# Continuous coloring based on velocity 
+norm = plt.Normalize(velocities.min(), velocities.max())
+lc = LineCollection(segments, cmap='viridis', norm=norm)
+lc.set_array(velocities)
+lc.set_linewidth(2)
+line = axs[0].add_collection(lc)
+fig.colorbar(line, ax=axs[0])
 
-p = np.array([ 3., -3.])
+# Discrete coloring based on velocity
+cmap = ListedColormap(['r', 'g', 'b'])
+norm = BoundaryNorm([-1, -0.5, 0.5, 1], cmap.N)  # Adjust these boundaries to match your velocity ranges
+lc = LineCollection(segments, cmap=cmap, norm=norm)
+lc.set_array(velocities)
+lc.set_linewidth(2)
+line = axs[1].add_collection(lc)
+fig.colorbar(line, ax=axs[1])
 
-print(b.contains_point(p))
-print(b.mplPoly.contains_point(p, radius=0))
-
-def contains_point(point:ArrayLike)->bool:
-        '''Checks if a point lies within the building.
-        Faster with matplotlib than shapely'''
-        print(f"{point=},\n {verts=}")
-        print(Pm(verts[:,:2]).contains_point(point, radius=0))
-
-        return Pm(verts[:,:2]).contains_point(point, radius=0)
-
-print(contains_point(p))
+axs[0].set_xlim(xy[:, 0].min(), xy[:, 0].max())
+axs[0].set_ylim(xy[:, 1].min(), xy[:, 1].max())
+plt.show()

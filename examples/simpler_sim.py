@@ -8,32 +8,33 @@ from gflow.arena import ArenaMap
 #scenebuilder part
 # p = InteractivePlot()
 # p.draw_scene() 
-ArenaMap.inflation_radius = 0.5
+ArenaMap.inflation_radius = 0.2
 
 #gflow part
 file_name = "voliere.json"
-case_name="voliere4"
+case_name="voliere6_1"
+# file_name = "examples/cases.json"
+# case_name="k"
 case = Cases.get_case(file_name, case_name)
 # set_new_attribute(case, "ARRIVAL_DISTANCE", new_attribute_value=1e-6)
 set_new_attribute(case, "sink_strength", new_attribute_value=5)
-set_new_attribute(case, "max_speed", new_attribute_value=1)
+set_new_attribute(case, "max_speed", new_attribute_value=0.5)
 set_new_attribute(case, "imag_source_strength", new_attribute_value=1)
 set_new_attribute(case, "source_strength", new_attribute_value=1)
-set_new_attribute(case,"v_free_stream_mag", new_attribute_value=0)
-set_new_attribute(case,"ARRIVAL_DISTANCE", new_attribute_value=0.0000001)
+set_new_attribute(case,"v_free_stream_mag", new_attribute_value=0.0)
+set_new_attribute(case,"ARRIVAL_DISTANCE", new_attribute_value=0.25)
 
 
-# set_new_attribute(case, "mode", new_attribute_value="radius")
-set_new_attribute(case, "turn_radius", new_attribute_value=0.1)
+set_new_attribute(case, "turn_radius", new_attribute_value=0.05)
 case.max_avoidance_distance = 5
 case.building_detection_threshold = 10
 # case.arrival_distance = 0.0000001
 
 
-case.mode = 'radius'
+case.mode = 'fancy'
 result = run_simulation(
     case,
-    t=500,
+    t=1500,
     update_every=1,
     stop_at_collision=False
     )

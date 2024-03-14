@@ -76,7 +76,7 @@ def create_quiver_plot(case, buildings, drones, xlim, ylim):
 
     # Quiver plot
     ax.quiver(x, y, u, v)
-    plt.streamplot(x, y, u, v, color='b', density=1)
+    plt.streamplot(x, y, u, v, color='b', density=2)
 
     LIMS = (-5,5)
 
@@ -92,10 +92,10 @@ if __name__ == '__main__':
 
     #gflow part
     #%%
-    ArenaMap.inflation_radius = 0.5
+    ArenaMap.inflation_radius = 0.2
     ArenaMap.size = 0.2
-    file_name = "examples/cases.json"
-    case_name="voliere4"
+    file_name = "voliere.json"
+    case_name="voliere6_real1"
     case = Cases.get_case(file_name, case_name)
     # set_new_attribute(case, "ARRIVAL_DISTANCE", new_attribute_value=1e-6)
     set_new_attribute(case, "sink_strength", new_attribute_value=1)
@@ -108,7 +108,7 @@ if __name__ == '__main__':
     case.max_avoidance_distance = 10
     case.building_detection_threshold = 10
     # Example usage
-    # case.vehicle_list[0], case.vehicle_list[2] = case.vehicle_list[2], case.vehicle_list[0]
+    case.vehicle_list[0], case.vehicle_list[3] = case.vehicle_list[3], case.vehicle_list[0]
     # buildings = case.buildings
     buildings = [building.vertices[...,:2] for building in case.buildings]  # Define buildings as tuples of vertices
     drones = [vehicle.position[:2] for vehicle in case.vehicle_list]  # Drone positions

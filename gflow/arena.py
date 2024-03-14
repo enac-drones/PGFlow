@@ -16,7 +16,7 @@ from numpy.typing import ArrayLike
 
 class ArenaMap:
     inflation_radius = 0.2
-    size = 0.02#max size of a panel?
+    size = 0.04#max size of a panel?
     def __init__(
         self,
         buildings:list[Building]= None,
