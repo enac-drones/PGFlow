@@ -1,0 +1,17 @@
+# PGFlow
+
+## Potential Guidance Flow : Multi-agent guidance with vector fields
+
+## Initial Release of "clean" branch !
+
+
+Install:
+
+pip3 install -e .
+
+Simple Simulation : 
+To run simple example, run:
+
+python3 examples/simple_sim.py (from root)
+
+and select desired case within a json case file or "d" default...
