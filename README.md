@@ -5,11 +5,12 @@
 ## Initial Release of "clean" branch !
 
 
-Install:
+Install (from root):
 
 pip3 install -e .
 
 Simple Simulation : 
+
 To run simple example, run:
 
 python3 examples/simple_sim.py (from root)
