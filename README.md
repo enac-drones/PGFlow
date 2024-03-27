@@ -1,3 +1,5 @@
+# PRE-RELEASE - Have BUGS to correct !!!
+
 # PGFlow
 
 ## Potential Guidance Flow : Multi-agent guidance with vector fields
