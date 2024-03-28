@@ -7,7 +7,7 @@ from numpy.typing import ArrayLike
 # from .panel_flow import Flow_Velocity_Calculation
 from PGFlow.panel_flow_individual import PanelFlow
 from PGFlow.arena import ArenaMap
-# from gflow.panel_flow_class import PanelFlow
+
 
 
 """##Vehicles"""
@@ -30,20 +30,13 @@ class PersonalVehicle:
 
 
 class Vehicle:
-    # add slots to this class
-    __slots__ = (
-        "position", "goal", "source_strength", "sink_strength", "imag_source_strength",
-        "max_avoidance_distance", "panel_flow", "t", "_arena", "desiredpos", "correction",
-        "velocity", "gamma", "altitude_mask", "ID", "path", "state", "distance_to_destination",
-        "delta_t", "velocity_desired", "velocity_corrected", "vel_err", "correction_type",
-        "personal_vehicle_dict", "transmitting", "max_speed", "ARRIVAL_DISTANCE", "safety", "AoA","altitude","Vinfmag", "V_inf","has_landed","turn_radius")
+    _id_counter = 0
 
-    
     def __init__(
-        self, ID:str, source_strength:float=0, imag_source_strength:float=0.75, correction_type="none"
-    ):
-        
-        self.position=np.zeros(3)
+        self, ID=1, source_strength:float=0, imag_source_strength:float=0.75):
+        self.ID = f"V{Vehicle._id_counter}"
+        Vehicle._id_counter += 1
+        self._position=np.zeros(3)
         self.goal = np.zeros(3)
         self.source_strength:float =source_strength
         self.sink_strength:float=0
@@ -60,7 +53,7 @@ class Vehicle:
         self.velocity = np.zeros(3)
         # self.gamma = 0
         # self.altitude_mask = None
-        self.ID = ID
+        # self.ID = ID
         self.path = []
         # FIXME there is a magic number of 0.2 for the destination, fix this
         self.state = 0
@@ -70,7 +63,7 @@ class Vehicle:
         self.velocity_desired = np.zeros(3)
         self.velocity_corrected = np.zeros(3)
         self.vel_err = np.zeros(3)
-        self.correction_type = correction_type
+        #self.correction_type = correction_type
         self.personal_vehicle_dict: dict[str,Vehicle] = []
         self.transmitting = True
         self.max_speed = 0.8
@@ -79,7 +72,7 @@ class Vehicle:
         self.AoA = None
         self.altitude = None
         self.Vinfmag = None
-        self.V_inf = None
+        self.V_inf = [0,0]
         self.has_landed = False
         self.turn_radius:float = 0.5 #max turn radius in meters
 
@@ -144,6 +137,13 @@ class Vehicle:
             'sink_strength': self.sink_strength,
         }
 
+    def set_initial_position(self, pos):
+        self.position = np.array(pos)
+        self.path = np.array(pos)
+        self.path = self.path.reshape(1, 3)
+        if self.arrived(self.ARRIVAL_DISTANCE):
+            self.state=1
+
     def Set_Position(self, pos):
         self.position = np.array(pos)
         self.path = np.array(pos)
@@ -158,10 +158,10 @@ class Vehicle:
     def Set_Velocity(self, vel):
         self.velocity = vel
 
-    def Set_Goal(self, goal, goal_strength, safety):
+    def Set_Goal(self, goal, goal_strength):
         self.goal = np.array(goal)  # or just goal...FIXME
         self.sink_strength = goal_strength
-        self.safety = safety
+        # self.safety = safety
         # self.aoa = np.arctan2(self.goal[1]-self.position[1],self.goal[0]-self.position[0]) # Do we still need this ? FIXME
 
     def Set_Next_Goal(self, goal, goal_strength=5):

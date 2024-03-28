@@ -29,6 +29,15 @@ class Case:
         self._arena:ArenaMap = None
         self.collision_threshold:float = 0.5
         self._max_avoidance_distance:float = 20.
+        self.building_detection_threshold:float = 10.
+        self.mode = "standard"
+        self.arrival_distance = 0.5
+
+    @classmethod
+    def from_dict(cls, case_dict:dict):
+        '''Returns a Case instance from the json data in case_dict'''
+        raise NotImplementedError
+
 
     @property
     def name(self):
@@ -57,6 +66,7 @@ class Case:
             vehicle.personal_vehicle_dict = {
                 v.ID:PersonalVehicle(**v.basic_properties()) for v in new_vehicle_list
             }
+        self.arrival_distance = self.vehicle_list[0].ARRIVAL_DISTANCE
 
     @property
     def max_avoidance_distance(self)->float:
@@ -75,9 +85,9 @@ class Case:
     @arena.setter
     def arena(self, new_arena):
         """Arena setter, need to add some error handling first probably, just like in the vehicle_list setter"""
-        self._arena = deepcopy(new_arena)
+        self._arena = new_arena
         for vehicle in self._vehicle_list:
-            vehicle.arena = deepcopy(new_arena)
+            vehicle.arena = new_arena
 
     def colliding(self, get_culprits=False):
         squared_distance_threshold = self.collision_threshold**2
@@ -105,14 +115,93 @@ class Case:
         self.vehicle_list = []
         return None
 
+    def to_dict(self,file_path:str|None = None) -> dict:
+        """Converts the Case instance to a dictionary for JSON-style output. 
+        IMPORTANT: uses new json format with dicts instead of lists of buildings and vehicles"""
+
+        buildings_data = [{"ID":building.ID,
+                           "vertices": building.vertices.tolist()} 
+                           for building in self.buildings] if self.buildings else []
+        vehicles_data = [{"ID":vehicle.ID, 
+                          "radius": vehicle.ARRIVAL_DISTANCE,
+                          'path': vehicle.path.tolist(),
+                          'desired_vectors': vehicle.desired_vectors} 
+                          for vehicle in self.vehicle_list] if self.vehicle_list else []
+        params = [{"source_strength": self.vehicle_list[0].source_strength,
+                   "sink_strength": self.vehicle_list[0].sink_strength,
+                   "imag_source_strength": self.vehicle_list[0].imag_source_strength,
+                   "turn_radius": self.vehicle_list[0].turn_radius,
+                   "max_speed": self.vehicle_list[0].max_speed,
+                   "mode": self.mode,
+                   "building_detection_threshold": self.building_detection_threshold,
+                   "max_avoidance_distance": self.max_avoidance_distance
+                   }]
+        
+        case_data = {
+            'name': self._name,
+            'buildings': buildings_data,
+            'vehicles': vehicles_data,
+            'parameters': params
+            }
+        if file_path:
+            dump_to_json(file_path, case_data)
+        return case_data
+    
+    def to_json(self) -> dict:
+        """Converts the Case instance to a dictionary for JSON-style output. 
+        IMPORTANT: uses new json format with dicts instead of lists of buildings and vehicles"""
+
+        # buildings_data = [{["ID":building.ID,"vertices": building.vertices.tolist() for building in self.buildings]}]
+        buildings_data = []
+        for building in self.buildings:
+            building_dict = {"ID": building.ID, "vertices": building.vertices.tolist()}
+            buildings_data.append(building_dict)
+        vehicles_data = []
+        for vehicle in self.vehicle_list:
+            vehicle_dict = {"ID": vehicle.ID, 
+                            "position": vehicle.position.tolist(),
+                            "goal":vehicle.goal.tolist(),
+                            "source_strength":vehicle.source_strength,
+                            "imag_source_strength":vehicle.imag_source_strength,
+                            "sink_strength": vehicle.sink_strength
+                            }
+            vehicles_data.append(vehicle_dict)
+        # vehicles_data = {vehicle.ID:{'path': vehicle.path.tolist()} for vehicle in self.vehicle_list} if self.vehicle_list else []
+
+        case_data = {
+            self.name:
+            {'buildings': buildings_data,
+            'vehicles': vehicles_data}
+        }
+        
+        return case_data
+
 
 class Cases:
-    def __init__(self, filename="examples/cases.json") -> None:
+
+    def __init__(self, cases:dict, case_name: str = "default") -> None:
         """initiate the class with the json filename and the case within that file"""
-        self._filename: str = filename
-        self.cases: dict = self._load_file(self._filename)
-        self._case_name: str = "default"
-        self.case = None
+        self.cases = cases
+        self._case_name = case_name
+        self.case:Case = None
+        self._filename: str = None
+
+
+    @classmethod
+    def get_case(cls, file_name: str, case_name:str) -> Case:
+        """Factory method to create an Case instance from a file and case_name"""
+        cases_instance = cls(cases = None, case_name=case_name)  # Create a Cases instance with the loaded data and case name
+        cases_instance.cases = cases_instance._load_file(filename=file_name)
+        cases_instance.case_setup(case_name)  # Setup the specific case
+        #return the case
+        return cases_instance.case
+
+    @classmethod
+    def from_dict(cls, cases: dict, case_name: str)->Case:
+        """Factory method to create an Case instance from a dictionary"""
+        cases_instance = cls(cases = cases, case_name=case_name)  # Create a Cases instance with the loaded data and case name
+        cases_instance.case_setup(case_name)  # Setup the specific case
+        return cases_instance.case
 
     @property
     def case_name(self):
@@ -164,22 +253,57 @@ class Cases:
                 f"File {new_name} contains a directory that does not exist. Please try again or create the directory."
             )
 
-    @classmethod
-    def get_case(cls, filename, case_name):
-        case_cls = cls(filename=filename)
-        case_cls.case_setup(case_name)
-        return case_cls.case
 
-    def case_setup(self, case_name):
+    def case_setup(self, case_name:str)->None:
         self.case_name = case_name
         self.case = Case(self.case_name)
-        self.case.vehicle_list = self.obtain_vehicles()
-        self.case.buildings = self.obtain_buildings()
+        vehicles = self.cases[self.case_name]["vehicles"]
+        buildings = self.cases[self.case_name]["buildings"]
+        self.case.vehicle_list = self.obtain_vehicles(vehicles)
+        self.case.buildings = self.obtain_buildings(buildings)
         self.case.arena = ArenaMap(buildings=self.case.buildings)
 
-    def _load_file(self, filename) -> dict:
+    @classmethod
+    def obtain_buildings(cls, building_data:list[dict])->list[Building]:
+        """return a list of building objects"""
+        buildings = []
+        for building in building_data:
+            # ID = building.get("ID")
+            coords = building["vertices"]
+            buildings.append(Building(coords))
+        return buildings
+
+    @classmethod
+    def obtain_vehicles(cls, vehicle_data:list[dict])->list[Vehicle]:
+        """return a list of vehicle objects"""
+        vehicles = []
+        for vehicle in vehicle_data:
+            position = vehicle["position"]
+            goal = vehicle["goal"]
+            ID = vehicle["ID"]
+            #if the values below are undefined, give some default values
+            source_strength = vehicle.get("source_strength", 1)
+            imag_source_strength = vehicle.get("imag_source_strength", 0.5)
+            sink_strength = vehicle.get("sink_strength", 5)
+            # safety = vehicle["safety"]
+            myVehicle = Vehicle(
+                source_strength=source_strength,
+                imag_source_strength=imag_source_strength,
+            )
+            myVehicle.ID = ID
+            #FIXME the order the setting goal and initial position matters for the first entry
+            #  into desired vectors so be careful
+            myVehicle.Set_Goal(goal=goal, goal_strength=sink_strength)
+            myVehicle.set_initial_position(position)
+            # myVehicle.Go_to_Goal(
+            #     altitude=0.5, AoAsgn=0, t_start=0, Vinfmag=0
+            # )  # FIXME add these to the json
+            vehicles.append(myVehicle)
+        return vehicles
+    
+    def _load_file(self, filename:str) -> dict:
         """Return a dictionary of all the cases inside filename."""
-        # self.filename = filename
+        self._filename = filename
         self.cases = {}  # Initializing self.cases to be an empty dictionary
 
         if not os.path.exists(filename):
@@ -200,13 +324,11 @@ class Cases:
 
     def _is_file_empty(self) -> bool:
         """Check if file is empty."""
-        return os.stat(self.filename).st_size == 0
+        return os.stat(self._filename).st_size == 0
 
     def _load_cases_from_file(self):
         """Load cases from file."""
         self.cases = load_from_json(self.filename)
-        # with open(self.filename, "r") as f:
-        #     self.cases = json.load(f)
 
     def _handle_invalid_json(self, ex):
         """Handle invalid JSON error."""
@@ -245,9 +367,9 @@ class Cases:
             sides=sides, centre=position, rotation=rotation, radius=radius
         )
         building = Building(obstacle.points())
-        Vehicle1 = Vehicle(ID="V1", source_strength=0.5, imag_source_strength=0.5)
-        Vehicle1.Set_Goal(goal=[3, 0, 0.5], goal_strength=5, safety=0.0001)
-        Vehicle1.Set_Position(pos=[-3, 0.0001, 0.5])
+        Vehicle1 = Vehicle(source_strength=0.5, imag_source_strength=0.5)
+        Vehicle1.Set_Goal(goal=[3, 0, 0.5], goal_strength=5)
+        Vehicle1.set_initial_position(pos=[-3, 0.0001, 0.5])
         buildings, vehicles = [], []
         buildings.append(building)
         vehicles.append(Vehicle1)
@@ -260,37 +382,6 @@ class Cases:
         self.update_json()
         return None
 
-    def obtain_buildings(self):
-        """return a list of building objects"""
-        buildings = []
-        for building in self.cases[self.case_name]["buildings"]:
-            coords = building["vertices"]
-            buildings.append(Building(coords))
-        return buildings
-
-    def obtain_vehicles(self):
-        """return a list of vehicle objects"""
-        vehicles = []
-        for vehicle in self.cases[self.case_name]["vehicles"]:
-            position = vehicle["position"]
-            goal = vehicle["goal"]
-            ID = vehicle["ID"]
-            source_strength = vehicle["source_strength"]
-            imag_source_strength = vehicle["imag_source_strength"]
-            sink_strength = vehicle["sink_strength"]
-            safety = vehicle["safety"]
-            myVehicle = Vehicle(
-                ID=ID,
-                source_strength=source_strength,
-                imag_source_strength=imag_source_strength,
-            )
-            myVehicle.Set_Position(position)
-            myVehicle.Set_Goal(goal=goal, goal_strength=sink_strength, safety=safety)
-            myVehicle.Go_to_Goal(
-                altitude=0.5, AoAsgn=0, t_start=0, Vinfmag=0
-            )  # FIXME add these to the json
-            vehicles.append(myVehicle)
-        return vehicles
 
     def add_case(self, case: Case):
         """Add a case into self.cases dictionary"""
@@ -318,13 +409,12 @@ class Cases:
                 "goal": vehicle.goal.tolist(),
                 "source_strength": vehicle.source_strength,
                 "imag_source_strength": vehicle.imag_source_strength,
-                "sink_strength": vehicle.sink_strength,
-                "safety": vehicle.safety,
+                "sink_strength": vehicle.sink_strength
+                # "safety": vehicle.safety,
             }
             for vehicle in vehicle_list
         ]
 
-        # dump_to_json(self.filename, self.cases)
 
         # return the case that was just added
         self.case_name = case_name
@@ -354,10 +444,10 @@ class Cases:
         )
         for idx, coord in enumerate(starting_positions):
             vehicle = Vehicle(
-                ID=f"V{idx}", source_strength=0.5, imag_source_strength=0.5
+                source_strength=0.5, imag_source_strength=0.5
             )
-            vehicle.Set_Position(pos=coord)
-            vehicle.Set_Goal(goal=goal_positions[idx], goal_strength=5, safety=0.0001)
+            vehicle.set_initial_position(pos=coord)
+            vehicle.Set_Goal(goal=goal_positions[idx], goal_strength=5)
             vehicle_list.append(vehicle)
         case = Case(name=case_name)
         case.vehicle_list = vehicle_list
@@ -435,40 +525,3 @@ class Cases:
         return starting_positions, ending_positions
 
 
-# if __name__ == "__main__":
-#     sides = 7
-#     position = (0, 0)
-#     orientation = 0
-#     radius = 1
-
-#     obstacle = RegularPolygon(
-#         sides=sides, centre=position, rotation=orientation, radius=radius
-#     )
-#     building = Building(obstacle.points())
-#     Vehicle1 = Vehicle(ID="V1", source_strength=0.5, imag_source_strength=0.5)
-#     Vehicle1.Set_Goal(goal=[3, 0, 0.5], goal_strength=5, safety=0.0001)
-#     Vehicle1.Set_Position(pos=[-3, 0.0001, 0.5])
-#     Vehicle2 = Vehicle(ID="V2", source_strength=0.5, imag_source_strength=0.5)
-#     Vehicle2.Set_Goal(goal=[-3, 0, 0.5], goal_strength=5, safety=0.0001)
-#     Vehicle2.Set_Position(pos=[3, 0.0001, 0.5])
-#     Vehicle3 = Vehicle(ID="V3", source_strength=0.5, imag_source_strength=0.5)
-#     Vehicle3.Set_Goal(goal=[0, -3, 0.5], goal_strength=5, safety=0.0001)
-#     Vehicle3.Set_Position(pos=[0, 3, 0.5])
-
-#     generator = Cases()
-#     # print(f"Now changing the filename")
-#     generator.filename = "examples/cases.json"
-#     buildings = []
-#     vehicles = []
-#     # buildings.append(building)
-#     vehicles.append(Vehicle1)
-#     vehicles.append(Vehicle2)
-#     vehicles.append(Vehicle3)
-
-#     case = Case(name="default")
-#     case.vehicle_list = vehicles
-#     case.buildings = buildings
-
-#     generator.add_case(case)
-# case.add_case(ID="test2",building_list=buildings,vehicle_list=vehicles)
-# print(case.cases)
