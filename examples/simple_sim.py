@@ -5,12 +5,12 @@ from PGFlow.utils.simulation_utils import run_simulation, set_new_attribute
 
 if __name__ == "__main__":
     file_name = "examples/scenebuilder.json"
-    case_name="default"
+    case_name="scenebuilder"
 
     # file_name = "examples/gui_testing.json"
     # case_name="voliere"
 
-    case = Cases.get_case(filename=file_name, case_name=case_name)
+    case = Cases.get_case(file_name=file_name, case_name=case_name)
 
     set_new_attribute(case, "source_strength", new_attribute_value=1)
     set_new_attribute(case, "sink_strength", new_attribute_value=5)
