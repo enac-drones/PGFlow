@@ -1,19 +1,15 @@
 # file to store useful json utilities
 import json, os
+from pathlib import Path
 
 
 def load_from_json(file_path: str) -> dict:
-    try:
-        with open(file_path, "r") as f:
-            file_contents = json.load(f)
-            return file_contents
-    except FileNotFoundError:
-        # Create a new file if it doesn't exist
-        with open(file_path, "x") as f:
-            # Optionally, you can write some initial content to the file
-            initial_data = {}
-            json.dump(initial_data, f)
-            return initial_data
+    '''load case data from json'''
+    file_path = Path(file_path).resolve()
+    with open(file_path, "r") as f:
+        file_contents = json.load(f)
+        return file_contents
+    
 
 
 def dump_to_json(file_path: str, data: dict) -> dict:
