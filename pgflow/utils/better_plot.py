@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Iterable, List
 if TYPE_CHECKING:
-    from gflow.cases import Case
-    from gflow.building import Building
+    from pgflow.cases import Case
+    from pgflow.building import Building
 
 
 # from shapely.geometry import Polygon

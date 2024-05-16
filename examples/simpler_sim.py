@@ -1,9 +1,9 @@
-from gflow.cases import Cases
-from gflow.utils.simulation_utils import run_simulation, set_new_attribute
-from gflow.utils.plot_utils import PlotTrajectories 
-from gflow.plotting.main_plot import SimulationVisualizer
+from pgflow.cases import Cases
+from pgflow.utils.simulation_utils import run_simulation, set_new_attribute
+from pgflow.utils.plot_utils import PlotTrajectories 
+from pgflow.plotting.main_plot import SimulationVisualizer
 from scenebuilder.gui_sim import InteractivePlot
-from gflow.arena import ArenaMap
+from pgflow.arena import ArenaMap
 
 #scenebuilder part
 # p = InteractivePlot()

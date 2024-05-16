@@ -1,5 +1,5 @@
 from matplotlib.patches import Polygon
-from gflow.plotting.entities.building import BuildingEntity
+from pgflow.plotting.entities.building import BuildingEntity
 from matplotlib.axes import Axes
 
 from typing import List

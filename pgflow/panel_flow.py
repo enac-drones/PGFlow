@@ -12,8 +12,8 @@ from itertools import compress
 from typing import List, TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from gflow.vehicle import Vehicle, PersonalVehicle
-    from gflow.building import Building
+    from pgflow.vehicle import Vehicle, PersonalVehicle
+    from pgflow.building import Building
 
 # from gflow.arena import ArenaMap
 import time

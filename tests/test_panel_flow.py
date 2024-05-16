@@ -1,8 +1,8 @@
 import pytest
 import numpy as np
-from gflow.panel_flow import PanelFlow
-from gflow.building import Building
-from gflow.vehicle import Vehicle, PersonalVehicle
+from pgflow.panel_flow import PanelFlow
+from pgflow.building import Building
+from pgflow.vehicle import Vehicle, PersonalVehicle
 # code shows two different ways to test, with and without pytest fixtures
 # tests are deprected as the functions have been vectorised for performance
 

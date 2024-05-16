@@ -4,8 +4,8 @@ from matplotlib.lines import Line2D
 from matplotlib.axes import Axes
 from typing import List
 #import Drone class
-from gflow.plotting.entities.drone import DroneEntity
-from gflow.plotting.entities.path import PathEntity
+from pgflow.plotting.entities.drone import DroneEntity
+from pgflow.plotting.entities.path import PathEntity
 
 
 class DronePatch:

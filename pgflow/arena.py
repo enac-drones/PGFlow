@@ -6,7 +6,7 @@ import numpy as np
 from scipy.spatial import ConvexHull
 from rtree import index
 
-from gflow.building import Building
+from pgflow.building import Building
 from typing import List
 from shapely.geometry import box, Point
 from numpy.typing import ArrayLike

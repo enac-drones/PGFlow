@@ -16,8 +16,8 @@ from matplotlib.lines import Line2D
 import matplotlib.colors as mcolors
 
 from typing import List
-from gflow.vehicle import Vehicle
-from gflow.cases import Case
+from pgflow.vehicle import Vehicle
+from pgflow.cases import Case
 
 from typing import Iterable
 

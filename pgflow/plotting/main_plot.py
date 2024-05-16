@@ -2,12 +2,12 @@ import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 import json
 
-from gflow.plotting.graphics.path_graphics import PathPlotter
-from gflow.plotting.graphics.building_graphics import BuildingsPlotter
-from gflow.plotting.graphics.drone_graphics import DronePlotter
-from gflow.plotting.graphics.arrow_graphics import ArrowPlotter
-from gflow.plotting.observer_utils import Observer
-from gflow.plotting.ui_components import Buttons, MySlider
+from pgflow.plotting.graphics.path_graphics import PathPlotter
+from pgflow.plotting.graphics.building_graphics import BuildingsPlotter
+from pgflow.plotting.graphics.drone_graphics import DronePlotter
+from pgflow.plotting.graphics.arrow_graphics import ArrowPlotter
+from pgflow.plotting.observer_utils import Observer
+from pgflow.plotting.ui_components import Buttons, MySlider
 
 class SimulationVisualizer(Observer):
     def __init__(self, json_file_path):

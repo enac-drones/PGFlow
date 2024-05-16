@@ -2,10 +2,10 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import numpy as np
 from scenebuilder.gui_sim import InteractivePlot
-from gflow.cases import Cases, Case
-from gflow.utils.simulation_utils import set_new_attribute
+from pgflow.cases import Cases, Case
+from pgflow.utils.simulation_utils import set_new_attribute
 from numpy.typing import ArrayLike
-from gflow.arena import ArenaMap
+from pgflow.arena import ArenaMap
 
 
 def plot_buildings(ax, buildings):

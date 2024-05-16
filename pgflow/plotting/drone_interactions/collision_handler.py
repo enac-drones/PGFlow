@@ -1,6 +1,6 @@
 import numpy as np
 from typing import List, Tuple
-from gflow.plotting.entities.drone import DroneEntity
+from pgflow.plotting.entities.drone import DroneEntity
 
 class CollisionManager:
     def __init__(self, drones:List[DroneEntity], collision_distance:float = 0.5):

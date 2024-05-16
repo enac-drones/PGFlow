@@ -5,7 +5,7 @@ from matplotlib.axes import Axes
 import matplotlib.pyplot as plt
 from matplotlib.typing import ColorType
 from numpy.typing import ArrayLike
-from gflow.plotting.observer_utils import Observable
+from pgflow.plotting.observer_utils import Observable
 from matplotlib.widgets import Slider
 
 

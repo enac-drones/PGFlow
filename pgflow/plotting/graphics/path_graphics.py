@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
-from gflow.plotting.entities.path import PathEntity
+from pgflow.plotting.entities.path import PathEntity
 from matplotlib.lines import Line2D
 from typing import List
 

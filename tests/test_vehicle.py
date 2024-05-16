@@ -1,5 +1,5 @@
 import pytest
-from gflow.vehicle import Vehicle
+from pgflow.vehicle import Vehicle
 import numpy as np
 
 @pytest.fixture

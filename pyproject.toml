@@ -1,31 +1,27 @@
 [tool.poetry]
-name = "gflow"
+name = "pgflow"
 version = "0.2.8"
-description = ""
+description = "Panel Method based guidance algorithm for multi agent systems"
 authors = ["adriandelser <adrian.delser@gmail.com>"]
 readme = "README.md"
-packages= [
-    {include = "gflow"},
-    ]
+
 [tool.poetry.dependencies]
 python = ">=3.11"
 numpy = "^1.24.3"
 pytest = "^7.3.1"
 pytest-xdist = "^3.3.1"
-pre-commit = "^3.3.2"
 matplotlib = "^3.7.1"
 mpl-interactions = "^0.23.0"
 pyclipper = "^1.3.0.post4"
 scipy = "^1.10.1"
 shapely = "^2.0.1"
 rtree = "^1.1.0"
-pytest-cov = "^4.1.0"
-scenebuilder = {path = "/Users/adriandelser/Desktop/ENAC/scenebuilder"}
+scenebuilder = "^0.2.0"
 
 
 [tool.poetry.group.dev.dependencies]
-numpy = "^1.26.2"
 pre-commit = "^3.5.0"
+pytest-cov = "^4.1.0"
 
 [build-system]
 requires = ["poetry-core"]

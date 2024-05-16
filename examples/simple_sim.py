@@ -1,8 +1,8 @@
-import gflow.utils.plot_utils as ut
-from gflow.cases import Cases
+import pgflow.utils.plot_utils as ut
+from pgflow.cases import Cases
 from time import time
-from gflow.utils.simulation_utils import run_simulation, set_new_attribute
-from gflow.plotting.main_plot import SimulationVisualizer
+from pgflow.utils.simulation_utils import run_simulation, set_new_attribute
+from pgflow.plotting.main_plot import SimulationVisualizer
 
 # from pprint import pprint
 

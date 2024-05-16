@@ -1,4 +1,4 @@
-from gflow.plotting.entities.arrow import ArrowEntity
+from pgflow.plotting.entities.arrow import ArrowEntity
 from matplotlib.patches import FancyArrow
 from matplotlib.axes import Axes
 import numpy as np

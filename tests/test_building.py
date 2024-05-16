@@ -1,5 +1,5 @@
 import pytest
-from gflow.building import PersonalBuilding, Building
+from pgflow.building import PersonalBuilding, Building
 import numpy as np
 
 def test_personal_building_creation():
