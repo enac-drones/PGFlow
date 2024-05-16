@@ -4,12 +4,11 @@ from pathlib import Path
 
 
 def load_from_json(file_path: str) -> dict:
-    '''load case data from json'''
+    """load case data from json"""
     file_path = Path(file_path).resolve()
     with open(file_path, "r") as f:
         file_contents = json.load(f)
         return file_contents
-    
 
 
 def dump_to_json(file_path: str, data: dict) -> dict:
@@ -20,3 +19,7 @@ def dump_to_json(file_path: str, data: dict) -> dict:
     with open(file_path, "w") as f:
         json.dump(data, f, indent=4)
         return None
+
+
+if __name__ == "__main__":
+    print(load_from_json("examples/test5.json").keys())

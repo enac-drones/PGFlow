@@ -5,23 +5,24 @@ from abc import ABC, abstractmethod
 
 # alternatively define your own call function in the Observable class, such as in InteractivePlot
 
+
 class Observer(ABC):
     """
     Abstract base class for defining the Observer in the Observer pattern.
 
-    The Observer pattern is a software design pattern in which an object, 
-    called the subject, maintains a list of its dependents, called observers, 
-    and notifies them automatically of any state changes, usually by calling 
+    The Observer pattern is a software design pattern in which an object,
+    called the subject, maintains a list of its dependents, called observers,
+    and notifies them automatically of any state changes, usually by calling
     one of their methods.
 
-    This class uses the `ABC` module from Python's standard library to create 
-    an abstract base class. An abstract base class is a base class that cannot 
-    be instantiated and defines methods that must be implemented by its 
+    This class uses the `ABC` module from Python's standard library to create
+    an abstract base class. An abstract base class is a base class that cannot
+    be instantiated and defines methods that must be implemented by its
     subclasses. This ensures a consistent interface for all observers.
 
-    The `abstractmethod` decorator is used to declare methods that have to be 
-    overridden by concrete subclasses. This enforces the implementation of 
-    these methods in each subclass, ensuring that they adhere to the defined 
+    The `abstractmethod` decorator is used to declare methods that have to be
+    overridden by concrete subclasses. This enforces the implementation of
+    these methods in each subclass, ensuring that they adhere to the defined
     interface.
     """
 
@@ -30,8 +31,8 @@ class Observer(ABC):
         """
         Abstract method that must be implemented by concrete subclasses.
 
-        This method is called when the subject (Observable) to which the 
-        observer is attached, triggers an event. The subclass should implement 
+        This method is called when the subject (Observable) to which the
+        observer is attached, triggers an event. The subclass should implement
         the logic for handling these events here.
 
         Parameters:

@@ -5,30 +5,34 @@ import numpy as np
 from numpy.typing import NDArray
 from typing import List
 
+
 class ArrowPatch:
     """
     Class containing an arrow patch
     """
-    def __init__(self, arrow:ArrowEntity, **kwargs) -> None:
+
+    def __init__(self, arrow: ArrowEntity, **kwargs) -> None:
         self.arrow = arrow
-        self.arrow_patch:FancyArrow = self.create_patch(**kwargs)
+        self.arrow_patch: FancyArrow = self.create_patch(**kwargs)
 
         pass
 
-    def create_patch(self, **kwargs)->FancyArrow:
+    def create_patch(self, **kwargs) -> FancyArrow:
         """
         Create a Arrow patch from the ArrowEntity
 
         Parameters:
         -----------
         arrow : ArrowEntity
-            The arrow object to plot. This object should have 'start' and 'end' attributes 
+            The arrow object to plot. This object should have 'start' and 'end' attributes
             which are [x, y] pairs defining the arrow's start and end.
         """
-        arrow_ds: NDArray[np.float64] = np.array(self.arrow.end)-np.array(self.arrow.start)
+        arrow_ds: NDArray[np.float64] = np.array(self.arrow.end) - np.array(
+            self.arrow.start
+        )
         arrow_patch = FancyArrow(*self.arrow.start, *arrow_ds, **kwargs)
         return arrow_patch
-    
+
     def get_patch(self):
         """
         Get the patch for the FancyArrow.
@@ -39,7 +43,7 @@ class ArrowPatch:
             A matplotlib.patches.FancyArrow object representing the Arrow.
         """
         return self.arrow_patch
-    
+
     def set_data(self, **kwargs):
         """
         Set FancyArrow x, y, dx, dy, width, head_with, and head_length. Values left as None will not be updated.
@@ -52,7 +56,7 @@ class ArrowPatch:
 
     def set_new_attributes(self, **kwargs):
         """
-        This method allows the user to update the attributes of the FancyArrow 
+        This method allows the user to update the attributes of the FancyArrow
 
         Parameters:
         -----------
@@ -63,24 +67,24 @@ class ArrowPatch:
 
 
 class ArrowPlotter:
-    def __init__(self, case_data:dict):
+    def __init__(self, case_data: dict):
         self.paths = []
         self.desired_vectors = []
-        self.arrows:list = self._get_arrows_from_dict(case_data)
-        self.arrow_patches:dict[str, ArrowPatch] = {}
+        self.arrows: list = self._get_arrows_from_dict(case_data)
+        self.arrow_patches: dict[str, ArrowPatch] = {}
 
-    def plot(self, ax:Axes)->None:
+    def plot(self, ax: Axes) -> None:
         """Plots the Arrows on the given Matplotlib Axes object.
-        
+
         Parameters:
         -----------
         ax : Axes
             The Matplotlib Axes object to plot the Arrows on.
-        
+
         Returns:
         --------
         None
-        
+
         """
         for idx, arrow in enumerate(self.arrows):
             arrow_patch = ArrowPatch(arrow)
@@ -100,7 +104,7 @@ class ArrowPlotter:
         """
         for arrow_patch in self.arrow_patches.values():
             arrow_patch.set_new_attributes(**kwargs)
-    
+
     def set_data(self, **kwargs):
         """
         Set the attributes of the building patches.
@@ -113,7 +117,7 @@ class ArrowPlotter:
         for arrow_patch in self.arrow_patches.values():
             arrow_patch.set_data(**kwargs)
 
-    def _get_arrows_from_dict(self, vehicle_data:List[dict])->List[ArrowEntity]:
+    def _get_arrows_from_dict(self, vehicle_data: List[dict]) -> List[ArrowEntity]:
         """
         Returns a list of arrows from a case data.
 
@@ -129,7 +133,7 @@ class ArrowPlotter:
         """
         vehicle_positions = []
         # desired_vectors = []
-        arrows:List[ArrowEntity] = []
+        arrows: List[ArrowEntity] = []
         for vehicle in vehicle_data:
             vehicle_start = vehicle.get("path")[0][:2]
             vehicle_positions.append(np.array(vehicle_start))
@@ -139,13 +143,15 @@ class ArrowPlotter:
 
         for idx, desired_vector in enumerate(self.desired_vectors):
 
-            arrow = ArrowEntity(vehicle_positions[idx], vehicle_positions[idx] + desired_vector[0][:2])
+            arrow = ArrowEntity(
+                vehicle_positions[idx], vehicle_positions[idx] + desired_vector[0][:2]
+            )
             arrows.append(arrow)
-        
+
         # self.desired_vectors = desired_vectors
         return arrows
 
-    def animate_arrows(self, frame:int, total_frames:int):
+    def animate_arrows(self, frame: int, total_frames: int):
         """
         Animates the drones along their paths.
 
@@ -156,7 +162,7 @@ class ArrowPlotter:
         total_frames : int
             The total number of frames to animate.
         """
-   
+
         # Step 1: Find the longest path
         longest_path = max(len(path) for path in self.paths)
 
@@ -176,13 +182,11 @@ class ArrowPlotter:
             # Step 3: Calculate the interpolated frame for this drone
             interpolated_frame = int((frame / drone_total_frames) * path_length)
             current_frame = min(interpolated_frame, path_length - 1)
-            
+
             [new_x, new_y] = path[current_frame][:2]
             try:
                 [new_dx, new_dy] = desired_vector[current_frame][:2]
             except IndexError:
                 [new_dx, new_dy] = desired_vector[-1][:2]
 
-            arrow_patch.set_data(x = new_x, y = new_y,
-                                 dx = new_dx, dy = new_dy)
-                    
+            arrow_patch.set_data(x=new_x, y=new_y, dx=new_dx, dy=new_dy)

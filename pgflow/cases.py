@@ -20,24 +20,23 @@ class Case:
 
     _name: str
 
-    def __init__(self, name:str):
+    def __init__(self, name: str):
         # self._name = None
         # this line ensures the setter is called even when the class instance is created
-        self.name:str = name
+        self.name: str = name
         self._vehicle_list: List[Vehicle] = []
         self.buildings: List[Building] = []
-        self._arena:ArenaMap = None
-        self.collision_threshold:float = 0.5
-        self._max_avoidance_distance:float = 20.
-        self.building_detection_threshold:float = 10.
+        self._arena: ArenaMap = None
+        self.collision_threshold: float = 0.5
+        self._max_avoidance_distance: float = 20.0
+        self.building_detection_threshold: float = 10.0
         self.mode = "standard"
         self.arrival_distance = 0.5
 
     @classmethod
-    def from_dict(cls, case_dict:dict):
-        '''Returns a Case instance from the json data in case_dict'''
+    def from_dict(cls, case_dict: dict):
+        """Returns a Case instance from the json data in case_dict"""
         raise NotImplementedError
-
 
     @property
     def name(self):
@@ -59,21 +58,21 @@ class Case:
 
     @vehicle_list.setter
     def vehicle_list(self, new_vehicle_list: List[Vehicle]):
-        #TODO is this deepcopy necessary given the changing logic, for now safer to keep it
+        # TODO is this deepcopy necessary given the changing logic, for now safer to keep it
         self._vehicle_list = new_vehicle_list
 
         for vehicle in self._vehicle_list:
             vehicle.personal_vehicle_dict = {
-                v.ID:PersonalVehicle(**v.basic_properties()) for v in new_vehicle_list
+                v.ID: PersonalVehicle(**v.basic_properties()) for v in new_vehicle_list
             }
         self.arrival_distance = self.vehicle_list[0].ARRIVAL_DISTANCE
 
     @property
-    def max_avoidance_distance(self)->float:
+    def max_avoidance_distance(self) -> float:
         return self._max_avoidance_distance
-    
+
     @max_avoidance_distance.setter
-    def max_avoidance_distance(self, new_max:float):
+    def max_avoidance_distance(self, new_max: float):
         self._max_avoidance_distance = new_max
         for vehicle in self._vehicle_list:
             vehicle.max_avoidance_distance = new_max
@@ -115,40 +114,56 @@ class Case:
         self.vehicle_list = []
         return None
 
-    def to_dict(self,file_path:str|None = None) -> dict:
-        """Converts the Case instance to a dictionary for JSON-style output. 
+    def to_dict(self, file_path: str | None = None) -> dict:
+        """Converts the Case instance to a dictionary for JSON-style output.
         IMPORTANT: uses new json format with dicts instead of lists of buildings and vehicles"""
 
-        buildings_data = [{"ID":building.ID,
-                           "vertices": building.vertices.tolist()} 
-                           for building in self.buildings] if self.buildings else []
-        vehicles_data = [{"ID":vehicle.ID, 
-                          "radius": vehicle.ARRIVAL_DISTANCE,
-                          'path': vehicle.path.tolist(),
-                          'desired_vectors': vehicle.desired_vectors} 
-                          for vehicle in self.vehicle_list] if self.vehicle_list else []
-        params = [{"source_strength": self.vehicle_list[0].source_strength,
-                   "sink_strength": self.vehicle_list[0].sink_strength,
-                   "imag_source_strength": self.vehicle_list[0].imag_source_strength,
-                   "turn_radius": self.vehicle_list[0].turn_radius,
-                   "max_speed": self.vehicle_list[0].max_speed,
-                   "mode": self.mode,
-                   "building_detection_threshold": self.building_detection_threshold,
-                   "max_avoidance_distance": self.max_avoidance_distance
-                   }]
-        
-        case_data = {
-            'name': self._name,
-            'buildings': buildings_data,
-            'vehicles': vehicles_data,
-            'parameters': params
+        buildings_data = (
+            [
+                {"ID": building.ID, "vertices": building.vertices.tolist()}
+                for building in self.buildings
+            ]
+            if self.buildings
+            else []
+        )
+        vehicles_data = (
+            [
+                {
+                    "ID": vehicle.ID,
+                    "radius": vehicle.ARRIVAL_DISTANCE,
+                    "path": vehicle.path.tolist(),
+                    "desired_vectors": vehicle.desired_vectors,
+                }
+                for vehicle in self.vehicle_list
+            ]
+            if self.vehicle_list
+            else []
+        )
+        params = [
+            {
+                "source_strength": self.vehicle_list[0].source_strength,
+                "sink_strength": self.vehicle_list[0].sink_strength,
+                "imag_source_strength": self.vehicle_list[0].imag_source_strength,
+                "turn_radius": self.vehicle_list[0].turn_radius,
+                "max_speed": self.vehicle_list[0].max_speed,
+                "mode": self.mode,
+                "building_detection_threshold": self.building_detection_threshold,
+                "max_avoidance_distance": self.max_avoidance_distance,
             }
+        ]
+
+        case_data = {
+            "name": self._name,
+            "buildings": buildings_data,
+            "vehicles": vehicles_data,
+            "parameters": params,
+        }
         if file_path:
             dump_to_json(file_path, case_data)
         return case_data
-    
+
     def to_json(self) -> dict:
-        """Converts the Case instance to a dictionary for JSON-style output. 
+        """Converts the Case instance to a dictionary for JSON-style output.
         IMPORTANT: uses new json format with dicts instead of lists of buildings and vehicles"""
 
         # buildings_data = [{["ID":building.ID,"vertices": building.vertices.tolist() for building in self.buildings]}]
@@ -158,48 +173,49 @@ class Case:
             buildings_data.append(building_dict)
         vehicles_data = []
         for vehicle in self.vehicle_list:
-            vehicle_dict = {"ID": vehicle.ID, 
-                            "position": vehicle.position.tolist(),
-                            "goal":vehicle.goal.tolist(),
-                            "source_strength":vehicle.source_strength,
-                            "imag_source_strength":vehicle.imag_source_strength,
-                            "sink_strength": vehicle.sink_strength
-                            }
+            vehicle_dict = {
+                "ID": vehicle.ID,
+                "position": vehicle.position.tolist(),
+                "goal": vehicle.goal.tolist(),
+                "source_strength": vehicle.source_strength,
+                "imag_source_strength": vehicle.imag_source_strength,
+                "sink_strength": vehicle.sink_strength,
+            }
             vehicles_data.append(vehicle_dict)
         # vehicles_data = {vehicle.ID:{'path': vehicle.path.tolist()} for vehicle in self.vehicle_list} if self.vehicle_list else []
 
         case_data = {
-            self.name:
-            {'buildings': buildings_data,
-            'vehicles': vehicles_data}
+            self.name: {"buildings": buildings_data, "vehicles": vehicles_data}
         }
-        
+
         return case_data
 
 
 class Cases:
-
-    def __init__(self, cases:dict, case_name: str = "default") -> None:
+    def __init__(self, cases: dict, case_name: str = "default") -> None:
         """initiate the class with the json filename and the case within that file"""
         self.cases = cases
         self._case_name = case_name
-        self.case:Case = None
+        self.case: Case = None
         self._filename: str = None
 
-
     @classmethod
-    def get_case(cls, file_name: str, case_name:str) -> Case:
+    def get_case(cls, file_name: str, case_name: str) -> Case:
         """Factory method to create an Case instance from a file and case_name"""
-        cases_instance = cls(cases = None, case_name=case_name)  # Create a Cases instance with the loaded data and case name
+        cases_instance = cls(
+            cases=None, case_name=case_name
+        )  # Create a Cases instance with the loaded data and case name
         cases_instance.cases = cases_instance._load_file(filename=file_name)
         cases_instance.case_setup(case_name)  # Setup the specific case
-        #return the case
+        # return the case
         return cases_instance.case
 
     @classmethod
-    def from_dict(cls, cases: dict, case_name: str)->Case:
+    def from_dict(cls, cases: dict, case_name: str) -> Case:
         """Factory method to create an Case instance from a dictionary"""
-        cases_instance = cls(cases = cases, case_name=case_name)  # Create a Cases instance with the loaded data and case name
+        cases_instance = cls(
+            cases=cases, case_name=case_name
+        )  # Create a Cases instance with the loaded data and case name
         cases_instance.case_setup(case_name)  # Setup the specific case
         return cases_instance.case
 
@@ -253,8 +269,7 @@ class Cases:
                 f"File {new_name} contains a directory that does not exist. Please try again or create the directory."
             )
 
-
-    def case_setup(self, case_name:str)->None:
+    def case_setup(self, case_name: str) -> None:
         self.case_name = case_name
         self.case = Case(self.case_name)
         vehicles = self.cases[self.case_name]["vehicles"]
@@ -264,7 +279,7 @@ class Cases:
         self.case.arena = ArenaMap(buildings=self.case.buildings)
 
     @classmethod
-    def obtain_buildings(cls, building_data:list[dict])->list[Building]:
+    def obtain_buildings(cls, building_data: list[dict]) -> list[Building]:
         """return a list of building objects"""
         buildings = []
         for building in building_data:
@@ -274,14 +289,14 @@ class Cases:
         return buildings
 
     @classmethod
-    def obtain_vehicles(cls, vehicle_data:list[dict])->list[Vehicle]:
+    def obtain_vehicles(cls, vehicle_data: list[dict]) -> list[Vehicle]:
         """return a list of vehicle objects"""
         vehicles = []
         for vehicle in vehicle_data:
             position = vehicle["position"]
             goal = vehicle["goal"]
             ID = vehicle["ID"]
-            #if the values below are undefined, give some default values
+            # if the values below are undefined, give some default values
             source_strength = vehicle.get("source_strength", 1)
             imag_source_strength = vehicle.get("imag_source_strength", 0.5)
             sink_strength = vehicle.get("sink_strength", 5)
@@ -291,7 +306,7 @@ class Cases:
                 imag_source_strength=imag_source_strength,
             )
             myVehicle.ID = ID
-            #FIXME the order the setting goal and initial position matters for the first entry
+            # FIXME the order the setting goal and initial position matters for the first entry
             #  into desired vectors so be careful
             myVehicle.Set_Goal(goal=goal, goal_strength=sink_strength)
             myVehicle.set_initial_position(position)
@@ -300,8 +315,8 @@ class Cases:
             # )  # FIXME add these to the json
             vehicles.append(myVehicle)
         return vehicles
-    
-    def _load_file(self, filename:str) -> dict:
+
+    def _load_file(self, filename: str) -> dict:
         """Return a dictionary of all the cases inside filename."""
         self._filename = filename
         self.cases = {}  # Initializing self.cases to be an empty dictionary
@@ -382,7 +397,6 @@ class Cases:
         self.update_json()
         return None
 
-
     def add_case(self, case: Case):
         """Add a case into self.cases dictionary"""
         case_name = case.name
@@ -415,7 +429,6 @@ class Cases:
             for vehicle in vehicle_list
         ]
 
-
         # return the case that was just added
         self.case_name = case_name
         # json_case holds the case in the format that it will be written as in the json file
@@ -443,9 +456,7 @@ class Cases:
             n_drones=n_drones, side_length=8, min_distance=0.5
         )
         for idx, coord in enumerate(starting_positions):
-            vehicle = Vehicle(
-                source_strength=0.5, imag_source_strength=0.5
-            )
+            vehicle = Vehicle(source_strength=0.5, imag_source_strength=0.5)
             vehicle.set_initial_position(pos=coord)
             vehicle.Set_Goal(goal=goal_positions[idx], goal_strength=5)
             vehicle_list.append(vehicle)
@@ -523,5 +534,3 @@ class Cases:
             )
 
         return starting_positions, ending_positions
-
-

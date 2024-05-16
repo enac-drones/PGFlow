@@ -1,537 +1,253 @@
 {
-    "default": {
-        "buildings": [
-            {
-                "ID": "Building 0",
-                "vertices": [
-                    [
-                        0.293892,
-                        -0.404508,
-                        1.2
-                    ],
-                    [
-                        -0.293892,
-                        -0.404508,
-                        1.2
-                    ],
-                    [
-                        -0.475528,
-                        0.154508,
-                        1.2
-                    ],
-                    [
-                        0.0,
-                        0.5,
-                        1.2
-                    ],
-                    [
-                        0.475528,
-                        0.154508,
-                        1.2
-                    ]
-                ]
-            }
-        ],
-        "vehicles": [
-            {
-                "ID": "V1",
-                "position": [
-                    -3.0,
-                    0.0001,
-                    0.5
-                ],
-                "goal": [
-                    3.0,
-                    0.0,
-                    0.5
-                ],
-                "source_strength": 0.5,
-                "imag_source_strength": 0.5,
-                "sink_strength": 5,
-                "safety": 0.0001
-            }
+  "default": {
+    "buildings": [
+      {
+        "ID": "Building 0",
+        "vertices": [
+          [0.293892, -0.404508, 1.2],
+          [-0.293892, -0.404508, 1.2],
+          [-0.475528, 0.154508, 1.2],
+          [0.0, 0.5, 1.2],
+          [0.475528, 0.154508, 1.2]
         ]
-    },
-    "voliere": {
-        "buildings": [
-            {
-                "ID": "Building 0",
-                "vertices": [
-                    [
-                        0.588709,
-                        -1.41129,
-                        1.2
-                    ],
-                    [
-                        -0.580645,
-                        -1.395161,
-                        1.2
-                    ],
-                    [
-                        -0.596774,
-                        -0.258064,
-                        1.2
-                    ],
-                    [
-                        0.588709,
-                        -0.225806,
-                        1.2
-                    ]
-                ]
-            },
-            {
-                "ID": "Building 1",
-                "vertices": [
-                    [
-                        -2.443548,
-                        -2.935483,
-                        1.2
-                    ],
-                    [
-                        -3.725806,
-                        -2.951612,
-                        1.2
-                    ],
-                    [
-                        -3.669354,
-                        -1.588709,
-                        1.2
-                    ],
-                    [
-                        -2.451612,
-                        -1.629032,
-                        1.2
-                    ]
-                ]
-            },
-            {
-                "ID": "Building 2",
-                "vertices": [
-                    [
-                        -2.475806,
-                        0.629032,
-                        1.2
-                    ],
-                    [
-                        -3.717741,
-                        0.653225,
-                        1.2
-                    ],
-                    [
-                        -3.685483,
-                        1.903225,
-                        1.2
-                    ],
-                    [
-                        -2.48387,
-                        1.919354,
-                        1.2
-                    ]
-                ]
-            },
-            {
-                "ID": "Building 3",
-                "vertices": [
-                    [
-                        0.564516,
-                        1.717741,
-                        1.2
-                    ],
-                    [
-                        -0.637096,
-                        1.701612,
-                        1.2
-                    ],
-                    [
-                        -0.612903,
-                        2.991935,
-                        1.2
-                    ],
-                    [
-                        0.564516,
-                        2.967741,
-                        1.2
-                    ]
-                ]
-            },
-            {
-                "ID": "Building 4",
-                "vertices": [
-                    [
-                        4.129032,
-                        -0.048387,
-                        1.2
-                    ],
-                    [
-                        3.685483,
-                        -0.854838,
-                        1.2
-                    ],
-                    [
-                        2.491935,
-                        -0.838709,
-                        1.2
-                    ],
-                    [
-                        2.048387,
-                        0.016129,
-                        1.2
-                    ],
-                    [
-                        2.379032,
-                        0.935483,
-                        1.2
-                    ],
-                    [
-                        3.677419,
-                        0.943548,
-                        1.2
-                    ]
-                ]
-            },
-            {
-                "ID": "Building 5",
-                "vertices": [
-                    [
-                        3.225806,
-                        -4.604838,
-                        1.2
-                    ],
-                    [
-                        2.540322,
-                        -4.185483,
-                        1.2
-                    ],
-                    [
-                        2.508064,
-                        -2.846774,
-                        1.2
-                    ],
-                    [
-                        3.209677,
-                        -2.814516,
-                        1.2
-                    ]
-                ]
-            }
-        ],
-        "vehicles": [
-            {
-                "ID": "V0",
-                "position": [
-                    -3.1209677419354844,
-                    -4.451612903225806,
-                    0.5
-                ],
-                "goal": [
-                    2.588709677419354,
-                    3.217741935483872,
-                    0.5
-                ],
-                "source_strength": 1,
-                "imag_source_strength": 0.5,
-                "sink_strength": 5,
-                "safety": null
-            },
-            {
-                "ID": "V1",
-                "position": [
-                    1.814516129032258,
-                    -4.532258064516129,
-                    0.5
-                ],
-                "goal": [
-                    1.96774193548387,
-                    3.290322580645162,
-                    0.5
-                ],
-                "source_strength": 1,
-                "imag_source_strength": 0.5,
-                "sink_strength": 5,
-                "safety": null
-            },
-            {
-                "ID": "V2",
-                "position": [
-                    0.024193548387096087,
-                    -4.491935483870967,
-                    0.5
-                ],
-                "goal": [
-                    2.306451612903226,
-                    3.346774193548388,
-                    0.5
-                ],
-                "source_strength": 1,
-                "imag_source_strength": 0.5,
-                "sink_strength": 5,
-                "safety": null
-            },
-            {
-                "ID": "V3",
-                "position": [
-                    -1.411290322580646,
-                    -4.459677419354838,
-                    0.5
-                ],
-                "goal": [
-                    2.241935483870968,
-                    3.370967741935484,
-                    0.5
-                ],
-                "source_strength": 1,
-                "imag_source_strength": 0.5,
-                "sink_strength": 5,
-                "safety": null
-            }
+      }
+    ],
+    "vehicles": [
+      {
+        "ID": "V1",
+        "position": [-3.0, 0.0001, 0.5],
+        "goal": [3.0, 0.0, 0.5],
+        "source_strength": 0.5,
+        "imag_source_strength": 0.5,
+        "sink_strength": 5,
+        "safety": 0.0001
+      }
+    ]
+  },
+  "voliere": {
+    "buildings": [
+      {
+        "ID": "Building 0",
+        "vertices": [
+          [0.588709, -1.41129, 1.2],
+          [-0.580645, -1.395161, 1.2],
+          [-0.596774, -0.258064, 1.2],
+          [0.588709, -0.225806, 1.2]
         ]
-    },
-    "Test Case": {
-        "buildings": [],
-        "vehicles": [
-            {
-                "ID": "V0",
-                "position": [
-                    -4.03225806451613,
-                    0.024193548387096975,
-                    0.5
-                ],
-                "goal": [
-                    -4.072580645161291,
-                    2.024193548387096,
-                    0.5
-                ],
-                "source_strength": [
-                    1
-                ],
-                "imag_source_strength": 0.5,
-                "sink_strength": 5,
-                "safety": null
-            },
-            {
-                "ID": "V1",
-                "position": [
-                    -3.03225806451613,
-                    0.024193548387096975,
-                    0.5
-                ],
-                "goal": [
-                    -3.072580645161291,
-                    2.024193548387096,
-                    0.5
-                ],
-                "source_strength": [
-                    1
-                ],
-                "imag_source_strength": 0.5,
-                "sink_strength": 5,
-                "safety": null
-            },
-            {
-                "ID": "V2",
-                "position": [
-                    4.04032258064516,
-                    -0.008064516129032029,
-                    0.5
-                ],
-                "goal": [
-                    -2.072580645161291,
-                    0.0,
-                    0.5
-                ],
-                "source_strength": [
-                    1
-                ],
-                "imag_source_strength": 0.5,
-                "sink_strength": 5,
-                "safety": null
-            }
+      },
+      {
+        "ID": "Building 1",
+        "vertices": [
+          [-2.443548, -2.935483, 1.2],
+          [-3.725806, -2.951612, 1.2],
+          [-3.669354, -1.588709, 1.2],
+          [-2.451612, -1.629032, 1.2]
         ]
-    },
-    "bug0": {
-        "buildings": [],
-        "vehicles": [
-            {
-                "ID": "V0",
-                "position": [
-                    -2.10483870967742,
-                    0.04032258064516192,
-                    0.5
-                ],
-                "goal": [
-                    0.379032258064516,
-                    1.92741935483871,
-                    0.5
-                ],
-                "source_strength": [
-                    1
-                ],
-                "imag_source_strength": 0.5,
-                "sink_strength": 5,
-                "safety": null
-            },
-            {
-                "ID": "V1",
-                "position": [
-                    0.411290322580645,
-                    -0.48387096774193505,
-                    0.5
-                ],
-                "goal": [
-                    -1.2177419354838719,
-                    -2.298387096774193,
-                    0.5
-                ],
-                "source_strength": [
-                    1
-                ],
-                "imag_source_strength": 0.5,
-                "sink_strength": 5,
-                "safety": null
-            },
-            {
-                "ID": "V2",
-                "position": [
-                    -1.411290322580646,
-                    -1.282258064516129,
-                    0.5
-                ],
-                "goal": [
-                    0.5322580645161281,
-                    0.75,
-                    0.5
-                ],
-                "source_strength": [
-                    1
-                ],
-                "imag_source_strength": 0.5,
-                "sink_strength": 5,
-                "safety": null
-            }
+      },
+      {
+        "ID": "Building 2",
+        "vertices": [
+          [-2.475806, 0.629032, 1.2],
+          [-3.717741, 0.653225, 1.2],
+          [-3.685483, 1.903225, 1.2],
+          [-2.48387, 1.919354, 1.2]
         ]
-    },
-    "bug1": {
-        "buildings": [],
-        "vehicles": [
-            {
-                "ID": "V0",
-                "position": [
-                    -0.806451612903226,
-                    1.209677419354839,
-                    0.5
-                ],
-                "goal": [
-                    -1.35483870967742,
-                    -1.209677419354838,
-                    0.5
-                ],
-                "source_strength": [
-                    1
-                ],
-                "imag_source_strength": 0.5,
-                "sink_strength": 5,
-                "safety": null
-            },
-            {
-                "ID": "V1",
-                "position": [
-                    1.201612903225806,
-                    -0.4919354838709671,
-                    0.5
-                ],
-                "goal": [
-                    1.137096774193548,
-                    -1.387096774193548,
-                    0.5
-                ],
-                "source_strength": [
-                    1
-                ],
-                "imag_source_strength": 0.5,
-                "sink_strength": 5,
-                "safety": null
-            },
-            {
-                "ID": "V2",
-                "position": [
-                    0.4032258064516121,
-                    -1.298387096774193,
-                    0.5
-                ],
-                "goal": [
-                    1.508064516129032,
-                    1.314516129032258,
-                    0.5
-                ],
-                "source_strength": [
-                    1
-                ],
-                "imag_source_strength": 0.5,
-                "sink_strength": 5,
-                "safety": null
-            }
+      },
+      {
+        "ID": "Building 3",
+        "vertices": [
+          [0.564516, 1.717741, 1.2],
+          [-0.637096, 1.701612, 1.2],
+          [-0.612903, 2.991935, 1.2],
+          [0.564516, 2.967741, 1.2]
         ]
-    },
-    "bug2": {
-        "buildings": [],
-        "vehicles": [
-            {
-                "ID": "V0",
-                "position": [
-                    -1,
-                    0,
-                    0.5
-                ],
-                "goal": [
-                    -1,
-                    2,
-                    0.5
-                ],
-                "source_strength": [
-                    1
-                ],
-                "imag_source_strength": 0.5,
-                "sink_strength": 5,
-                "safety": null
-            },
-            {
-                "ID": "V1",
-                "position": [
-                    0,
-                    0,
-                    0.5
-                ],
-                "goal": [
-                    0,
-                    2,
-                    0.5
-                ],
-                "source_strength": [
-                    1
-                ],
-                "imag_source_strength": 0.5,
-                "sink_strength": 5,
-                "safety": null
-            },
-            {
-                "ID": "V2",
-                "position": [
-                    1,
-                    0,
-                    0.5
-                ],
-                "goal": [
-                    1,
-                    2,
-                    0.5
-                ],
-                "source_strength": [
-                    1
-                ],
-                "imag_source_strength": 0.5,
-                "sink_strength": 5,
-                "safety": null
-            }
+      },
+      {
+        "ID": "Building 4",
+        "vertices": [
+          [4.129032, -0.048387, 1.2],
+          [3.685483, -0.854838, 1.2],
+          [2.491935, -0.838709, 1.2],
+          [2.048387, 0.016129, 1.2],
+          [2.379032, 0.935483, 1.2],
+          [3.677419, 0.943548, 1.2]
         ]
-    }
+      },
+      {
+        "ID": "Building 5",
+        "vertices": [
+          [3.225806, -4.604838, 1.2],
+          [2.540322, -4.185483, 1.2],
+          [2.508064, -2.846774, 1.2],
+          [3.209677, -2.814516, 1.2]
+        ]
+      }
+    ],
+    "vehicles": [
+      {
+        "ID": "V0",
+        "position": [-3.1209677419354844, -4.451612903225806, 0.5],
+        "goal": [2.588709677419354, 3.217741935483872, 0.5],
+        "source_strength": 1,
+        "imag_source_strength": 0.5,
+        "sink_strength": 5,
+        "safety": null
+      },
+      {
+        "ID": "V1",
+        "position": [1.814516129032258, -4.532258064516129, 0.5],
+        "goal": [1.96774193548387, 3.290322580645162, 0.5],
+        "source_strength": 1,
+        "imag_source_strength": 0.5,
+        "sink_strength": 5,
+        "safety": null
+      },
+      {
+        "ID": "V2",
+        "position": [0.024193548387096087, -4.491935483870967, 0.5],
+        "goal": [2.306451612903226, 3.346774193548388, 0.5],
+        "source_strength": 1,
+        "imag_source_strength": 0.5,
+        "sink_strength": 5,
+        "safety": null
+      },
+      {
+        "ID": "V3",
+        "position": [-1.411290322580646, -4.459677419354838, 0.5],
+        "goal": [2.241935483870968, 3.370967741935484, 0.5],
+        "source_strength": 1,
+        "imag_source_strength": 0.5,
+        "sink_strength": 5,
+        "safety": null
+      }
+    ]
+  },
+  "Test Case": {
+    "buildings": [],
+    "vehicles": [
+      {
+        "ID": "V0",
+        "position": [-4.03225806451613, 0.024193548387096975, 0.5],
+        "goal": [-4.072580645161291, 2.024193548387096, 0.5],
+        "source_strength": [1],
+        "imag_source_strength": 0.5,
+        "sink_strength": 5,
+        "safety": null
+      },
+      {
+        "ID": "V1",
+        "position": [-3.03225806451613, 0.024193548387096975, 0.5],
+        "goal": [-3.072580645161291, 2.024193548387096, 0.5],
+        "source_strength": [1],
+        "imag_source_strength": 0.5,
+        "sink_strength": 5,
+        "safety": null
+      },
+      {
+        "ID": "V2",
+        "position": [4.04032258064516, -0.008064516129032029, 0.5],
+        "goal": [-2.072580645161291, 0.0, 0.5],
+        "source_strength": [1],
+        "imag_source_strength": 0.5,
+        "sink_strength": 5,
+        "safety": null
+      }
+    ]
+  },
+  "bug0": {
+    "buildings": [],
+    "vehicles": [
+      {
+        "ID": "V0",
+        "position": [-2.10483870967742, 0.04032258064516192, 0.5],
+        "goal": [0.379032258064516, 1.92741935483871, 0.5],
+        "source_strength": [1],
+        "imag_source_strength": 0.5,
+        "sink_strength": 5,
+        "safety": null
+      },
+      {
+        "ID": "V1",
+        "position": [0.411290322580645, -0.48387096774193505, 0.5],
+        "goal": [-1.2177419354838719, -2.298387096774193, 0.5],
+        "source_strength": [1],
+        "imag_source_strength": 0.5,
+        "sink_strength": 5,
+        "safety": null
+      },
+      {
+        "ID": "V2",
+        "position": [-1.411290322580646, -1.282258064516129, 0.5],
+        "goal": [0.5322580645161281, 0.75, 0.5],
+        "source_strength": [1],
+        "imag_source_strength": 0.5,
+        "sink_strength": 5,
+        "safety": null
+      }
+    ]
+  },
+  "bug1": {
+    "buildings": [],
+    "vehicles": [
+      {
+        "ID": "V0",
+        "position": [-0.806451612903226, 1.209677419354839, 0.5],
+        "goal": [-1.35483870967742, -1.209677419354838, 0.5],
+        "source_strength": [1],
+        "imag_source_strength": 0.5,
+        "sink_strength": 5,
+        "safety": null
+      },
+      {
+        "ID": "V1",
+        "position": [1.201612903225806, -0.4919354838709671, 0.5],
+        "goal": [1.137096774193548, -1.387096774193548, 0.5],
+        "source_strength": [1],
+        "imag_source_strength": 0.5,
+        "sink_strength": 5,
+        "safety": null
+      },
+      {
+        "ID": "V2",
+        "position": [0.4032258064516121, -1.298387096774193, 0.5],
+        "goal": [1.508064516129032, 1.314516129032258, 0.5],
+        "source_strength": [1],
+        "imag_source_strength": 0.5,
+        "sink_strength": 5,
+        "safety": null
+      }
+    ]
+  },
+  "bug2": {
+    "buildings": [],
+    "vehicles": [
+      {
+        "ID": "V0",
+        "position": [-1, 0, 0.5],
+        "goal": [-1, 2, 0.5],
+        "source_strength": [1],
+        "imag_source_strength": 0.5,
+        "sink_strength": 5,
+        "safety": null
+      },
+      {
+        "ID": "V1",
+        "position": [0, 0, 0.5],
+        "goal": [0, 2, 0.5],
+        "source_strength": [1],
+        "imag_source_strength": 0.5,
+        "sink_strength": 5,
+        "safety": null
+      },
+      {
+        "ID": "V2",
+        "position": [1, 0, 0.5],
+        "goal": [1, 2, 0.5],
+        "source_strength": [1],
+        "imag_source_strength": 0.5,
+        "sink_strength": 5,
+        "safety": null
+      }
+    ]
+  }
 }

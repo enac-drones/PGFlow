@@ -2,6 +2,7 @@
 # import ipywidgets as widgets
 # from IPython.display import display
 
+
 class PIDController:
     def __init__(self, Kp, Ki, Kd, min_output, max_output):
         self.Kp = Kp
@@ -13,7 +14,7 @@ class PIDController:
         self.previous_error = 0
 
     def update(self, error, dt):
-    
+
         # Proportional term
         P = self.Kp * error
 
@@ -35,7 +36,7 @@ class PIDController:
         self.previous_error = error
 
         return control
-    
+
     def adjust_acceleration(self, v, a, max_v, min_v, dt):
         # Predict the next velocity
         predicted_v = v + a * dt
@@ -48,13 +49,14 @@ class PIDController:
 
         return a
 
+
 class VehicleDynamics:
     def __init__(self, mass, min_accel, max_accel):
         self.mass = mass
         self.min_accel = min_accel
         self.max_accel = max_accel
         # Initialize other parameters specific to the vehicle dynamics
-    
+
     def update_state_verlet(self, x, vx, y, vy, ax, ay, dt):
         # Update position using Velocity Verlet
         x_new = x + vx * dt + 0.5 * ax * dt**2
@@ -72,7 +74,6 @@ class VehicleDynamics:
         vy_new = vy_half + 0.5 * ay * dt
 
         return x_new, vx_new, y_new, vy_new
-
 
 
 def adjust_acceleration(v, a, max_v, min_v, dt):
@@ -96,7 +97,7 @@ if __name__ == "__main__":
     x_desired, y_desired = 1, 1
     Kp, Ki, Kd = 32, 0.05, 8.4
 
-    vehicle = VehicleDynamics(mass=1, min_accel = -2, max_accel = 2)
+    vehicle = VehicleDynamics(mass=1, min_accel=-2, max_accel=2)
 
     pid_x = PIDController(Kp, Ki, Kd, vehicle.min_accel, vehicle.max_accel)
     pid_y = PIDController(Kp, Ki, Kd, vehicle.min_accel, vehicle.max_accel)
@@ -107,7 +108,7 @@ if __name__ == "__main__":
     v_x, v_y = [vx], [vy]
     times = [0]
 
-    min_velocity, max_velocity = -1,1
+    min_velocity, max_velocity = -1, 1
     for t in range(int(simulation_time / dt)):
         error_x = x_desired - x
         error_y = y_desired - y
@@ -129,6 +130,3 @@ if __name__ == "__main__":
         v_x.append(vx)
         v_y.append(vy)
         times.append(t * dt)
-
-    
-

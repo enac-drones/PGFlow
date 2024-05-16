@@ -2,6 +2,7 @@ import pytest
 from pgflow.building import PersonalBuilding, Building
 import numpy as np
 
+
 def test_personal_building_creation():
     test_id = "TestID"
     test_vertices = np.array([[0, 0, 0], [1, 0, 0], [1, 1, 0], [0, 1, 0]])
@@ -20,10 +21,15 @@ def normalize_polygon_vertices(vertices):
     """
     # Find the index of the vertex with the smallest x-coordinate (and smallest y-coordinate in case of a tie)
     min_index = np.argmin(vertices, axis=0)
-    start_index = min_index[0] if vertices[min_index[0], 1] <= vertices[min_index[1], 1] else min_index[1]
+    start_index = (
+        min_index[0]
+        if vertices[min_index[0], 1] <= vertices[min_index[1], 1]
+        else min_index[1]
+    )
 
     # Reorder the vertices starting from the vertex with the smallest x (and y) coordinate
     return np.roll(vertices, -start_index, axis=0)
+
 
 @pytest.fixture
 def mock_building():
@@ -44,6 +50,7 @@ def test_building_initialization(mock_building):
     assert mock_building.K_inv is None
     assert mock_building.gammas == {}
 
+
 def test_building_inflate(mock_building):
     original_vertices = np.copy(mock_building.vertices)
     mock_building.inflate(safetyfac=1.1, rad=1e-4)
@@ -54,6 +61,7 @@ def test_building_inflate(mock_building):
 def test_get_bounding_box(mock_building):
     bbox = mock_building.get_bounding_box()
     assert bbox.bounds == (0, 0, 2, 2)
+
 
 def test_panelize(mock_building):
     panel_size = 1.0

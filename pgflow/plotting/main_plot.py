@@ -9,6 +9,7 @@ from pgflow.plotting.graphics.arrow_graphics import ArrowPlotter
 from pgflow.plotting.observer_utils import Observer
 from pgflow.plotting.ui_components import Buttons, MySlider
 
+
 class SimulationVisualizer(Observer):
     def __init__(self, json_file_path):
         self.json_file_path = json_file_path
@@ -22,41 +23,40 @@ class SimulationVisualizer(Observer):
         self.load_data()
         self.setup(self.ax)
         self.num_frames = 1000
-        self._current_frame = 0 #order matters,
+        self._current_frame = 0  # order matters,
         self.anim = self.animate_simulation(self.fig)
         self.fig.canvas.mpl_connect("key_press_event", self.on_press)
 
     @property
     def current_frame(self):
         return self._current_frame
-    
+
     @current_frame.setter
     def current_frame(self, new_frame):
-        self._current_frame = new_frame%self.num_frames
+        self._current_frame = new_frame % self.num_frames
         if not self.slider.updating:
             # Update slider position only if we're not currently updating the slider
             self.slider.disconnect_callback()
-            self.slider.set_val(self.current_frame/self.num_frames)
+            self.slider.set_val(self.current_frame / self.num_frames)
             self.slider.reconnect_callback()
 
         if not self.simulation_running:
             self.update_visuals(self.current_frame)
 
-
     def load_data(self):
         """Load and parse data from the JSON file."""
-        with open(self.json_file_path, 'r') as file:
-            data:dict = json.load(file)
-            self.buildings = data.get('buildings', [])
-            self.vehicles = data.get('vehicles', [])
-            self.arrows = data.get('desired_vectors', [])
+        with open(self.json_file_path, "r") as file:
+            data: dict = json.load(file)
+            self.buildings = data.get("buildings", [])
+            self.vehicles = data.get("vehicles", [])
+            self.arrows = data.get("desired_vectors", [])
             self.full_data = data
 
     def setup(self, ax):
-        LIMS = (-5,5)
+        LIMS = (-5, 5)
         ax.set_xlim(LIMS)
         ax.set_ylim(LIMS)
-        ax.set_aspect('equal', adjustable='box')
+        ax.set_aspect("equal", adjustable="box")
 
         self.buttons = Buttons(self.ax)
         self.buttons.add_observer(self)
@@ -65,7 +65,7 @@ class SimulationVisualizer(Observer):
         # tell the slider to update the plot when it is moved
         # self.slider.on_changed(self.update)
 
-        #this line makes sure the current axes are the main ones
+        # this line makes sure the current axes are the main ones
         plt.sca(ax)
 
         # Initialize plotters
@@ -80,37 +80,35 @@ class SimulationVisualizer(Observer):
         path_manager.plot(ax)
         self.arrow_manager = ArrowPlotter(self.vehicles)
         self.arrow_manager.plot(ax)
-        self.arrow_manager.set_arrow_attributes(lw = 0.5,ec = 'k', fc = 'b')
-        self.arrow_manager.set_data(width = 0.1)
+        self.arrow_manager.set_arrow_attributes(lw=0.5, ec="k", fc="b")
+        self.arrow_manager.set_data(width=0.1)
 
     def show_plot(self):
         plt.show()
 
-
-    def call(self, event:str):
-        if event == 'play':
+    def call(self, event: str):
+        if event == "play":
             if not self.simulation_running:
                 self.anim.resume()
                 self.simulation_running = True
-                self.buttons.rename_button('play', 'Pause')
+                self.buttons.rename_button("play", "Pause")
             else:
                 self.anim.pause()
                 self.simulation_running = False
-                self.buttons.rename_button('play', 'Play')
+                self.buttons.rename_button("play", "Play")
 
-        elif event == 'reset':
+        elif event == "reset":
             self.current_frame = 0
             if not self.simulation_running:
                 self.update_visuals(frame=0)
-        
-        elif event=='slider_update':
-            self.current_frame = int(self.slider.val*(self.num_frames-1))
-        else:
-            print('other')
 
+        elif event == "slider_update":
+            self.current_frame = int(self.slider.val * (self.num_frames - 1))
+        else:
+            print("other")
 
     def animate_simulation(self, fig):
-        
+
         # Set up the animation
 
         def animate(frame):
@@ -121,21 +119,22 @@ class SimulationVisualizer(Observer):
             self.current_frame += 1
             # Redraw the canvas
             fig.canvas.draw_idle()
-            #only return something if using blitting
-            return None #patches
+            # only return something if using blitting
+            return None  # patches
 
-        anim = FuncAnimation(fig=fig,
-                             func=animate,
-                             frames=range(self.num_frames),
-                             init_func=None,
-                             interval=10/self.num_frames,
-                            #  interval=10,
-                             repeat=True,
-                            #  repeat_delay = 1000,
-                             blit=False,
-                             )
+        anim = FuncAnimation(
+            fig=fig,
+            func=animate,
+            frames=range(self.num_frames),
+            init_func=None,
+            interval=10 / self.num_frames,
+            #  interval=10,
+            repeat=True,
+            #  repeat_delay = 1000,
+            blit=False,
+        )
         return anim
-    
+
     def update_visuals(self, frame):
         """Update the visuals of the simulation to a specific frame."""
         # This should contain the logic to update your plot to a specific frame
@@ -158,9 +157,8 @@ class SimulationVisualizer(Observer):
             # self.fig.canvas.flush_events()
         return None
 
-    
 
 # Example usage
-if __name__ == '__main__':
-    visualizer = SimulationVisualizer('example_output.json')
+if __name__ == "__main__":
+    visualizer = SimulationVisualizer("example_output.json")
     visualizer.show_plot()

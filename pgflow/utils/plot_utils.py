@@ -1,5 +1,6 @@
 import sys
-sys.path.append('../')
+
+sys.path.append("../")
 # import matplotlib
 # matplotlib.use("QtAgg")
 import matplotlib.pyplot as plt
@@ -28,7 +29,6 @@ from typing import Iterable
 ############################################################################################################################################################
 
 
-
 class PlotTrajectories:
     """Same as above but trying to use the FuncAnimation for the play button implementation which supposedly uses less CPU"""
 
@@ -36,7 +36,7 @@ class PlotTrajectories:
     AXIS_LIMITS = (-5, 5)
     # arrival_distance = 0.2
     FRAMES = np.linspace(0, 1, 101)
-    SLIDER_ANIMATION_INTERVAL = FRAMES[1]-FRAMES[0]
+    SLIDER_ANIMATION_INTERVAL = FRAMES[1] - FRAMES[0]
     UPDATE_INTERVAL = 50
     BUILDING_EDGE_COLOUR = "black"
     BUILDING_FILL_COLOUR = "darkgray"
@@ -48,8 +48,8 @@ class PlotTrajectories:
         self.Arena = case.arena
         self.ArenaR = case.arena
         self.arrival_distance = case.arrival_distance
-        self.animation_proportion:float = 0 #proportion of animation completed according to frames ie 9/100 frames = 0.09
-        self.modified_artists:set = set()
+        self.animation_proportion: float = 0  # proportion of animation completed according to frames ie 9/100 frames = 0.09
+        self.modified_artists: set = set()
 
         self.vehicle_list = case.vehicle_list
         self.case_name = case.name
@@ -70,7 +70,7 @@ class PlotTrajectories:
         # same as above, but display these only when certain separation minima are not respected
         self.warning_circles = []
         self.arrows = []
-        self.connecting_lines:dict[tuple, Line2D] = {}
+        self.connecting_lines: dict[tuple, Line2D] = {}
         # initialize empty array to store vehicle positions
         self.positions = np.zeros((len(self.vehicle_list), 3))
         self.initial_plot(vehicle_list=self.vehicle_list, ax=self.ax)
@@ -87,12 +87,12 @@ class PlotTrajectories:
         self.anim = FuncAnimation(
             self.fig,
             self.animate,
-            interval=self.UPDATE_INTERVAL, # delay between frames in ms
+            interval=self.UPDATE_INTERVAL,  # delay between frames in ms
             frames=self.FRAMES,
             init_func=None,
             blit=False,
-            repeat=True, # whether to repeat the animation after the end 
-            repeat_delay=1000, # delay between repeats in ms #BUG doesn't seem to delay at all
+            repeat=True,  # whether to repeat the animation after the end
+            repeat_delay=1000,  # delay between repeats in ms #BUG doesn't seem to delay at all
         )
 
         # tell the slider to update the plot when it is moved
@@ -108,7 +108,6 @@ class PlotTrajectories:
         # the line below also appears to do the trick, and better
         self.fig.canvas.draw()
         # self.fig.canvas.flush_events()
-
 
         # these three lines are a bit of a hack to stop the simulation which for some reason automatically starts BUG
         self.animation_running = True
@@ -127,12 +126,11 @@ class PlotTrajectories:
         self.update_warning_circles(plot_until)
         self.update_arrows(plot_until)
 
-        #limit plot_until to the max timesteps-1 to avoid index errors at the end. 
+        # limit plot_until to the max timesteps-1 to avoid index errors at the end.
         plot_until = min(plot_until, self.time_steps_max - 1)
         self.handle_connecting_lines(plot_until)
         self.collision_handling()
         # self.animation_proportion = val
-
 
     def animate(self, i):
         """Function that updates the slider and calls the update function. i is the FRAMES argument"""
@@ -143,17 +141,16 @@ class PlotTrajectories:
         # print(f"{self.slider.val=}")
         # set i to the slider value so that the simulation stops when the slider reaches the end
         # it is 100x the slider value because the slider goes from 0 to 1 and the i from 0 to 99
-        #FIXME need better logic to set the frame number to where the slider is 
+        # FIXME need better logic to set the frame number to where the slider is
         # (with the current implementation, frame number can not be changed easily)
         self.slider.set_val(
             (current_slider_value + self.SLIDER_ANIMATION_INTERVAL)
             % (self.slider.valmax + self.SLIDER_ANIMATION_INTERVAL)
-        )        
+        )
         i = self.slider.val
 
-        
         # stop the animation when the slider reaches the end
-        #NOTE this can be done by setting repeat=False in FuncAnimation but then we wouldn't have access to the button to restart it
+        # NOTE this can be done by setting repeat=False in FuncAnimation but then we wouldn't have access to the button to restart it
         if i == self.FRAMES[-1]:
             # calling the play function while the animation is running stops the animation
             self.play(event=None)
@@ -190,7 +187,7 @@ class PlotTrajectories:
             ax=ax_prog,
             label="Progress ",
             valinit=0.0,
-            valstep=self.SLIDER_ANIMATION_INTERVAL/10,
+            valstep=self.SLIDER_ANIMATION_INTERVAL / 10,
             valmin=0,
             valmax=1.0,
             valfmt=" %1.1f ",
@@ -264,7 +261,7 @@ class PlotTrajectories:
                 np.hstack((buildingR.vertices[:, 0], buildingR.vertices[0, 0])),
                 np.hstack((buildingR.vertices[:, 1], buildingR.vertices[0, 1])),
                 self.BUILDING_INFLATED_FILL_COLOUR,
-                alpha=0
+                alpha=0,
             )
         return None
 
@@ -275,7 +272,7 @@ class PlotTrajectories:
         max_timesteps = max(len(vehicle.path[:, 0]) for vehicle in vehicle_list)
         return max_timesteps
 
-    def initial_plot(self, vehicle_list:list[Vehicle], ax:Axes):
+    def initial_plot(self, vehicle_list: list[Vehicle], ax: Axes):
         for v_idx, vehicle in enumerate(vehicle_list):
             # define the current coordinates of the drone
             x, y, z = (
@@ -308,7 +305,7 @@ class PlotTrajectories:
             ax.add_artist(warning_circle)
             # print(*vehicle.desired_vectors[0])
 
-            gflow_output_arrow = ax.arrow(x,y,*vehicle.desired_vectors[0],width=0.5)
+            gflow_output_arrow = ax.arrow(x, y, *vehicle.desired_vectors[0], width=0.5)
 
             # ax.add_artist(gflow_output_arrow)
             self.arrows.append(gflow_output_arrow)
@@ -323,10 +320,8 @@ class PlotTrajectories:
             ax.plot(vehicle_list[v_idx].goal[0], vehicle_list[v_idx].goal[1], "*")
         return None
 
-    
-
     def update_plot(self, plot_until):
-        
+
         for i in range(len(self.plot_list)):
             self.plot_list[i].set_data(
                 self.vehicle_list[i].path[:plot_until, 0],
@@ -337,7 +332,6 @@ class PlotTrajectories:
                 self.vehicle_list[i].path[:plot_until, 1],
             )
             # self.modified_artists.add(self.plot_list[i])
-
 
     def update_drone_positions(self, plot_until):
         for i in range(len(self.drone_list)):
@@ -359,13 +353,13 @@ class PlotTrajectories:
                 x, y, z = self.vehicle_list[i].path[plot_until - 1, :3]
             else:
                 x, y, z = self.vehicle_list[i].path[-1, :3]
-            
+
             try:
-                [dx,dy] = self.vehicle_list[i].desired_vectors[plot_until]
+                [dx, dy] = self.vehicle_list[i].desired_vectors[plot_until]
             except IndexError:
-                [dx,dy] = self.vehicle_list[i].desired_vectors[-1]
-            self.arrows[i].set_data(x=x, y=y, dx=dx,dy=dy,width=0.1)
-            # try:    
+                [dx, dy] = self.vehicle_list[i].desired_vectors[-1]
+            self.arrows[i].set_data(x=x, y=y, dx=dx, dy=dy, width=0.1)
+            # try:
             #     # print(f"{plot_until=}")
             #     prin
             #     [dx,dy] = self.vehicle_list[i].desired_vectors[plot_until]
@@ -379,14 +373,14 @@ class PlotTrajectories:
 
     def update_warning_circles(self, plot_until):
         for i in range(len(self.warning_circles)):
-            #start of simulation
+            # start of simulation
             if plot_until == 0:
                 self.warning_circles[i].set_edgecolor("k")
                 # print(dir(self.warning_circles[i]),self.warning_circles[i].get_edgecolor())
-            #during simulation
+            # during simulation
             elif plot_until < len(self.vehicle_list[i].path[:, 0]):
                 self.warning_circles[i].set_fill(False)
-                #show communication for up to 5 timesteps NOTE (or frames?) after the actual update so it flashes for longer
+                # show communication for up to 5 timesteps NOTE (or frames?) after the actual update so it flashes for longer
                 # FIXME this is a terrible way to do things lol
                 show_communication = plot_until % self.update_every in range(5)
                 if show_communication:
@@ -396,7 +390,7 @@ class PlotTrajectories:
                 else:
                     self.warning_circles[i].set_edgecolor("gray")
                     self.warning_circles[i].set_fill(False)
-            #At the end of the simulation
+            # At the end of the simulation
             else:
                 self.warning_circles[i].set_fill(True)
                 self.warning_circles[i].set_edgecolor("b")
@@ -446,11 +440,19 @@ class PlotTrajectories:
                     continue
 
                 if distance_matrix[i, j] < self.case.max_avoidance_distance:
-                    x_values = [self.vehicle_list[i].path[plot_until, 0], self.vehicle_list[j].path[plot_until, 0]]
-                    y_values = [self.vehicle_list[i].path[plot_until, 1], self.vehicle_list[j].path[plot_until, 1]]
+                    x_values = [
+                        self.vehicle_list[i].path[plot_until, 0],
+                        self.vehicle_list[j].path[plot_until, 0],
+                    ]
+                    y_values = [
+                        self.vehicle_list[i].path[plot_until, 1],
+                        self.vehicle_list[j].path[plot_until, 1],
+                    ]
                     distance = distance_matrix[i, j]
                     max_distance = self.case.max_avoidance_distance
-                    p = 1 - distance/max_distance # 1 at no distance, 0 and max_distance
+                    p = (
+                        1 - distance / max_distance
+                    )  # 1 at no distance, 0 and max_distance
 
                     max_linewidth = 4
                     # Create a colormap that transitions from green to red
@@ -462,11 +464,13 @@ class PlotTrajectories:
                     # p_adjusted = p**2  # Adjust this power for desired transition. Higher values will make it red sooner.
                     # color_value = cmap(norm(distance))
                     # color_value = cmap(p_adjusted)
-                    #not using colour for now, but could be interesting
-                    line = self.ax.plot(x_values, y_values, 'k-', alpha = p, lw = p * max_linewidth )[0]  # 'k-' specifies a black line
-                    self.connecting_lines[(i,j)] = line  # 'k-' specifies a black line
-
-
+                    # not using colour for now, but could be interesting
+                    line = self.ax.plot(
+                        x_values, y_values, "k-", alpha=p, lw=p * max_linewidth
+                    )[
+                        0
+                    ]  # 'k-' specifies a black line
+                    self.connecting_lines[(i, j)] = line  # 'k-' specifies a black line
 
     def calculate_distance_matrix(self):
         """Calculate the Euclidean distance matrix between drones."""
@@ -579,13 +583,10 @@ class PlotTrajectories:
             # self.fig.canvas.flush_events()
         return None
 
-    
-
     def show(self):
         # show the plot
         plt.show()
         return None
-    
 
 
 # FuncAnimation args:
@@ -652,4 +653,3 @@ class PlotTrajectories:
 
 # cache_frame_data : bool, default: True
 #     Whether frame data is cached. Disabling cache might be helpful when frames contain large objects.
-

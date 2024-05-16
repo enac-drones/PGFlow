@@ -4,6 +4,7 @@ from typing import List
 
 Point2D = NDArray[float64]
 
+
 class DroneEntity:
     """
     Represents a drone with a position and a collision radius.
@@ -15,11 +16,15 @@ class DroneEntity:
     radius : float
         The radius of the collision circle around the drone.
     """
+
     _id_counter = 0
-    def __init__(self, position:Point2D, goal:Point2D, path:NDArray, radius:float = 0.2):
+
+    def __init__(
+        self, position: Point2D, goal: Point2D, path: NDArray, radius: float = 0.2
+    ):
         """
         Initializes a DroneEntity object.
-        
+
         Parameters:
         -----------
         position : tuple of float
@@ -31,7 +36,7 @@ class DroneEntity:
         radius : float
             The radius of the collision circle around the drone.
         """
-        self.id:str = f"V{DroneEntity._id_counter}"
+        self.id: str = f"V{DroneEntity._id_counter}"
         DroneEntity._id_counter += 1
         self.position = position
         self.goal = goal
@@ -40,4 +45,3 @@ class DroneEntity:
 
     def __repr__(self):
         return f"Drone(position={self.position}, goal={self.goal})"
-    

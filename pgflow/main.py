@@ -1,35 +1,42 @@
-# import argparse
-# from pgflow import Cases
-
-# def main():
-#     parser = argparse.ArgumentParser(description="Launch the SceneBuilder GUI")
-
-#     parser.add_argument(
-#         "-s",
-#         "--scene",
-#         type=str,
-#         help="Load a scene from a JSON file at the specified path. Ensure the ",
-#     )
-
-#     args = parser.parse_args()
+import argparse
+from pgflow import Cases, run_simulation, SimulationVisualizer
 
 
-#     loaded_file = None
-#     if args.scene:
-#         file_name = args.scene
-#         loaded_file = args.load
+def main():
+    parser = argparse.ArgumentParser(description="Launch the SceneBuilder GUI")
 
-#     case = Cases.get_case(file_name, case_name = 'scenebuilder')
+    parser.add_argument(
+        "-s",
+        "--scene",
+        type=str,
+        help="Load a scene from a JSON file at the specified path.",
+    )
+    parser.add_argument(
+        "-v",
+        "--vis",
+        action="store_true",
+        help="Visualise the result of the simulation in matplotlib",
+    )
 
-#     intro_message = (
-#         "Welcome to the SceneBuilder! \n"
-#         "This is a tool for creating and editing a 2D scene with drones and buildings."
-#     )
-#     if loaded_file:
-#         intro_message += f"\nLoaded scene from file: {loaded_file}"
-#     app._show_warning(intro_message, duration=5, color="g")
-#     app.draw_scene()
+    args = parser.parse_args()
+
+    if not args.scene:
+        raise ValueError("Please specify a scene to load.")
+
+    file_name = args.scene
+
+    print(f"Loading scene '{file_name}'...")
+    case = Cases.get_case(file_name, case_name="default")
+
+    print("Running simulation...")
+    result = run_simulation(case, t=1500, update_every=1, stop_at_collision=False)
+    case.to_dict(file_path="pgflow_output.json")
+
+    if args.vis:
+        print("Visualising the result of the simulation...")
+        visualizer = SimulationVisualizer("pgflow_output.json")
+        visualizer.show_plot()
 
 
-# if __name__ == "__main__":
-#     main()
+if __name__ == "__main__":
+    main()

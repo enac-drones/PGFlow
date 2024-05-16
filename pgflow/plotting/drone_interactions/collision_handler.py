@@ -2,13 +2,14 @@ import numpy as np
 from typing import List, Tuple
 from pgflow.plotting.entities.drone import DroneEntity
 
+
 class CollisionManager:
-    def __init__(self, drones:List[DroneEntity], collision_distance:float = 0.5):
+    def __init__(self, drones: List[DroneEntity], collision_distance: float = 0.5):
         # Initialization code for collision management
         self.drones = drones
         self.collision_distance = collision_distance
 
-    def check_collisions(self)->List[Tuple]:
+    def check_collisions(self) -> List[Tuple]:
         """
         Check for drones that are within the threshold distance of each other using NumPy for vectorized calculations.
 
@@ -21,7 +22,9 @@ class CollisionManager:
         drone_ids = np.array([drone.id for drone in self.drones])
 
         # Calculate the distance matrix
-        dist_matrix = np.sqrt(np.sum((positions[:, np.newaxis] - positions[np.newaxis, :]) ** 2, axis=2))
+        dist_matrix = np.sqrt(
+            np.sum((positions[:, np.newaxis] - positions[np.newaxis, :]) ** 2, axis=2)
+        )
 
         # Find pairs where the distance is below the threshold
         close_pairs = np.argwhere(dist_matrix < self.collision_distance)
@@ -36,14 +39,17 @@ class CollisionManager:
         colliding_drones = set(drone_ids[np.unique(close_pairs)])
 
         return colliding_drones
-    
+
+
 if __name__ == "__main__":
 
     # Create drones with unique IDs
-    drones = [DroneEntity(position=(0, 0),goal=(5,5), radius=2),
-              DroneEntity(position=(0, 1), goal=(5,5),radius=1.5),
-              DroneEntity(position=(0, 2), goal=(5,5),radius=1.5)]
-    
+    drones = [
+        DroneEntity(position=(0, 0), goal=(5, 5), radius=2),
+        DroneEntity(position=(0, 1), goal=(5, 5), radius=1.5),
+        DroneEntity(position=(0, 2), goal=(5, 5), radius=1.5),
+    ]
+
     collision_manager = CollisionManager(drones, collision_distance=1.1)
 
     print(collision_manager.check_collisions())

@@ -3,7 +3,8 @@ from matplotlib.patches import Circle
 from matplotlib.lines import Line2D
 from matplotlib.axes import Axes
 from typing import List
-#import Drone class
+
+# import Drone class
 from pgflow.plotting.entities.drone import DroneEntity
 from pgflow.plotting.entities.path import PathEntity
 
@@ -24,13 +25,16 @@ class DronePatch:
         The line width of the circle.
     """
 
-    def __init__(self, drone:DroneEntity, 
-                 point_color:str='k', 
-                 circle_color='k', 
-                 circle_width=0.5,
-                 marker = 'o',
-                 markersize:float = 2):
-        
+    def __init__(
+        self,
+        drone: DroneEntity,
+        point_color: str = "k",
+        circle_color="k",
+        circle_width=0.5,
+        marker="o",
+        markersize: float = 2,
+    ):
+
         self.drone = drone
         self.point_color = point_color
         self.circle_color = circle_color
@@ -38,28 +42,36 @@ class DronePatch:
         self.marker = marker
         self.markersize = markersize
 
-    def create_patches(self)->None:
+    def create_patches(self) -> None:
         # Create the central point
-        self.point = plt.Line2D([self.drone.position[0]], [self.drone.position[1]], 
-                           color=self.point_color, marker=self.marker, markersize=self.markersize,animated=False)
+        self.point = plt.Line2D(
+            [self.drone.position[0]],
+            [self.drone.position[1]],
+            color=self.point_color,
+            marker=self.marker,
+            markersize=self.markersize,
+            animated=False,
+        )
 
         # Create the detection circle
-        self.circle = Circle(self.drone.position, self.drone.radius, 
-                        edgecolor=self.circle_color, facecolor='none', 
-                        linewidth=self.circle_width,
-                        animated=False)
+        self.circle = Circle(
+            self.drone.position,
+            self.drone.radius,
+            edgecolor=self.circle_color,
+            facecolor="none",
+            linewidth=self.circle_width,
+            animated=False,
+        )
 
         return None
-    
-    
-    def get_circle_patch(self)->Circle:
-        return self.circle
-    
-    def get_point_patch(self)->Line2D:
-        return self.point
-    
 
-    def set_circle_attributes(self,**kwargs)->None:
+    def get_circle_patch(self) -> Circle:
+        return self.circle
+
+    def get_point_patch(self) -> Line2D:
+        return self.point
+
+    def set_circle_attributes(self, **kwargs) -> None:
         """
         Sets the attributes of the circle around the drone.
         Refer to matplolib.patches.Circle for viable keyword arguments
@@ -67,7 +79,7 @@ class DronePatch:
         circle = self.get_circle_patch()
         circle.set(**kwargs)
 
-    def set_point_attributes(self,**kwargs)->None:
+    def set_point_attributes(self, **kwargs) -> None:
         """
         Sets the attributes of the central point of the drone.
         Refer to matplolib.lines.Line2D for viable keyword arguments
@@ -75,7 +87,7 @@ class DronePatch:
         point = self.get_point_patch()
         point.set(**kwargs)
 
-    def set_position(self, x:float, y:float)->None:
+    def set_position(self, x: float, y: float) -> None:
         """
         Sets the position of the drone.
         """
@@ -101,31 +113,33 @@ class DronePlotter:
         The line width of the circles.
     """
 
-    def __init__(self, vehicle_data:list[dict], point_color='blue', circle_color='red'):
+    def __init__(
+        self, vehicle_data: list[dict], point_color="blue", circle_color="red"
+    ):
 
-        self.drones:list[DroneEntity]  = self._get_drones_from_dict(vehicle_data)
-        self.drone_patches:dict[str, DronePatch] = {}
+        self.drones: list[DroneEntity] = self._get_drones_from_dict(vehicle_data)
+        self.drone_patches: dict[str, DronePatch] = {}
         self.point_color = point_color
         self.circle_color = circle_color
-        self.circle_width:float = 2.
+        self.circle_width: float = 2.0
 
-
-
-    def plot(self, ax:Axes)->None:
+    def plot(self, ax: Axes) -> None:
         """Plots the drones on the given Matplotlib Axes object.
-        
+
         Parameters:
         -----------
         ax : Axes
             The Matplotlib Axes object to plot the drones on.
-        
+
         Returns:
         --------
         None
-        
+
         """
         for drone in self.drones:
-            drone_patch = DronePatch(drone, self.point_color, self.circle_color, self.circle_width)
+            drone_patch = DronePatch(
+                drone, self.point_color, self.circle_color, self.circle_width
+            )
             self.drone_patches[drone.id] = drone_patch
             drone_patch.create_patches()  # Initialize patches
             circle_patch = drone_patch.get_circle_patch()
@@ -133,7 +147,7 @@ class DronePlotter:
             ax.add_patch(circle_patch)
             ax.add_line(point_patch)
 
-    def animate_drones(self, frame:int, total_frames:int):
+    def animate_drones(self, frame: int, total_frames: int):
         """
         Animates the drones along their paths.
 
@@ -145,7 +159,9 @@ class DronePlotter:
             The total number of frames to animate.
         """
         # Step 1: Find the longest path
-        longest_path = max(len(drone_patch.drone.path) for drone_patch in self.drone_patches.values())
+        longest_path = max(
+            len(drone_patch.drone.path) for drone_patch in self.drone_patches.values()
+        )
 
         for drone_patch in self.drone_patches.values():
             path_length = len(drone_patch.drone.path)
@@ -160,11 +176,10 @@ class DronePlotter:
             # Step 3: Calculate the interpolated frame for this drone
             interpolated_frame = int((frame / drone_total_frames) * path_length)
             current_frame = min(interpolated_frame, path_length - 1)
-            
-            drone_patch.set_position(*drone_patch.drone.path[current_frame])
-                    
 
-    def _get_drones_from_dict(self, vehicle_data:list[dict])->List[DroneEntity]:
+            drone_patch.set_position(*drone_patch.drone.path[current_frame])
+
+    def _get_drones_from_dict(self, vehicle_data: list[dict]) -> List[DroneEntity]:
         """
         Returns a list of drones from a list of vehicle data.
 
@@ -178,15 +193,19 @@ class DronePlotter:
         drones : list of DroneEntity objects
             A list of DroneEntity objects extracted from the vehicle_data dictionary elements.
         """
-        drones:List[DroneEntity] = []
+        drones: List[DroneEntity] = []
         for vehicle in vehicle_data:
-            path_2d = [tuple(p[:2]) for p in vehicle['path']]
-            drone = DroneEntity(position=path_2d[0], goal=path_2d[-1], radius=vehicle.get('radius', 0.5), path=path_2d)
+            path_2d = [tuple(p[:2]) for p in vehicle["path"]]
+            drone = DroneEntity(
+                position=path_2d[0],
+                goal=path_2d[-1],
+                radius=vehicle.get("radius", 0.5),
+                path=path_2d,
+            )
             drones.append(drone)
         return drones
-    
-    
-    def set_circle_attributes(self, **kwargs)->None:
+
+    def set_circle_attributes(self, **kwargs) -> None:
         """
         Sets the attributes of the circles around the drones.
 
@@ -194,17 +213,17 @@ class DronePlotter:
         -----------
         **kwargs : keyword arguments
             Keyword arguments to pass to the Circle.set() method.
-        
+
         Returns:
         --------
         None
-        
+
         """
         for drone_patch in self.drone_patches.values():
             drone_patch.set_circle_attributes(**kwargs)
         return None
-    
-    def set_point_attributes(self, **kwargs)->None:
+
+    def set_point_attributes(self, **kwargs) -> None:
         """
         Sets the attributes of the central points of the drones.
 
@@ -212,17 +231,17 @@ class DronePlotter:
         -----------
         **kwargs : keyword arguments
             Keyword arguments to pass to the Line2D.set() method.
-        
+
         Returns:
         --------
         None
-        
+
         """
         for drone_patch in self.drone_patches.values():
             drone_patch.set_point_attributes(**kwargs)
         return None
-    
-    def get_patches(self)->List:
+
+    def get_patches(self) -> List:
         """
         Returns a list of patches representing the drones.
         """
@@ -232,6 +251,3 @@ class DronePlotter:
             patches.append(drone_patch.get_point_patch())
 
         return patches
-
-
-
