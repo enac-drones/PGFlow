@@ -1,6 +1,5 @@
 from pgflow.vehicle import Vehicle
 from pgflow.cases import Case
-from typing import List
 import time
 
 
@@ -34,7 +33,6 @@ def step_simulation(case: Case):
             threshold=case.building_detection_threshold
         )  # meters
         vehicle.update_personal_vehicle_dict(case_vehicle_list, max_avoidance_distance)
-        # print(vehicle.relevant_obstacles)
 
         # update my position in the case_vehicle_list
         vehicle.run_simple_sim(case.mode)

@@ -2,7 +2,6 @@ import math
 import numpy as np
 from numpy.typing import ArrayLike
 import pyclipper
-from typing import List
 from matplotlib.patches import Polygon as Pm
 from shapely.geometry import box, Point
 from shapely.geometry import Polygon as Ps
@@ -42,13 +41,11 @@ class Building:
         self.ID = f"B{Building._id_counter}"
         Building._id_counter += 1
         # self.inflate(rad=0.0)
-        # self.position = np.array(position)
         self.panels = np.array([])
         self.nop = None  # Number of Panels
         self.K = None  # Coefficient Matrix
         self.K_inv = None
         self.gammas = {}  # Vortex Strenghts
-        # self.solution = np.array([])
 
     @property
     def vertices(self):
@@ -75,6 +72,7 @@ class Building:
         inflated = np.array(pco.Execute(rad * scale)[0]) / scale
         height = self.vertices[0, 2]
         points = np.hstack((inflated, np.ones((inflated.shape[0], 1)) * height))
+        #NOTE code below is to sort the vertices
         # Xavg = np.mean(points[:, 0:1])
         # Yavg = np.mean(points[:, 1:2])
         # angles = np.arctan2(
@@ -233,11 +231,3 @@ class RegularPolygon:
         return final
 
 
-# if __name__ == "__main__":
-#     a= RegularPolygon(3,rotation=0,radius=1)
-#     c = a.points()
-#     print(c)
-#     d = a.points()
-#     print(f"d = {d}")
-#     print(d.shape)
-#     b = Building(d)

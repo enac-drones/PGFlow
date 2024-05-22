@@ -1,8 +1,3 @@
-# import matplotlib.pyplot as plt
-# import ipywidgets as widgets
-# from IPython.display import display
-
-
 class PIDController:
     def __init__(self, Kp, Ki, Kd, min_output, max_output):
         self.Kp = Kp

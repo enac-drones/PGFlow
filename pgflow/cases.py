@@ -2,9 +2,7 @@ import json
 import os
 import shutil
 import sys
-from copy import deepcopy
 
-from random import random
 import numpy as np
 from scipy.spatial import distance
 import warnings
@@ -21,7 +19,6 @@ class Case:
     _name: str
 
     def __init__(self, name: str):
-        # self._name = None
         # this line ensures the setter is called even when the class instance is created
         self.name: str = name
         self._vehicle_list: List[Vehicle] = []
@@ -58,7 +55,6 @@ class Case:
 
     @vehicle_list.setter
     def vehicle_list(self, new_vehicle_list: List[Vehicle]):
-        # TODO is this deepcopy necessary given the changing logic, for now safer to keep it
         self._vehicle_list = new_vehicle_list
 
         for vehicle in self._vehicle_list:
@@ -164,9 +160,9 @@ class Case:
 
     def to_json(self) -> dict:
         """Converts the Case instance to a dictionary for JSON-style output.
-        IMPORTANT: uses new json format with dicts instead of lists of buildings and vehicles"""
+        IMPORTANT: uses new json format with dicts instead of lists of buildings and vehicles
+        NOTE: Unused for now"""
 
-        # buildings_data = [{["ID":building.ID,"vertices": building.vertices.tolist() for building in self.buildings]}]
         buildings_data = []
         for building in self.buildings:
             building_dict = {"ID": building.ID, "vertices": building.vertices.tolist()}
@@ -182,7 +178,6 @@ class Case:
                 "sink_strength": vehicle.sink_strength,
             }
             vehicles_data.append(vehicle_dict)
-        # vehicles_data = {vehicle.ID:{'path': vehicle.path.tolist()} for vehicle in self.vehicle_list} if self.vehicle_list else []
 
         case_data = {
             self.name: {"buildings": buildings_data, "vehicles": vehicles_data}
@@ -300,7 +295,6 @@ class Cases:
             source_strength = vehicle.get("source_strength", 1)
             imag_source_strength = vehicle.get("imag_source_strength", 0.5)
             sink_strength = vehicle.get("sink_strength", 5)
-            # safety = vehicle["safety"]
             myVehicle = Vehicle(
                 source_strength=source_strength,
                 imag_source_strength=imag_source_strength,
@@ -310,9 +304,6 @@ class Cases:
             #  into desired vectors so be careful
             myVehicle.Set_Goal(goal=goal, goal_strength=sink_strength)
             myVehicle.set_initial_position(position)
-            # myVehicle.Go_to_Goal(
-            #     altitude=0.5, AoAsgn=0, t_start=0, Vinfmag=0
-            # )  # FIXME add these to the json
             vehicles.append(myVehicle)
         return vehicles
 

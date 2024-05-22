@@ -1,19 +1,12 @@
 from __future__ import annotations
 import numpy as np
 
-# import scipy
-# from numpy import linalg
-from typing import List
 from numpy.typing import ArrayLike
 
-# from .panel_flow import Flow_Velocity_Calculation
 from pgflow.panel_flow import PanelFlow
 from pgflow.arena import ArenaMap
-from pgflow.building import PersonalBuilding, Building
-from shapely.geometry import Point
+from pgflow.building import Building
 from pgflow.PIDcontroller import VehicleDynamics, PIDController
-
-# from gflow.panel_flow_class import PanelFlow
 from pgflow.dynamics import dynamics_matrices, get_next_X
 
 """##Vehicles"""
@@ -117,18 +110,7 @@ class Vehicle:
                 # we should not be in our own list, so remove us if we are
                 # TODO in future we should never be added in the first place so FIXME
                 self.personal_vehicle_dict.pop(self.ID, None)
-                # self.personal_vehicle_dict[self.ID] = PersonalVehicle(**v.basic_properties())
                 continue
-            # if vehicle is inside a building (special treatment for it later). remove it
-            # NOTE moved to gamma_calc
-            # vehicle_inside_building = False
-            # for building in self.relevant_obstacles:
-            #     if building.contains_point(v.position[:2]):
-            #         vehicle_inside_building = True
-            #         self.personal_vehicle_dict.pop(v.ID, None)
-            #         continue
-            # if vehicle_inside_building:
-            #     continue
 
             if v.transmitting == True:
                 # other vehicle is transmitting so either take the newer vehicle info or remove it entirely if too far or arrived
@@ -225,14 +207,9 @@ class Vehicle:
         # magnitude of the induced velocity vector
         mag = np.linalg.norm(V_des)
         # induced velocity unit vector
-        # if mag == 0 or np.isnan(mag):
         V_des_unit = V_des / mag
 
         self.desired_vectors.append(V_des_unit[:2].tolist())
-
-        mag_clipped = np.clip(mag, 0.0, self.max_speed)  # 0.3 tello 0.5 pprz
-        # set the magnitude of the induced velocity vector to mag_converted (ie the clipped value between 0 and 1)
-        clipped_velocity = V_des_unit * mag_clipped
 
         # Define your current state X and control input U
         X = np.array(
@@ -243,12 +220,6 @@ class Vehicle:
         X_next = self.matA @ X + self.matB @ U
 
         self.position, self.velocity = X_next[:3], X_next[3:6]
-
-        # # multiply the flow velocity by some predefined constant, this is sort of like imposing the delaT
-        # self.velocity = V_des_unit * self.max_speed
-        # delta_s = self.velocity * self.delta_t   # use unit velocity
-        # self.position = self.position + np.array(delta_s)
-
         self.path = np.vstack((self.path, self.position))
 
         if self.arrived(arrival_distance=self.ARRIVAL_DISTANCE):
@@ -270,10 +241,6 @@ class Vehicle:
 
         self.desired_vectors.append(V_des_unit[:2].tolist())
 
-        mag_clipped = np.clip(mag, 0.0, self.max_speed)  # 0.3 tello 0.5 pprz
-        # set the magnitude of the induced velocity vector to mag_converted (ie the clipped value between 0 and 1)
-        clipped_velocity = V_des_unit * mag_clipped
-
         # Define your current state X and control input U
         X = np.array(
             [*self.position, *self.velocity]
@@ -283,11 +250,6 @@ class Vehicle:
         X_next = self.matA @ X + self.matB @ U
 
         self.position, self.velocity = X_next[:3], X_next[3:6]
-
-        # # multiply the flow velocity by some predefined constant, this is sort of like imposing the delaT
-        # self.velocity = V_des_unit * self.max_speed
-        # delta_s = self.velocity * self.delta_t   # use unit velocity
-        # self.position = self.position + np.array(delta_s)
 
         self.path = np.vstack((self.path, self.position))
 
@@ -312,8 +274,6 @@ class Vehicle:
         V_des_unit[2] = 0
         # force mag to lie between 0 and 1
         mag_clipped = np.clip(mag, 0.0, self.max_speed)  # 0.3 tello 0.5 pprz
-        # define new mag (rename for some reason)
-        # mag_clipped = mag  # This is Tellos max speed 30Km/h
         # set the magnitude of the induced velocity vector to mag_converted (ie the clipped value between 0 and 1)
         clipped_velocity = V_des_unit * mag_clipped
         self.velocity += clipped_velocity
@@ -322,9 +282,6 @@ class Vehicle:
         # multiply the flow velocity by some predefined constant, this is sort of like imposing the delaT
         # change in position = ds = v dt so velocitygain is actually dt here
         delta_s = self.velocity * self.delta_t
-        # prevpos = self.position
-        # self.desiredpos = self.position + np.array(delta_s)
-
         self.position = self.position + np.array(delta_s)
 
         self.path = np.vstack((self.path, self.position))
@@ -336,35 +293,15 @@ class Vehicle:
     def update_position_clipped(self, flow_vel):
         """Updates my position within the global vehicle_list given the induced flow from other vehicles onto me"""
 
-        # import sys
-        # sys.exit()
-        # K is vehicle speed coefficient, a design parameter
-        # flow_vels = flow_vels * self.delta_t
-        #########################################
         # TODO currently array is 2D, so add a third dimension for compatibility
-        # V_des = flow_vel
         V_des = np.append(flow_vel, 0)
         #########################################
         # magnitude of the induced velocity vector
         mag = np.linalg.norm(V_des)
         # induced velocity unit vector
-        # if mag == 0 or np.isnan(mag):
         V_des_unit = V_des / mag
         self.desired_vectors.append(V_des_unit[:2].tolist())
 
-        # set z component to 0 TODO removed for now because focusing on 2d
-        #########################################
-        # V_des_unit[2] = 0
-        #########################################
-        # force mag to lie between 0 and 1
-        mag_clipped = np.clip(mag, 0.0, self.max_speed)  # 0.3 tello 0.5 pprz
-        # define new mag (rename for some reason)
-        # mag_clipped = mag  # This is Tellos max speed 30Km/h
-        # set the magnitude of the induced velocity vector to mag_converted (ie the clipped value between 0 and 1)
-        clipped_velocity = V_des_unit * mag_clipped
-        # multiply the flow velocity by some predefined constant, this is sort of like imposing the delaT
-        # change in position = ds = v dt so velocitygain is actually dt here
-        # delta_s = clipped_velocity * self.delta_t
         self.velocity = V_des_unit * self.max_speed
         delta_s = self.velocity * self.delta_t  # use unit velocity
 
@@ -380,11 +317,9 @@ class Vehicle:
 
     def update_position_max_radius(self, flow_vel: np.ndarray):
         """Updates my position within the global vehicle_list given the induced flow from other vehicles onto me"""
-        # print(f"{flow_vel=}")
         # magnitude of the induced velocity vector in 2D
         mag = np.linalg.norm(flow_vel)
         # induced velocity unit vector
-        # if mag == 0 or np.isnan(mag):
         unit_new_velocity = flow_vel / mag
         self.desired_vectors.append(unit_new_velocity.tolist())
 
@@ -410,7 +345,6 @@ class Vehicle:
                 # in numpy cross product of two 2d vectors returns the z component of the resulting vector
                 cross_product = np.cross(unit_new_velocity, unit_old_velocity)
 
-                # print(cross_product,unit_new_velocity,unit_old_velocity)
                 if cross_product > 0:
                     # clockwise
                     theta = -max_theta
@@ -430,7 +364,6 @@ class Vehicle:
 
         # multiply the flow velocity by some predefined constant to set max speed
         self.velocity = unit_new_velocity * self.max_speed
-        # print(self.velocity)
         delta_s = self.velocity * self.delta_t  # use unit velocity
 
         self.position = self.position + np.array(delta_s)
@@ -438,30 +371,21 @@ class Vehicle:
         self.path = np.vstack((self.path, self.position))
 
         if self.arrived(arrival_distance=self.ARRIVAL_DISTANCE):
-            print("")
             # goal has been reached
             self.state = 1
         return self.position
 
     def update_position_pid(self, flow_vel: ArrayLike) -> None:
         """Updates my position within the global vehicle_list given the induced flow from other vehicles onto me"""
-
         # magnitude of the induced velocity vector in 2D
         mag = np.linalg.norm(flow_vel)
         # induced velocity unit vector
-        # if mag == 0 or np.isnan(mag):
         unit_new_velocity = flow_vel / mag
-
-        # print(f"{self.ID}, {unit_new_velocity=}")
         self.desired_vectors.append(unit_new_velocity.tolist())
-        # speed = np.linalg.norm(self.velocity[:2])
-
         # define desired position
         desired_position = self.position[:2] + unit_new_velocity * self.delta_t * 10
 
         x_desired, y_desired = desired_position[0], desired_position[1]
-        # vx_desired, vy_desired = unit_new_velocity[0], unit_new_velocity[1]
-
         # define current position and velocity
         x, y = self.position[0], self.position[1]
         vx, vy = self.velocity[0], self.velocity[1]
@@ -470,21 +394,14 @@ class Vehicle:
         error_x = x_desired - x
         error_y = y_desired - y
 
-        # error_x = vx_desired - vx
-        # error_y = vy_desired - vy
-
         # obtain desired accelerations from pid controllers
         ax = self.pid_x.update(error_x, self.delta_t)
         ay = self.pid_y.update(error_y, self.delta_t)
 
         # define velocity limits
-        min_velocity, max_velocity = (
-            -1,
-            1,
-        )
+        min_velocity, max_velocity = (-1,1)
 
         # Adjust acceleration based on current velocity and limits
-        # print(vx, ax, max_velocity, min_velocity, self.delta_t)
         ax = self.pid_x.adjust_acceleration(
             vx, ax, max_velocity, min_velocity, self.delta_t
         )
@@ -493,18 +410,12 @@ class Vehicle:
         )
 
         self.pid_output.append([ax, ay])
-        # x, vx, y, vy = update_drone_state(x, vx, y, vy, ax, ay, dt)
         x, vx, y, vy = self.dynamics.update_state_verlet(
             x, vx, y, vy, ax, ay, self.delta_t
         )
         # set vehicle state to new state
         self.position = np.array([x, y, self.position[2]])
-        # self.position = np.array([x,y,self.position[2]])
-        # print(self.position)
         self.velocity[0], self.velocity[1] = vx, vy
-        # print(vx,vy)
-        # print(np.linalg.norm(self.velocity[:2]))
-        # print(vx,vy)
 
         self.path = np.vstack((self.path, self.position))
 
@@ -516,5 +427,4 @@ class Vehicle:
     def arrived(self, arrival_distance):
         """Similar to state but using the current live position"""
         arrived = np.linalg.norm(self.goal - self.position) < arrival_distance
-        return arrived  # 0.1 for 2d
-        # self.state = 1
+        return arrived 

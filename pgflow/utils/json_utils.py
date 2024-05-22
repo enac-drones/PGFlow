@@ -21,5 +21,3 @@ def dump_to_json(file_path: str, data: dict) -> dict:
         return None
 
 
-if __name__ == "__main__":
-    print(load_from_json("examples/test5.json").keys())

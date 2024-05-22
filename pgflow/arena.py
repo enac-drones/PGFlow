@@ -1,9 +1,4 @@
-# import math
-# import random
-
-# import matplotlib.pyplot as plt
 import numpy as np
-from scipy.spatial import ConvexHull
 from rtree import index
 
 from pgflow.building import Building
@@ -15,26 +10,18 @@ from numpy.typing import ArrayLike
 
 
 class ArenaMap:
-    inflation_radius = 0.2
+    inflation_radius = 0.0
     size = 0.04  # max size of a panel?
 
     def __init__(
         self,
         buildings: list[Building] = None,
-        # building_hulls=None,
-        # generate="manual",
-        # number_of_vehicles=1,
     ):
-        # self.panels = None
-        # self.inflation_radius = 0.2
-        # self.size = 0.02 #max size of a panel?
         self.wind = [0, 0]
         self.windT = 0
         self.buildings = buildings
         self.rtree_index = index.Index()
         self._create_rtree_index()
-
-        # this adds a sort of safety radius? Set to 0.2 previously, I will set it to 0 so it matches the exact buildings specified.
         self.Inflate(
             radius=self.inflation_radius
         )  # BUG Does weird clippings sometimes, eg when inflating a triangle #FIXME

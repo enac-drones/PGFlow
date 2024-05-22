@@ -1,10 +1,7 @@
 import sys
 
 sys.path.append("../")
-# import matplotlib
-# matplotlib.use("QtAgg")
 import matplotlib.pyplot as plt
-from matplotlib.patches import FancyArrowPatch
 import numpy as np
 
 # Import animation package
@@ -14,13 +11,10 @@ from matplotlib.axes import Axes
 # Import slider package
 from matplotlib.widgets import Slider, Button
 from matplotlib.lines import Line2D
-import matplotlib.colors as mcolors
 
-from typing import List
 from pgflow.vehicle import Vehicle
 from pgflow.cases import Case
 
-from typing import Iterable
 
 
 ############################################################################################################################################################
@@ -104,7 +98,6 @@ class PlotTrajectories:
 
         # again this line updates the plot, without it, the animation starts by default even though we have anim.event_source.stop()
         # perhaps there is a better way of doing this that I am not aware of.
-        # plt.pause(0.1)
         # the line below also appears to do the trick, and better
         self.fig.canvas.draw()
         # self.fig.canvas.flush_events()
@@ -115,12 +108,7 @@ class PlotTrajectories:
         self.slider.set_val(0.0)
 
     def update(self, val):
-        # return
-        # val self.slider.val is the same as val
-        # print(f"{val=}")
-        # print(self.time_steps_max)
         plot_until = int(np.floor(val * self.time_steps_max))
-        # self.modified_artists = []
         self.update_plot(plot_until)
         self.update_drone_positions(plot_until)
         self.update_warning_circles(plot_until)
@@ -130,15 +118,12 @@ class PlotTrajectories:
         plot_until = min(plot_until, self.time_steps_max - 1)
         self.handle_connecting_lines(plot_until)
         self.collision_handling()
-        # self.animation_proportion = val
 
     def animate(self, i):
         """Function that updates the slider and calls the update function. i is the FRAMES argument"""
         # obtain the slider value to 2dp
-        # self.fig.canvas.flush_events()
         self.modified_artists.clear()
         current_slider_value = round(self.slider.val, 2)
-        # print(f"{self.slider.val=}")
         # set i to the slider value so that the simulation stops when the slider reaches the end
         # it is 100x the slider value because the slider goes from 0 to 1 and the i from 0 to 99
         # FIXME need better logic to set the frame number to where the slider is
@@ -359,17 +344,7 @@ class PlotTrajectories:
             except IndexError:
                 [dx, dy] = self.vehicle_list[i].desired_vectors[-1]
             self.arrows[i].set_data(x=x, y=y, dx=dx, dy=dy, width=0.1)
-            # try:
-            #     # print(f"{plot_until=}")
-            #     prin
-            #     [dx,dy] = self.vehicle_list[i].desired_vectors[plot_until]
-            # except IndexError:
-            #     # print('wazaaa')
-            #     [dx,dy] = self.vehicle_list[i].desired_vectors[-1]
 
-            #     self.arrows[i].set_data(x=x, y=y, dx=dx,dy=dy,width=0.1)
-            # # self.modified_artists.add(self.drone_list[i])
-            # # self.positions[i] = [x, y, z]
 
     def update_warning_circles(self, plot_until):
         for i in range(len(self.warning_circles)):
@@ -455,16 +430,6 @@ class PlotTrajectories:
                     )  # 1 at no distance, 0 and max_distance
 
                     max_linewidth = 4
-                    # Create a colormap that transitions from green to red
-                    # cmap = plt.cm.RdYlGn_r  # 'RdYlGn_r' is the reversed Red-Yellow-Green colormap
-                    # cmap = plt.cm.Reds_r # Red black map
-
-                    # Normalize the distance value to range [0, 1]
-                    # norm = mcolors.Normalize(vmin=0, vmax=max_distance)
-                    # p_adjusted = p**2  # Adjust this power for desired transition. Higher values will make it red sooner.
-                    # color_value = cmap(norm(distance))
-                    # color_value = cmap(p_adjusted)
-                    # not using colour for now, but could be interesting
                     line = self.ax.plot(
                         x_values, y_values, "k-", alpha=p, lw=p * max_linewidth
                     )[
@@ -555,9 +520,7 @@ class PlotTrajectories:
             self.play_button.label.set_text("Pause")
             self.animation_running = True
         # this line seems to update the plot. Without it, the Play and Pause will not update until the mouse leaves the button area.
-        # plt.pause(0.1)
         self.fig.canvas.draw()
-        # self.fig.canvas.flush_events()
 
         return None
 
@@ -565,13 +528,10 @@ class PlotTrajectories:
     def stop(self):
         """function that can be called in the code to stop the animation"""
         # running is not a default attribute of the FuncAnimation object, but we have defined it ourselves lower down
-        # self.animation_running:
         self.anim.event_source.stop()
         self.play_button.label.set_text("Play")
         self.animation_running = False
-        # this line seems to update the plot. Without it, the Play and Pause will not update until the mouse leaves the button area.
         self.fig.canvas.draw()
-        # self.fig.canvas.flush_events()
         return None
 
     def on_press(self, event):
@@ -589,67 +549,3 @@ class PlotTrajectories:
         return None
 
 
-# FuncAnimation args:
-# (fig: Figure, func: (...) -> Iterable[Artist], frames: Iterable[Artist] | int | (() -> Generator) | None = ..., init_func: (() -> Iterable[Artist]) | None = ..., fargs: tuple[Any, ...] | None = ..., save_count: int | None = ..., *, cache_frame_data: bool = ..., **kwargs: Any) -> None
-# TimedAnimation subclass that makes an animation by repeatedly calling a function *func*.
-
-# Parameters
-# fig : ~matplotlib.figure.Figure
-#     The figure object used to get needed events, such as draw or resize.
-
-# func : callable
-#     The function to call at each frame. The first argument will be the next value in *frames*. Any additional positional arguments can be supplied using functools.partial or via the *fargs* parameter.
-
-#     The required signature is:
-
-#         def func(frame, *fargs) -> iterable_of_artists
-#     It is often more convenient to provide the arguments using functools.partial. In this way it is also possible to pass keyword arguments. To pass a function with both positional and keyword arguments, set all arguments as keyword arguments, just leaving the *frame* argument unset:
-
-#         def func(frame, art, *, y=None):
-#             ...
-
-#         ani = FuncAnimation(fig, partial(func, art=ln, y='foo'))
-#     If blit == True, *func* must return an iterable of all artists that were modified or created. This information is used by the blitting algorithm to determine which parts of the figure have to be updated. The return value is unused if blit == False and may be omitted in that case.
-
-# frames : iterable, int, generator function, or None, optional
-#     Source of data to pass *func* and each frame of the animation
-
-# If an iterable, then simply use the values provided. If the
-#       iterable has a length, it will override the *save_count* kwarg.
-
-# If an integer, then equivalent to passing range(frames)
-
-# If a generator function, then must have the signature:
-
-#          def gen_function() -> obj
-# If *None*, then equivalent to passing itertools.count.
-#     In all of these cases, the values in *frames* is simply passed through to the user-supplied *func* and thus can be of any type.
-
-# init_func : callable, optional
-#     A function used to draw a clear frame. If not given, the results of drawing from the first item in the frames sequence will be used. This function will be called once before the first frame.
-
-#     The required signature is:
-
-#         def init_func() -> iterable_of_artists
-#     If blit == True, *init_func* must return an iterable of artists to be re-drawn. This information is used by the blitting algorithm to determine which parts of the figure have to be updated. The return value is unused if blit == False and may be omitted in that case.
-
-# fargs : tuple or None, optional
-#     Additional arguments to pass to each call to *func*. Note: the use of functools.partial is preferred over *fargs*. See *func* for details.
-
-# save_count : int, optional
-#     Fallback for the number of values from *frames* to cache. This is only used if the number of frames cannot be inferred from *frames*, i.e. when it's an iterator without length or a generator.
-
-# interval : int, default: 200
-#     Delay between frames in milliseconds.
-
-# repeat_delay : int, default: 0
-#     The delay in milliseconds between consecutive animation runs, if *repeat* is True.
-
-# repeat : bool, default: True
-#     Whether the animation repeats when the sequence of frames is completed.
-
-# blit : bool, default: False
-#     Whether blitting is used to optimize drawing. Note: when using blitting, any animated artists will be drawn according to their zorder; however, they will be drawn on top of any previous artists, regardless of their zorder.
-
-# cache_frame_data : bool, default: True
-#     Whether frame data is cached. Disabling cache might be helpful when frames contain large objects.
