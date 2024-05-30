@@ -13,7 +13,7 @@ ArenaMap.inflation_radius = 0.0
 #gflow part
 file_name = "../../scenebuilder/demo1.json"
 file_name = 'parallel.json'
-case_name="scenebuilder"
+case_name="scenebuildr"
 # file_name = "examples/cases.json"
 # case_name="k"
 case = Cases.get_case(file_name, case_name)

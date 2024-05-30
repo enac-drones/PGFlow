@@ -238,6 +238,7 @@ class Cases:
             if user_input == "q":
                 sys.exit("Quitting simulation, please specify desired case")
             elif user_input == "d":
+                self._case_name = 'default'
                 break
             elif user_input in self.cases.keys():
                 self._case_name = user_input
