@@ -719,21 +719,6 @@ files = [
 ]
 
 [[package]]
-name = "scenebuilder"
-version = "0.2.1"
-description = "A simple GUI to create 2D scenes with obstacles and drone paths for multi-agent path planning algorithms"
-optional = false
-python-versions = ">=3.11"
-files = [
-    {file = "scenebuilder-0.2.1-py3-none-any.whl", hash = "sha256:475f4047e4462349e58f59f8020f335bed25987ea4fe396b0b1382f6ca1db016"},
-    {file = "scenebuilder-0.2.1.tar.gz", hash = "sha256:4c29ac0fa1ff76904475ea4806b9beba5b4f1098d62e6b54eb99ddac58d6cf75"},
-]
-
-[package.dependencies]
-matplotlib = ">=3.8.0,<4.0.0"
-numpy = ">=1.26.1,<2.0.0"
-
-[[package]]
 name = "scipy"
 version = "1.12.0"
 description = "Fundamental algorithms for scientific computing in Python"
@@ -846,4 +831,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.11"
-content-hash = "5e3bec52ffbdcd6ce405913889e9c11d7bd00312d719bd35e51aef301d89e1c1"
+content-hash = "f0c25f06b8a4f09e195ff3bc0b6115c5bb67d6ac15c4022eab3ed5c4cb483a04"

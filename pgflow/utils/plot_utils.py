@@ -288,7 +288,7 @@ class PlotTrajectories:
             )
             # add the circle to the plot
             ax.add_artist(warning_circle)
-            # print(*vehicle.desired_vectors[0])
+            # print(vehicle.ID,vehicle.desired_vectors)
 
             gflow_output_arrow = ax.arrow(x, y, *vehicle.desired_vectors[0], width=0.5)
 
@@ -341,9 +341,12 @@ class PlotTrajectories:
 
             try:
                 [dx, dy] = self.vehicle_list[i].desired_vectors[plot_until]
+                self.arrows[i].set_visible(True)
             except IndexError:
                 [dx, dy] = self.vehicle_list[i].desired_vectors[-1]
+                self.arrows[i].set_visible(False)
             self.arrows[i].set_data(x=x, y=y, dx=dx, dy=dy, width=0.1)
+            
 
 
     def update_warning_circles(self, plot_until):

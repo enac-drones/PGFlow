@@ -67,3 +67,4 @@ def run_simulation(case: Case, t=500, update_every: int = 1, stop_at_collision=F
     if collisions:
         return False
     return True
+

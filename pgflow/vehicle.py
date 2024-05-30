@@ -162,8 +162,9 @@ class Vehicle:
         self.position = np.array(pos)
         self.path = np.array(pos)
         self.path = self.path.reshape(1, 3)
-        if self.arrived(self.ARRIVAL_DISTANCE):
-            self.state = 1
+        #NOTE, removed the lines below as immediately setting the state to 1 is problematic
+        # if self.arrived(self.ARRIVAL_DISTANCE):
+        #     self.state = 1
 
     def Set_Goal(self, goal, goal_strength):
         self.goal = np.array(goal)
@@ -208,7 +209,6 @@ class Vehicle:
         mag = np.linalg.norm(V_des)
         # induced velocity unit vector
         V_des_unit = V_des / mag
-
         self.desired_vectors.append(V_des_unit[:2].tolist())
 
         # Define your current state X and control input U
