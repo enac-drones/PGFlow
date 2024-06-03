@@ -176,6 +176,11 @@ class Vehicle:
         # these are the flow velocities induced on every vehicle (based off the personal vehicle list), stored as a list
         flow_vels = self.panel_flow.Flow_Velocity_Calculation(self)
 
+        mag = np.linalg.norm(flow_vels)
+        # induced velocity unit vector
+        unit_new_velocity = flow_vels / mag
+        self.desired_vectors.append(unit_new_velocity.tolist())
+        
         if mode == "radius":
             self.update_position_max_radius(flow_vels)
         elif mode == "pid":
@@ -207,9 +212,9 @@ class Vehicle:
         #########################################
         # magnitude of the induced velocity vector
         mag = np.linalg.norm(V_des)
-        # induced velocity unit vector
+        # # induced velocity unit vector
         V_des_unit = V_des / mag
-        self.desired_vectors.append(V_des_unit[:2].tolist())
+        # self.desired_vectors.append(V_des_unit[:2].tolist())
 
         # Define your current state X and control input U
         X = np.array(
@@ -219,6 +224,7 @@ class Vehicle:
         # Calculate the next state directly
         X_next = self.matA @ X + self.matB @ U
 
+        # position and velocity updated
         self.position, self.velocity = X_next[:3], X_next[3:6]
         self.path = np.vstack((self.path, self.position))
 
@@ -239,7 +245,7 @@ class Vehicle:
         # if mag == 0 or np.isnan(mag):
         V_des_unit = V_des / mag
 
-        self.desired_vectors.append(V_des_unit[:2].tolist())
+        # self.desired_vectors.append(V_des_unit[:2].tolist())
 
         # Define your current state X and control input U
         X = np.array(
@@ -300,7 +306,7 @@ class Vehicle:
         mag = np.linalg.norm(V_des)
         # induced velocity unit vector
         V_des_unit = V_des / mag
-        self.desired_vectors.append(V_des_unit[:2].tolist())
+        # self.desired_vectors.append(V_des_unit[:2].tolist())
 
         self.velocity = V_des_unit * self.max_speed
         delta_s = self.velocity * self.delta_t  # use unit velocity
@@ -321,7 +327,7 @@ class Vehicle:
         mag = np.linalg.norm(flow_vel)
         # induced velocity unit vector
         unit_new_velocity = flow_vel / mag
-        self.desired_vectors.append(unit_new_velocity.tolist())
+        # self.desired_vectors.append(unit_new_velocity.tolist())
 
         speed = np.linalg.norm(self.velocity[:2])
         if speed == 0:
@@ -381,7 +387,7 @@ class Vehicle:
         mag = np.linalg.norm(flow_vel)
         # induced velocity unit vector
         unit_new_velocity = flow_vel / mag
-        self.desired_vectors.append(unit_new_velocity.tolist())
+        # self.desired_vectors.append(unit_new_velocity.tolist())
         # define desired position
         desired_position = self.position[:2] + unit_new_velocity * self.delta_t * 10
 

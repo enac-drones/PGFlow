@@ -25,6 +25,7 @@ def step_simulation(case: Case):
             pass
         # if the current vehicle has arrived, do nothing, continue looking at the other vehicles
         if vehicle.state == 1:
+            vehicle.desired_vectors.append([0,0])
             continue
         # update the vehicle's personal knowledge of other drones by only keeping those that meet specific conditions:
         # not too far, have not arrived yet, and are transmitting.
