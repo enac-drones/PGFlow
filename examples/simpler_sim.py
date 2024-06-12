@@ -8,12 +8,11 @@ from pgflow.arena import ArenaMap
 #scenebuilder part
 # p = SceneBuilder()
 # p.draw_scene() 
-ArenaMap.inflation_radius = 0.0
+# ArenaMap.inflation_radius = 0.0
 
 #gflow part
-file_name = "../../scenebuilder/demo1.json"
-file_name = 'parallel.json'
-case_name="scenebuildr"
+file_name = 'scenebuilder.json'
+case_name="scenebuilder"
 # file_name = "examples/cases.json"
 # case_name="k"
 case = Cases.get_case(file_name, case_name)
@@ -24,13 +23,10 @@ set_new_attribute(case, "imag_source_strength", new_attribute_value=1)
 set_new_attribute(case, "source_strength", new_attribute_value=1)
 set_new_attribute(case,"v_free_stream_mag", new_attribute_value=0.0)
 set_new_attribute(case,"ARRIVAL_DISTANCE", new_attribute_value=0.1)
-
-
 set_new_attribute(case, "turn_radius", new_attribute_value=0.05)
 case.max_avoidance_distance = 5
 case.building_detection_threshold = 1
 # case.arrival_distance = 0.0000001
-
 
 case.mode = ''
 result = run_simulation(
