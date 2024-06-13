@@ -199,7 +199,7 @@ class Vehicle:
         X = np.array(
             [*self.position, *self.velocity]
         )  # Example values for current state
-        V_des = np.append(flow_vel, 0)
+        V_des = np.append(flow_vel, 0)*self.max_speed
         self.position = get_next_X(X, V_des, delta_t=2, num_points=5)[
             :3
         ]  # position 0.5 seconds in the future

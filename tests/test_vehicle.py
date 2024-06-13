@@ -1,5 +1,5 @@
 import pytest
-from pgflow.vehicle import Vehicle
+from PGFlow.vehicle import Vehicle
 import numpy as np
 
 
