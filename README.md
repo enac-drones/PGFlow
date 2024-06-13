@@ -4,11 +4,8 @@ Multi-agent plath planning algorithm with which agents can avoid other agents an
 
 To run simple example, see `examples/` directory.
 
-To run with more complex visualisers and with a pybullet drone simulator, see FLightHouse:
+To run with more complex visualisers and with a pybullet drone simulator, see [FLightHouse](https://github.com/enac-drones/flighthouse).
 
-```
-https://github.com/enac-drones/flighthouse
-```
 
 <p align="center">
   <img src="./assets/vis2d.png" alt="Image 1" width="200"/>
