@@ -4,7 +4,7 @@ from pgflow import PlotTrajectories
 from pgflow import SimulationVisualizer
 
 file_name = 'voliere.json'
-case_name="scenebuilder"
+case_name ="scenebuilder"
 
 case = Cases.get_case(file_name, case_name)
 set_new_attribute(case, "sink_strength", new_attribute_value=5)
@@ -29,16 +29,17 @@ result = run_simulation(
 file_name = 'example_output.json'
 case.to_dict(file_path=file_name)
 
+# Use the original visualiser
 trajectory_plot = PlotTrajectories(file_name, collision_threshold=0.5, max_connection_distance=case.max_avoidance_distance, update_every=1)
 
 # specify new axes plot limits if desired
 LIMS = (-5,5)
 trajectory_plot.ax.set_xlim(LIMS)
 trajectory_plot.ax.set_ylim(LIMS)
-# Visualise the trajectories
+# Show the trajectories
 trajectory_plot.show()
 
 
-# Use the second visualiser
+# Use the alternative visualiser
 visualizer = SimulationVisualizer(file_name)
 visualizer.show_plot()
