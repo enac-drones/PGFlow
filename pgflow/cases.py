@@ -224,7 +224,10 @@ class Cases:
         if new_name in self.cases.keys():
             self._case_name = new_name
         else:
-            self.select_case(new_name=new_name)
+            print(f'Error: {new_name} is an invalid case name. Valid cases are: {list(self.cases.keys())}')
+            exit()
+            # Unfortunately allowing the user to select a case manually is creating a lot of cnfussion...
+            # self.select_case(new_name=new_name)
 
     def select_case(self, new_name):
         """Allow the user to select a case manually. This function is called if the case requested does not exist"""
