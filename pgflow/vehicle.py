@@ -170,6 +170,13 @@ class Vehicle:
         self.goal = np.array(goal)
         self.sink_strength = goal_strength
 
+    def run_flow_vel_calc_only(self):
+        flow_vels = self.panel_flow.Flow_Velocity_Calculation(self)
+        mag = np.linalg.norm(flow_vels)
+        # induced velocity unit vector
+        unit_vector = flow_vels / mag
+        return unit_vector
+    
     def run_simple_sim(self, mode: str):
         """run one iteration of the simulation
         mode:str (standard | radius | pid)"""
