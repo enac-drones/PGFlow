@@ -40,7 +40,8 @@ class Vehicle:
         self.sink_strength: float = 0
         self.imag_source_strength: float = imag_source_strength
 
-        self.max_avoidance_distance: float = 20
+        self.max_avoidance_distance: float = 20.
+        self.building_detection_threshold: float = 20
         self.panel_flow = PanelFlow(self)
         Kp, Ki, Kd = 40, 0.1, 30
         self.dynamics = VehicleDynamics(mass=1, min_accel=-2, max_accel=2)
@@ -322,8 +323,8 @@ class Vehicle:
 
         self.path = np.vstack((self.path, self.position))
 
+
         if self.arrived(arrival_distance=self.ARRIVAL_DISTANCE):
-            # print("goal is reached")
             # goal has been reached
             self.state = 1
         return self.position
@@ -433,11 +434,10 @@ class Vehicle:
         self.path = np.vstack((self.path, self.position))
 
         if self.arrived(arrival_distance=self.ARRIVAL_DISTANCE):
-            # print("goal is reached")
             # goal has been reached
             self.state = 1
 
     def arrived(self, arrival_distance):
         """Similar to state but using the current live position"""
-        arrived = np.linalg.norm(self.goal - self.position) < arrival_distance
+        arrived = np.linalg.norm(self.goal[:2] - self.position[:2]) < arrival_distance
         return arrived 

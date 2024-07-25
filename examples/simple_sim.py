@@ -4,7 +4,7 @@ from pgflow import run_simulation, set_new_attribute
 from pgflow import PlotTrajectories 
 from pgflow import SimulationVisualizer
 
-file_name = 'voliere.json'
+file_name = 'examples/voliere.json'
 case_name ="scenebuilder"
 
 
@@ -16,8 +16,8 @@ set_new_attribute(case, "source_strength", new_attribute_value=1)
 set_new_attribute(case, "v_free_stream_mag", new_attribute_value=0.0)
 set_new_attribute(case, "ARRIVAL_DISTANCE", new_attribute_value=0.1)
 set_new_attribute(case, "turn_radius", new_attribute_value=0.05)
-case.max_avoidance_distance = 5
-case.building_detection_threshold = 10
+case.max_avoidance_distance = 1
+case.building_detection_threshold = 3
 case.mode = ''
 
 stop_at_collision = False

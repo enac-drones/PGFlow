@@ -2,28 +2,37 @@ from pgflow import Cases
 from pgflow import run_simulation, set_new_attribute
 from pgflow import PlotTrajectories 
 from pgflow import SimulationVisualizer
+import numpy as np
 
-file_name = 'voliere.json'
+file_name = 'examples/voliere.json'
 case_name ="scenebuilder"
 
+# from pgflow import ArenaMap
+# ArenaMap.inflation_radius=0.0
+# ArenaMap.size = 0.1
+
 case = Cases.get_case(file_name, case_name)
+
+set_new_attribute(case, "imag_source_strength", new_attribute_value=10)
 set_new_attribute(case, "sink_strength", new_attribute_value=5)
 set_new_attribute(case, "max_speed", new_attribute_value=0.5)
-set_new_attribute(case, "imag_source_strength", new_attribute_value=1)
 set_new_attribute(case, "source_strength", new_attribute_value=1)
-set_new_attribute(case,"v_free_stream_mag", new_attribute_value=0.0)
-set_new_attribute(case,"ARRIVAL_DISTANCE", new_attribute_value=0.1)
+set_new_attribute(case,"v_free_stream_mag", new_attribute_value=0.5)
+set_new_attribute(case,"ARRIVAL_DISTANCE", new_attribute_value=0.2)
 set_new_attribute(case, "turn_radius", new_attribute_value=0.05)
-case.max_avoidance_distance = 5
-case.building_detection_threshold = 10
+# set_new_attribute(case, "goal", new_attribute_value=np.array([34.06, -8.23 ,2]))
+
+case.max_avoidance_distance = 4
+case.building_detection_threshold = 1.
 
 case.mode = ''
 result = run_simulation(
     case,
-    t=1500,
+    t=3500,
     update_every=1,
     stop_at_collision=False
     )
+
 
 # save simulation to output json file
 file_name = 'example_output.json'

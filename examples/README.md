@@ -1,13 +1,9 @@
 # Example usage of PGFlow
 
-First cd into the examples/ directory:
+Run the simple example in package mode:
 
 ```
-cd examples/
-```
-Run the simple example:
-```
-python3 simple_sim.py
+python3 -m examples.simple_sim
 ```
 
 You should now have a visualisation of the case defined in `voliere.json`. The result of the simulation is stored in `example_output.json`.

@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pgflow"
-version = "0.2.9"
+version = "0.3.1"
 description = "Artificial potential field based guidance algorithm for multi agent systems"
 authors = ["adriandelser <adrian.delser@gmail.com>"]
 readme = "README.md"

@@ -26,7 +26,7 @@ class Case:
         self._arena: ArenaMap = None
         self.collision_threshold: float = 0.5
         self._max_avoidance_distance: float = 20.0
-        self.building_detection_threshold: float = 10.0
+        self._building_detection_threshold: float = 10.0
         self.mode = "standard"
         self.arrival_distance = 0.5
 
@@ -72,6 +72,16 @@ class Case:
         self._max_avoidance_distance = new_max
         for vehicle in self._vehicle_list:
             vehicle.max_avoidance_distance = new_max
+    
+    @property
+    def building_detection_threshold(self) -> float:
+        return self._building_detection_threshold
+
+    @building_detection_threshold.setter
+    def building_detection_threshold(self, new_threshold: float):
+        self._building_detection_threshold = new_threshold
+        for vehicle in self._vehicle_list:
+            vehicle.building_detection_threshold = new_threshold
 
     @property
     def arena(self):
