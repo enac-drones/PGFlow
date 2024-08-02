@@ -2,7 +2,11 @@
 name = "pgflow"
 version = "0.3.1"
 description = "Artificial potential field based guidance algorithm for multi agent systems"
-authors = ["adriandelser <adrian.delser@gmail.com>"]
+authors = [
+    {author = "Zeynep Bilgin", email = "zeynep.bilgin@tum.de"},
+    {author = "Murat Bronz", email = "muratbronz@gmail.com"},
+   ]
+maintainer = ["adriandelser <adrian.delser@gmail.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
